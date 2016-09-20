@@ -18,7 +18,7 @@ class ResultTest < Minitest::Spec
 
   class Create < Trailblazer::Operation
     # Trailblazer#result[:message] = _t("Please log in, Regulator!")
-    # Trailblazer::result :@message # adds to result after Operation#call.
+    # Trailblazer::result/::expose :@message # adds to result after Operation#call.
 
     def call(**)
       { status: :ok, model: Object, operation: self }
