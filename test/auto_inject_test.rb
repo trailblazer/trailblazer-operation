@@ -12,9 +12,16 @@ class DryAutoInjectTest < Minitest::Spec
     include AutoInject[:user_repository]
   end
 
-  it "what" do
+  it "auto-injects user_repository" do
     op = Create.()
     op.user_repository.must_equal Object
+  end
+
+  describe "inheritance" do
+    class Update < Create
+    end
+
+    it { Update.().user_repository.must_equal Object }
   end
 
 
