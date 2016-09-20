@@ -23,19 +23,6 @@ class DryAutoInjectTest < Minitest::Spec
 
     it { Update.().user_repository.must_equal Object }
   end
-
-
-  # class A
-  #   def initialize(**args)
-  #     # super
-  #   end
-  # end
-
-  # class B < A
-  #   include AutoInject[:user_repository]
-  # end
-
-  # B.new({})
 end
 
 
