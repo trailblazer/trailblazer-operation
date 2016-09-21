@@ -3,9 +3,9 @@ module Trailblazer
     VERSION = "1.2.0"
 
     class << self
-      def call(*args)
+      def call(**args)
         # TODO: builder!
-        new(*args).call
+        new(**args).result(args[:params] || {})
       end
     end
 
@@ -13,8 +13,12 @@ module Trailblazer
 
     end
 
-    def call(*)
+    def result(**) # receives args[:params]
+      call#(*)
       self
+    end
+
+    def call(**)
     end
   end
 end

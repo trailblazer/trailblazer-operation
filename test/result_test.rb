@@ -1,6 +1,4 @@
 require "test_helper"
-
-
 require "dry-matcher"
 module Trailblazer::Operation::Result
 end
@@ -20,8 +18,14 @@ class ResultTest < Minitest::Spec
     # Trailblazer#result[:message] = _t("Please log in, Regulator!")
     # Trailblazer::result/::expose :@message # adds to result after Operation#call.
 
-    def call(**)
-      { status: :ok, model: Object, operation: self }
+    def result(**args)
+      call(**args)
+
+      { status: :ok, model: Object, operation: self, valid: true }
+    end
+
+    def call(**args)
+
     end
   end
 
@@ -37,3 +41,14 @@ class ResultTest < Minitest::Spec
     end
   end
 end
+
+
+# op --> http
+# ok --> 200
+# created --> 201 (?)
+# unauthorized --> 401
+
+
+# Create.() => Create.new.() # so it works with dry .new.(), eventually
+
+# do we want #call or the "old" #process?

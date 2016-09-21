@@ -17,6 +17,10 @@ class DryAutoInjectTest < Minitest::Spec
     op.user_repository.must_equal Object
   end
 
+  it "allows dependency injection via ::call" do
+    Create.(user_repository: String).user_repository.must_equal String
+  end
+
   describe "inheritance" do
     class Update < Create
     end

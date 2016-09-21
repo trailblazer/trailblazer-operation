@@ -6,3 +6,4 @@ gemspec
 gem "multi_json"
 
 gem "dry-auto_inject"
+gem "dry-matcher"
