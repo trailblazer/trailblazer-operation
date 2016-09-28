@@ -5,20 +5,28 @@ module Trailblazer
     class << self
       def call(**args)
         # TODO: builder!
-        new(**args).result(args[:params] || {})
+        new(**args).call(args[:params] || {})
       end
     end
 
     def initialize(**args)
-
+      @valid = true
     end
 
-    def result(**) # receives args[:params]
-      call#(*)
-      self
+    def call(**) # receives args[:params]
+      result(process)#(*)
     end
 
-    def call(**)
+  private
+    def process(**)
+    end
+
+    # Compute the result object.
+    def result(returned, **)
+      { valid: @valid, operation: self }#.merge(returned)
     end
   end
 end
+
+# initialize: @result = {}
+# call -> merge .process

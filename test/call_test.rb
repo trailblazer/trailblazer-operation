@@ -5,6 +5,7 @@ class CallTest < Minitest::Spec
     class Create < Trailblazer::Operation
     end
 
-    it { Create.().must_be_instance_of Create }
+    # in 1.2, ::() returns op instance.
+    it { Create.()[:operation].must_be_instance_of Create }
   end
 end
