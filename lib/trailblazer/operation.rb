@@ -5,7 +5,11 @@ module Trailblazer
     class << self
       def call(**args)
         # TODO: builder!
-        new(**args).call(args[:params] || {})
+        build_operation(args).call(args[:params] || {})
+      end
+
+      def build_operation(**args)
+        new(**args)
       end
     end
 

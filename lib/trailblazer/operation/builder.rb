@@ -20,8 +20,7 @@ private
     class_builder(self).(*args) # Uber::Builder::class_builder(context)
   end
 
-  def build_operation(params, options={})
-    # build_operation_class(params).new(params, options)
-    build_operation_class(params).new(options.merge(params: params))
+  def build_operation(**args)
+    build_operation_class(**args).new(**args)
   end
 end
