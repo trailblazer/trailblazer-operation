@@ -3,26 +3,26 @@ module Trailblazer
     VERSION = "1.2.0"
 
     class << self
-      def call(**args)
-        # TODO: builder!
-        build_operation(args).call(args[:params] || {})
+      # The default API is Operation.(params, dependencies:Hash)
+      def call(params={}, *options)
+        build_operation(params, *options).call(params)
       end
 
-      def build_operation(**args)
-        new(**args)
+      def build_operation(params, *options)
+        new(params, *options)
       end
     end
 
-    def initialize(**args)
+    def initialize(params, *options)
       @valid = true
     end
 
-    def call(**args) # receives args[:params]
-      result(process(args))#(*)
+    def call(params) # receives args[:params]
+      result(process(params))#(*)
     end
 
   private
-    def process(**)
+    def process(*)
     end
 
     # Compute the result object.

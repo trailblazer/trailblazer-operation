@@ -8,7 +8,7 @@ class BuilderTest < MiniTest::Spec
     class Sub < self
     end
 
-    builds do |params|
+    builds do |params, *|
       Sub if params[:sub]
     end
   end
@@ -23,7 +23,7 @@ class OperationBuilderClassTest < MiniTest::Spec
   class SuperOperation < Trailblazer::Operation
     extend Builder
 
-    builds do |params|
+    builds do |params, *|
       self::Sub if params[:sub] # Sub is defined in ParentOperation.
     end
   end
