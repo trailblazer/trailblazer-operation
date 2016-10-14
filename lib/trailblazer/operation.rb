@@ -3,7 +3,7 @@ module Trailblazer
     VERSION = "1.2.0"
 
     class << self
-      # The default API is Operation.(params, dependencies:Hash)
+      # The default API is Operation.(params, dependencies={})
       def call(params={}, *options)
         build_operation(params, *options).call(params)
       end
@@ -13,8 +13,9 @@ module Trailblazer
       end
     end
 
-    def initialize(params, *options)
+    def initialize(params, instance_attrs={})
       @valid = true
+      @instance_attrs = instance_attrs
     end
 
     def call(params) # receives args[:params]
@@ -26,8 +27,12 @@ module Trailblazer
     end
 
     # Compute the result object.
-    def result(returned, **)
+    def result(returned, *)
       { valid: @valid, operation: self }#.merge(returned)
+    end
+
+    def [](attr_name)
+      @instance_attrs[attr_name]
     end
 
     # DISCUSS: do we want that per default?
