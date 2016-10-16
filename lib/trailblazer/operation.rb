@@ -18,9 +18,14 @@ module Trailblazer
       @instance_attrs = instance_attrs
     end
 
-    def call(params) # receives args[:params]
+    def call(params)
       result(process(params))#(*)
     end
+
+    # dependency injection interface
+    require "uber/delegates"
+    extend Uber::Delegates
+    delegates :@instance_attrs, :[], :[]=
 
   private
     def process(*)
@@ -31,9 +36,6 @@ module Trailblazer
       { valid: @valid, operation: self }#.merge(returned)
     end
 
-    def [](attr_name)
-      @instance_attrs[attr_name]
-    end
 
     # DISCUSS: do we want that per default?
     module State
