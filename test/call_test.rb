@@ -24,7 +24,7 @@ class CallTest < Minitest::Spec
 
   describe "#invalid!" do
     class Delete < Trailblazer::Operation
-      def process(invalid:, **)
+      def process(invalid:)
         invalid! if invalid
       end
     end

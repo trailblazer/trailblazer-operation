@@ -14,5 +14,3 @@ class DryContainerTest < Minitest::Spec
   it { Create.({}, my_container)[:operation]["user_repository"].must_equal Object }
   it { Create.({}, my_container)[:operation]["contract.create"].must_equal Array }
 end
-
-
