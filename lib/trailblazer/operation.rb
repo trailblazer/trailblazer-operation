@@ -15,8 +15,8 @@ module Trailblazer
     end
 
     def initialize(params, instance_attrs={})
-      @valid = true
       @instance_attrs = instance_attrs
+      result[:valid]  = true
     end
 
     def call(params)
@@ -33,22 +33,24 @@ module Trailblazer
     end
 
     # Compute the result object.
+    # Feel free to override this.
     def result!(returned, *)
-      { valid: @valid, operation: self }#.merge(returned)
+      result.merge({ operation: self })#.merge(returned)
     end
 
+    def result
+      @result ||= {}
+    end
 
     # DISCUSS: do we want that per default?
     module State
       module Valid
         def invalid!
-          @valid = false
+          result[:valid] = false
         end
       end
     end
     include State::Valid # #invalid! - should we have that per default?
-
-
   end
 end
 

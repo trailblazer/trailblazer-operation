@@ -17,7 +17,14 @@ class ResultTest < Minitest::Spec
   class Create < Trailblazer::Operation
     # Trailblazer#result[:message] = _t("Please log in, Regulator!")
     # Trailblazer::result/::expose :@message # adds to result after Operation#call.
+
+    def process(*)
+      result[:message] = "Result objects are actually quite handy!"
+    end
   end
+
+  # #result[]= allows to set arbitrary k/v pairs.
+  it { Create.()[:message].must_equal "Result objects are actually quite handy!" }
 
   it "what" do
     res = Create.()
