@@ -8,6 +8,7 @@ module Trailblazer
         build_operation(params, *options).call(params)
       end
 
+      # DISCUSS: rename to build?
       def build_operation(params, *options)
         new(params, *options)
       end
@@ -19,7 +20,7 @@ module Trailblazer
     end
 
     def call(params)
-      result(process(params))#(*)
+      result!(process(params))#(*)
     end
 
     # dependency injection interface
@@ -32,7 +33,7 @@ module Trailblazer
     end
 
     # Compute the result object.
-    def result(returned, *)
+    def result!(returned, *)
       { valid: @valid, operation: self }#.merge(returned)
     end
 
@@ -46,6 +47,8 @@ module Trailblazer
       end
     end
     include State::Valid # #invalid! - should we have that per default?
+
+
   end
 end
 
