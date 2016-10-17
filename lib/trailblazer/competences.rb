@@ -19,10 +19,31 @@ module Trailblazer
     end
 
     class Build
-      def call(constant, &block)
-        competence_class = Class.new(constant)
-        competence_class.class_eval(&block) if block_given?
-        # TODO: allow overriding construction.
+      # options[:prefix]
+      # options[:class]
+      def call(options, name=nil, constant=nil, &block)
+        # contract MyForm
+        if name.is_a?(Class)
+          constant = name
+          name = nil
+        end
+
+        # contract do .. end
+        # contract :params do .. end
+        # => default to e.g. Reform::Form or Disposable::Twin.
+        constant = options[:class] if constant.nil? && block_given?
+
+        path = path_name(options[:prefix], name)
+
+        competence = Class.new(constant) if constant
+        competence.class_eval(&block) if block_given?
+
+        [path, competence]
+      end
+
+    private
+      def path_name(prefix, name)
+        [prefix, name, "class"].compact.join(".") # "contract.class" for default, otherwise "contract.params.class" etc.
       end
     end
 
