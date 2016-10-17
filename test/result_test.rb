@@ -1,3 +1,5 @@
+# TODO: remove :operation instance from Result! it's a use-once concept.
+
 require "test_helper"
 require "dry-matcher"
 module Trailblazer::Operation::Result
@@ -51,3 +53,4 @@ end
 
 # Create.() => Create.new.() # so it works with dry .new.(), eventually
 # do we want #call or the "old" #process?
+
