@@ -8,6 +8,7 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    benchmark-ips (2.6.1)
     concurrent-ruby (1.0.2)
     declarative (0.0.8)
       uber (>= 0.0.15)
@@ -30,6 +31,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  benchmark-ips
   bundler
   dry-auto_inject
   dry-matcher

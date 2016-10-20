@@ -1,13 +1,5 @@
 require "test_helper"
-
 require "trailblazer/skill"
-
-
-  def contract(name=:default)
-    # if nothing passed, return
-    @contract ||= competence["contract.class"].new
-
-  end
 
 class SkillTest < Minitest::Spec
   Skill = Trailblazer::Skill
@@ -44,17 +36,20 @@ class SkillTest < Minitest::Spec
 
       runtime_competences = { "contract" => MyContract=Class.new, "model.class" => Integer }
 
-      competences = Skill.new(runtime_competences, class_level_container)
+      skill = Skill.new(runtime_competences, class_level_container)
+
+      # non-existent key.
+      skill[:nope].must_equal nil
 
       # from runtime.
-      competences["contract"].must_equal MyContract
+      skill["contract"].must_equal MyContract
       # from compile-time.
-      competences["contract.class"].must_equal Object
+      skill["contract.class"].must_equal Object
       # runtime supersedes compile-time.
-      competences["model.class"].must_equal Integer
+      skill["model.class"].must_equal Integer
 
-      competences["model.class"] = Fixnum
-      competences["model.class"].must_equal Fixnum
+      skill["model.class"] = Fixnum
+      skill["model.class"].must_equal Fixnum
     end
   end
 end
