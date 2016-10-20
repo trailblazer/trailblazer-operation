@@ -21,16 +21,5 @@ class CallTest < Minitest::Spec
     it { Create.(name: "Jacob")[:operation].inspect.must_equal "{:name=>\"Jacob\"} {}" }
     it { Create.({ name: "Jacob" }, { policy: Object })[:operation].inspect.must_equal "{:name=>\"Jacob\"} {:policy=>Object}" }
   end
-
-  describe "#invalid!" do
-    class Delete < Trailblazer::Operation
-      def process(invalid:)
-        invalid! if invalid
-      end
-    end
-
-    it { Delete.(invalid: false)[:valid].must_equal true }
-    it { Delete.(invalid: true)[:valid].must_equal false }
-  end
 end
 

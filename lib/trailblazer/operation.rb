@@ -41,16 +41,6 @@ module Trailblazer
     def result
       @result ||= {}
     end
-
-    # DISCUSS: do we want that per default?
-    module State
-      module Valid
-        def invalid!
-          result[:valid] = false
-        end
-      end
-    end
-    include State::Valid # #invalid! - should we have that per default?
   end
 end
 
