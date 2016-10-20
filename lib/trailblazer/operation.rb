@@ -1,24 +1,18 @@
 module Trailblazer
+  # The Trailblazer-style operation.
+  # Note that you don't have to use our "opinionated" version with result object, skills, etc.
+  #
+  # per default, an operation has a binary result: success/invalid
   class Operation
     VERSION = "1.2.0"
 
+    # we want the initializer and the ::call method.
     require "trailblazer/operation/generic"
-    include Generic
-    extend Generic::ClassMethods
+    include Generic               # #initialize, #call, #process.
+    extend Generic::ClassMethods  # ::call, ::build_operation.
+
+    # we want the skill dependency-mechanism.
+    require "trailblazer/operation/skill"
+    include Trailblazer::Operation::Skill
   end
 end
-
-# initialize: @result = {}
-# call -> merge .process
-
-# per default, an operation has a binary result: success/invalid
-# an attempt to cleanup before 2.0 with pipetree
-
-# TODO:
-# Deprecation::Run (old semantics!)
-# Make ::builds work "anywhere", without Op interface
-
-# CHANGES:
-# * Removed `Operation::[]` in favor of `Operation::()`.
-# * `Operation#invalid!` doesn't accept a result anymore.
-# * Removed `Operation#valid?` in favor of the result object.
