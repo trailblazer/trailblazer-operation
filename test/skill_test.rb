@@ -1,6 +1,6 @@
 require "test_helper"
 
-require "trailblazer/competences"
+require "trailblazer/skill"
 
 
   def contract(name=:default)
@@ -9,8 +9,8 @@ require "trailblazer/competences"
 
   end
 
-class CompetencesTest < Minitest::Spec
-  Competences = Trailblazer::Competences
+class SkillTest < Minitest::Spec
+  Skill = Trailblazer::Skill
   # it { Competence::Build.new.(Object) ->(*) { def } }
 
   # Resolver (do we need it?)
@@ -36,20 +36,20 @@ class CompetencesTest < Minitest::Spec
   # end
 
 
-  describe "Competences" do
+  describe "Skill" do
     it do
-      class_level_container = Competences::Container.new
-      class_level_container["contract.class"] = Competences::Build.new.(Object) # Create::contract Contract::Create
+      class_level_container = {}
+      class_level_container["contract.class"] = Object # Create::contract Contract::Create
       class_level_container["model.class"] = String
 
       runtime_competences = { "contract" => MyContract=Class.new, "model.class" => Integer }
 
-      competences = Competences.new(runtime_competences, class_level_container)
+      competences = Skill.new(runtime_competences, class_level_container)
 
       # from runtime.
       competences["contract"].must_equal MyContract
       # from compile-time.
-      competences["contract.class"].class.superclass.must_equal Object
+      competences["contract.class"].must_equal Object
       # runtime supersedes compile-time.
       competences["model.class"].must_equal Integer
 

@@ -11,13 +11,13 @@ class InstanceAttrTest < Minitest::Spec
   it { Create.({}, contract: Object)[:operation].send(:[], :contract).must_equal Object }
 end
 
-require "trailblazer/operation/competences"
+require "trailblazer/operation/skill"
 class OperationCompetenceTest < Minitest::Spec
   # Operation#[]
   # Operation#[]=
   # arbitrary options can be saved via Op#[].
   class Create < Trailblazer::Operation
-    include Competences
+    include Skill
     def call(*)
       self["drink"] = "Little Creatures"
       self["drink"]
@@ -31,7 +31,7 @@ class OperationCompetenceTest < Minitest::Spec
   # Operation::[]
   # Operation::[]=
   class Update < Trailblazer::Operation
-    include Competences
+    include Skill
     self["drink"] = "Beer"
 
     def call(*)
@@ -49,7 +49,7 @@ class OperationCompetenceTest < Minitest::Spec
 
   # instance can override class-level
   class Delete < Trailblazer::Operation
-    include Competences
+    include Skill
     self["drink"] = "Beer"
 
     def call(*)
