@@ -29,7 +29,7 @@ module Trailblazer
 
       def [](name)
         # @containers.each { |container| return container[name] if container[name] }
-        result = @containers.find { |container| container[name] } and result[name] # FIXME: how can we avoid the second lookup?
+        result = @containers.find { |container| val = container[name] and (return val) }
       end
     end
   end
