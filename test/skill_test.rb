@@ -30,13 +30,17 @@ class SkillTest < Minitest::Spec
 
   describe "Skill" do
     it do
-      class_level_container = {}
-      class_level_container["contract.class"] = Object # Create::contract Contract::Create
-      class_level_container["model.class"] = String
+      class_level_container = {
+        "contract.class" => Object,
+        "model.class" => String
+      }
 
-      runtime_competences = { "contract" => MyContract=Class.new, "model.class" => Integer }
+      runtime_skills = {
+        "contract" => MyContract=Class.new,
+        "model.class" => Integer
+      }
 
-      skill = Skill.new(runtime_competences, class_level_container)
+      skill = Skill.new(runtime_skills, class_level_container)
 
       # non-existent key.
       skill[:nope].must_equal nil
@@ -50,6 +54,13 @@ class SkillTest < Minitest::Spec
 
       skill["model.class"] = Fixnum
       skill["model.class"].must_equal Fixnum
+
+      # add new tuple.
+      skill["user.current"] = "Todd"
+
+      # original container don't get changed
+      class_level_container.inspect.must_equal %{{"contract.class"=>Object, "model.class"=>String}}
+      runtime_skills.inspect.must_equal %{{"contract"=>SkillTest::MyContract, "model.class"=>Integer}}
     end
   end
 end
