@@ -26,8 +26,13 @@ module Trailblazer
       end
 
       def [](name)
-        result = @containers.find { |container| val = container[name] and (return val) }
+        @containers.find { |container| val = container[name] and (return val) }
       end
+    end
+
+    # private API.
+    def inspect
+      "<Skill #{@resolver.instance_variable_get(:@containers).collect { |c| c.inspect }.join(" ")}>"
     end
   end
 end
