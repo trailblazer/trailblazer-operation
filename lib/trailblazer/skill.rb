@@ -1,13 +1,8 @@
 module Trailblazer
   class Skill
-    def initialize(*containers)
-      @instance_skills = {}
-      @resolver = Resolver.new(@instance_skills, *containers)
-
-      # we could also use Resolver here.
-      # containers.reverse.each do |container|
-      #   @instance_skills.merge!(container) # FIXME: this will probably be slower than using Resolver! do some benchmarks.
-      # end
+    def initialize(mutuable_options, *containers)
+      @mutuable_options = mutuable_options
+      @resolver         = Resolver.new(@mutuable_options, *containers)
     end
 
     def [](name)
@@ -15,11 +10,14 @@ module Trailblazer
     end
 
     def []=(name, value)
-      @instance_skills[name] = value
+      @mutuable_options[name] = value
     end
 
     # Look through a list of containers until you find the skill.
     class Resolver
+    # alternative implementation:
+    # containers.reverse.each do |container| @mutuable_options.merge!(container) end
+    #
     # benchmark, merging in #initialize vs. this resolver.
     #                merge     39.678k (± 9.1%) i/s -    198.700k in   5.056653s
     #             resolver     68.928k (± 6.4%) i/s -    342.836k in   5.001610s
@@ -28,7 +26,6 @@ module Trailblazer
       end
 
       def [](name)
-        # @containers.each { |container| return container[name] if container[name] }
         result = @containers.find { |container| val = container[name] and (return val) }
       end
     end
