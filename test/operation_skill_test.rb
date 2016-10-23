@@ -65,6 +65,13 @@ class OperationCompetenceTest < Minitest::Spec
   it { Delete.().must_equal "Little Creatures" }
   # ...but it doesn't change class-level.
   it { Delete["drink"].must_equal "Beer" }
+
+  # we don't really need this test.
+  class Reward < Trailblazer::Operation
+    self["drink"] = "Beer"
+  end
+
+  it { Reward.()["drink"].must_equal "Beer" }
 end
 
 # {
