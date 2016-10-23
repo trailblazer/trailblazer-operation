@@ -26,6 +26,12 @@ class OperationCompetenceTest < Minitest::Spec
   it { Create.().must_equal "Little Creatures" }
   # instance can override constructor options.
   it { Create.({}, "drink" => "Four Pines").must_equal "Little Creatures" }
+  # original hash doesn't get changed.
+  it do
+    Create.({}, hash = { "drink" => "Four Pines" })
+    hash.must_equal( { "drink" => "Four Pines" })
+  end
+
 
   # Operation::[]
   # Operation::[]=
