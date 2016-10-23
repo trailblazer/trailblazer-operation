@@ -14,11 +14,12 @@ module Trailblazer
 
     def initialize(params, instance_attrs={}) # note that we do *not* call super.
       @instance_attrs = instance_attrs
-      result[:valid]  = true
+      self[:valid]  = true
     end
 
     def call(params)
-      result!(process(params))#(*)
+      process(params)
+      self # DISCUSS: do we want this here?
     end
 
     # dependency injection interface
@@ -28,16 +29,6 @@ module Trailblazer
 
   private
     def process(*)
-    end
-
-    # Compute the result object.
-    # Feel free to override this.
-    def result!(returned, *)
-      result.merge({ operation: self })#.merge(returned)
-    end
-
-    def result
-      @result ||= {}
     end
   end
 end

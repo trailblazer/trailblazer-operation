@@ -1,5 +1,5 @@
 module Trailblazer::Operation::Invalid
   def invalid!
-    result[:valid] = false
+    self[:valid] = false
   end
 end

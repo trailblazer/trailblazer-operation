@@ -16,11 +16,11 @@ class CallTest < Minitest::Spec
     end
 
     # in 1.2, ::() returns op instance.
-    it { Create.()[:operation].must_be_instance_of Create }
+    it { Create.().must_be_instance_of Create }
 
-    it { Create.({})[:operation].inspect.must_equal "{} [<Skill {} {}>]" }
-    it { Create.(name: "Jacob")[:operation].inspect.must_equal "{:name=>\"Jacob\"} [<Skill {} {}>]" }
-    it { Create.({ name: "Jacob" }, { policy: Object })[:operation].inspect.must_equal "{:name=>\"Jacob\"} [<Skill {:policy=>Object} {}>]" }
+    it { Create.({}).inspect.must_equal "{} [<Skill {:valid=>true} {} {}>]" }
+    it { Create.(name: "Jacob").inspect.must_equal "{:name=>\"Jacob\"} [<Skill {:valid=>true} {} {}>]" }
+    it { Create.({ name: "Jacob" }, { policy: Object }).inspect.must_equal "{:name=>\"Jacob\"} [<Skill {:valid=>true} {:policy=>Object} {}>]" }
   end
 end
 

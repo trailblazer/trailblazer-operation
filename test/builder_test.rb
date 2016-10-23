@@ -15,8 +15,8 @@ class BuilderTest < MiniTest::Spec
 
   # it { ParentOperation.run({}).last.class.must_equal ParentOperation }
   # it { ParentOperation.run({sub: true}).last.class.must_equal ParentOperation::Sub }
-  it { ParentOperation.({})[:operation].class.must_equal ParentOperation }
-  it { ParentOperation.({sub: true})[:operation].class.must_equal ParentOperation::Sub }
+  it { ParentOperation.({}).class.must_equal ParentOperation }
+  it { ParentOperation.({sub: true}).class.must_equal ParentOperation::Sub }
 end
 
 class OperationBuilderClassTest < MiniTest::Spec
@@ -39,6 +39,6 @@ class OperationBuilderClassTest < MiniTest::Spec
     self.builder_class = SuperOperation.builder_class
   end
 
-  it { ParentOperation.({})[:operation].class.must_equal ParentOperation }
-  it { ParentOperation.({sub: true})[:operation].class.must_equal ParentOperation::Sub }
+  it { ParentOperation.({}).class.must_equal ParentOperation }
+  it { ParentOperation.({sub: true}).class.must_equal ParentOperation::Sub }
 end
