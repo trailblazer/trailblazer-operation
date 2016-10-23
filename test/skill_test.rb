@@ -39,6 +39,14 @@ class SkillTest < Minitest::Spec
       # original container don't get changed
       class_level_container.inspect.must_equal %{{"contract.class"=>Object, "model.class"=>String}}
       runtime_skills.inspect.must_equal %{{"contract"=>SkillTest::MyContract, "model.class"=>Integer}}
+
+      # setting false.
+      skill[:valid] = false
+      skill[:valid].must_equal false
+
+      # setting nil.
+      skill[:valid] = nil
+      skill[:valid].must_equal nil
     end
   end
 end

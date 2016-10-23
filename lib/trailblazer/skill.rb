@@ -26,7 +26,7 @@ module Trailblazer
       end
 
       def [](name)
-        @containers.find { |container| val = container[name] and (return val) }
+        @containers.find { |container| container.key?(name) && (return container[name]) }
       end
     end
 
