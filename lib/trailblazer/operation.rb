@@ -1,3 +1,5 @@
+require "declarative" # FIXME: here?
+
 module Trailblazer
   # The Trailblazer-style operation.
   # Note that you don't have to use our "opinionated" version with result object, skills, etc.
@@ -14,5 +16,9 @@ module Trailblazer
     # we want the skill dependency-mechanism.
     require "trailblazer/operation/skill"
     include Trailblazer::Operation::Skill
+
+
+    extend Declarative::Heritage::Inherited
+    extend Declarative::Heritage::DSL
   end
 end

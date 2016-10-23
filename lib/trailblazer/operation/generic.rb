@@ -1,6 +1,7 @@
 module Trailblazer
   module Operation::Generic
     module ClassMethods
+      # TODO: move this to compat
       # The default API is Operation.(params, dependencies={})
       def call(params={}, *options)
         build_operation(params, *options).call(params)
