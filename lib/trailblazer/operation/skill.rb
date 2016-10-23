@@ -19,8 +19,8 @@ module Trailblazer::Operation::Skill
     extend Uber::Delegates
     delegates :skills, :[], :[]=
 
-    def call(params={}, options={})
-      skills = Trailblazer::Skill.new(options, self.skills)
+    def call(params={}, options={}, *containers)
+      skills = Trailblazer::Skill.new({}, options, self.skills, *containers) # DISCUSS: first arg are the mutable options.
       super(params, skills)
     end
   end
@@ -28,11 +28,4 @@ module Trailblazer::Operation::Skill
   def self.included(includer)
     includer.extend ClassMethods
   end
-
-  # def initialize(params, instance_attrs={})
-  #   # the operation instance will now find runtime-skills first, then classlevel skills.
-  #   skills = Trailblazer::Skill.new(instance_attrs, self.class.skills) # DISCUSS: alternatively, we could prepare this hash in ::build_operation, on the outside.
-
-  #   super(params, skills)
-  # end
 end
