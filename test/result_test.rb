@@ -1,9 +1,5 @@
-# TODO: remove :operation instance from Result! it's a use-once concept.
-
 require "test_helper"
 require "dry-matcher"
-module Trailblazer::Operation::Result
-end
 
 class ResultTest < Minitest::Spec
   # provide standard outcomes, such as :success.
@@ -17,11 +13,8 @@ class ResultTest < Minitest::Spec
 
 
   class Create < Trailblazer::Operation
-    # Trailblazer#result[:message] = _t("Please log in, Regulator!")
-    # Trailblazer::result/::expose :@message # adds to result after Operation#call.
-
     def process(*)
-      result[:message] = "Result objects are actually quite handy!"
+      self[:message] = "Result objects are actually quite handy!"
     end
   end
 
