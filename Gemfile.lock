@@ -1,8 +1,14 @@
 PATH
+  remote: ../pipetree
+  specs:
+    pipetree (0.0.1)
+
+PATH
   remote: .
   specs:
-    trailblazer-operation (1.2.0)
+    trailblazer-operation (2.0.0)
       declarative
+      pipetree
       uber (>= 0.0.15)
 
 GEM
@@ -38,6 +44,7 @@ DEPENDENCIES
   minitest
   minitest-line
   multi_json
+  pipetree!
   rake
   trailblazer-operation!
 

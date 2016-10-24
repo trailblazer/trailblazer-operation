@@ -12,3 +12,4 @@ gem "minitest-line"
 
 gem "benchmark-ips"
 
+gem "pipetree", path: "../pipetree"

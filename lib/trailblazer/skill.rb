@@ -1,3 +1,4 @@
+# TODO: mark/make all but mutable_options as frozen.
 module Trailblazer
   class Skill
     def initialize(mutuable_options, *containers)

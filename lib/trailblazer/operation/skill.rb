@@ -1,4 +1,5 @@
 require "trailblazer/skill"
+require "uber/delegates"
 
 # Dependency ("skill") management for Operation.
 # Op::[]
@@ -7,25 +8,32 @@ require "trailblazer/skill"
 # Op#[]
 # Op#[]=
 # Op.(params, { "constructor" => competences })
-module Trailblazer::Operation::Skill
-  module ClassMethods
-    # This is private API.
-    def skills
-      @skills ||= {}
+class Trailblazer::Operation
+  # Operation::[], ::[]=.
+
+  module Skill
+    module Accessors
+      # This is private API.
+      def skills
+        @skills ||= {}
+      end
+
+      extend Uber::Delegates
+      delegates :skills, :[], :[]=
     end
 
-    # class-level skills.
-    require "uber/delegates"
-    extend Uber::Delegates
-    delegates :skills, :[], :[]=
+    #   def call(params={}, options={}, *containers)
+    #     skills = Trailblazer::Skill.new({}, options, self.skills, *containers) # DISCUSS: first arg are the mutable options.
+    #     super(params, skills)
+    #   end
+    # end
 
-    def call(params={}, options={}, *containers)
-      skills = Trailblazer::Skill.new({}, options, self.skills, *containers) # DISCUSS: first arg are the mutable options.
-      super(params, skills)
+    def self.included(includer)
+      # includer.extend ClassMethods
+      includer.| Build, prepend: true # run the skill logic before everything else.
     end
   end
 
-  def self.included(includer)
-    includer.extend ClassMethods
-  end
+  Skill::Build = ->(klass, args) {
+    args[:skills] = Trailblazer::Skill.new(mutual={}, args, klass.skills); klass }
 end

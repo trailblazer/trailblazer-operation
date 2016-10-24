@@ -1,6 +1,6 @@
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'trailblazer/operation'
+require 'trailblazer/operation/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "trailblazer-operation"
@@ -20,6 +20,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "uber", ">= 0.0.15"
   spec.add_dependency "declarative"
+  spec.add_dependency "pipetree"
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake"
