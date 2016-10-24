@@ -34,6 +34,6 @@ class Trailblazer::Operation
     end
   end
 
-  Skill::Build = ->(klass, args) {
-    args[:skills] = Trailblazer::Skill.new(mutual={}, args, klass.skills); klass }
+  # replace the incoming options with a Skill instance.
+  Skill::Build = ->(klass, options) { options[:skills] = Trailblazer::Skill.new(mutual={}, options[:skills], *options[:dependencies], klass.skills); klass } # FIXME: if we could, i'd return options[:skills] directly to replace the options object.
 end

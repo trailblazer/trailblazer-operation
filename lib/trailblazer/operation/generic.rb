@@ -1,6 +1,6 @@
 module Trailblazer
   module Operation::Generic
-    def initialize(params, instance_attrs={}) # note that we do *not* call super.
+    def initialize(instance_attrs={})
       @instance_attrs = instance_attrs
       self[:valid]  = true
     end
