@@ -20,6 +20,5 @@ module Trailblazer
     # we want the initializer and the ::call method.
     require "trailblazer/operation/generic"
     include Generic               # #initialize, #call, #process.
-
   end
 end
