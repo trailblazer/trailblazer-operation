@@ -19,7 +19,6 @@ class Trailblazer::Operation
       def call(params={}, options={}, *dependencies)
         pipe = self["pipetree"] # TODO: injectable? WTF? how cool is that?
 
-        # skills = Trailblazer::Skill.new(result, options, self.skills) # FIXME: redundant from Op::Skill.
         outcome = pipe.(self, bla={ skills: options.merge("params" => params), dependencies: dependencies })
 
         outcome == ::Pipetree::Stop ? bla[:skills] : outcome # THIS SUCKS a bit.

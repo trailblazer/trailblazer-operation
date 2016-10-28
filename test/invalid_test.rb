@@ -11,7 +11,7 @@ class InvalidTest < Minitest::Spec
       end
     end
 
-    it { Delete.(invalid: false)[:valid].must_equal true }
-    it { Delete.(invalid: true)[:valid].must_equal false }
+    it { Delete.(invalid: false)["valid"].must_equal true }
+    it { Delete.(invalid: true)["valid"].must_equal false }
   end
 end

@@ -5,7 +5,7 @@ class ResultTest < Minitest::Spec
   # provide standard outcomes, such as :success.
   Matcher = Dry::Matcher.new(
     success: Dry::Matcher::Case.new(
-      match:   ->(result) { result[:valid] == true },
+      match:   ->(result) { result["valid"] == true },
       resolve: ->(result) { result }
     # , failure: failure_case
   )

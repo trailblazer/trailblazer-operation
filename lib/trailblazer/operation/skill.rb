@@ -13,7 +13,7 @@ class Trailblazer::Operation
 
   module Skill
     module Accessors
-      # This is private API.
+      # :private:
       def skills
         @skills ||= {}
       end
@@ -22,18 +22,12 @@ class Trailblazer::Operation
       delegates :skills, :[], :[]=
     end
 
-    #   def call(params={}, options={}, *containers)
-    #     skills = Trailblazer::Skill.new({}, options, self.skills, *containers) # DISCUSS: first arg are the mutable options.
-    #     super(params, skills)
-    #   end
-    # end
-
     def self.included(includer)
-      # includer.extend ClassMethods
       includer.| Build, prepend: true # run the skill logic before everything else.
     end
   end
 
   # replace the incoming options with a Skill instance.
+  # FIXME: this is why we need the bloody :skills key, if we only had a way to replace the options hash entirely.
   Skill::Build = ->(klass, options) { options[:skills] = Trailblazer::Skill.new(mutual={}, options[:skills], *options[:dependencies], klass.skills); klass } # FIXME: if we could, i'd return options[:skills] directly to replace the options object.
 end

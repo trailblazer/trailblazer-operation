@@ -12,10 +12,8 @@ module Trailblazer
     extend Skill::Accessors # ::[] and ::[]=
 
     include Pipetree # ::call, ::|
-
     # we want the skill dependency-mechanism.
     include Skill # self.| Skill::Build
-
 
     # we want the initializer and the ::call method.
     require "trailblazer/operation/generic"
