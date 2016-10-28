@@ -1,6 +1,7 @@
 require "declarative" # FIXME: here?
 require "trailblazer/operation/skill"
 require "trailblazer/operation/pipetree"
+require "trailblazer/operation/generic"
 
 module Trailblazer
   # The Trailblazer-style operation.
@@ -11,12 +12,11 @@ module Trailblazer
 
     extend Skill::Accessors # ::[] and ::[]=
 
-    include Pipetree # ::call, ::|
+    include Pipetree        # ::call, ::|
     # we want the skill dependency-mechanism.
-    include Skill # self.| Skill::Build
+    include Skill           # self.| Skill::Build
 
     # we want the initializer and the ::call method.
-    require "trailblazer/operation/generic"
-    include Generic               # #initialize, #call, #process.
+    include Generic         # #initialize, #call, #process.
   end
 end

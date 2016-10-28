@@ -9,9 +9,8 @@ require "uber/delegates"
 # Op#[]=
 # Op.(params, { "constructor" => competences })
 class Trailblazer::Operation
-  # Operation::[], ::[]=.
-
   module Skill
+    # The class-level skill container: Operation::[], ::[]=.
     module Accessors
       # :private:
       def skills
@@ -22,12 +21,15 @@ class Trailblazer::Operation
       delegates :skills, :[], :[]=
     end
 
+    # Overrides Operation::call, creates the Skill hash and passes it to :call.
+    module Call
+      def call(params={}, options={}, *dependencies)
+        super Trailblazer::Skill.new(mutual={}, options.merge("params" => params), *dependencies, self.skills)
+      end
+    end
+
     def self.included(includer)
-      includer.| Build, prepend: true # run the skill logic before everything else.
+      includer.extend Call
     end
   end
-
-  # replace the incoming options with a Skill instance.
-  # FIXME: this is why we need the bloody :skills key, if we only had a way to replace the options hash entirely.
-  Skill::Build = ->(klass, options) { options[:skills] = Trailblazer::Skill.new(mutual={}, options[:skills], *options[:dependencies], klass.skills); klass } # FIXME: if we could, i'd return options[:skills] directly to replace the options object.
 end

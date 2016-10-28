@@ -1,8 +1,8 @@
 require "pipetree"
 
 class Trailblazer::Operation
-  New  = ->(klass, options) { klass.new(options[:skills]) } # returns operation instance.
-  Call = ->(operation, options) { operation.call(options[:skills]["params"]) }          # returns #call result. # DISCUSS: do i like that?
+  New  = ->(klass, options) { klass.new(options) } # returns operation instance.
+  Call = ->(operation, options) { operation.call(options["params"]) }          # returns #call result. # DISCUSS: do i like that?
 
   module Pipetree
     def self.included(includer)
@@ -16,12 +16,12 @@ class Trailblazer::Operation
     module ClassMethods
       # Top-level, this method is called when you do Create.() and where
       # all the fun starts.
-      def call(params={}, options={}, *dependencies)
+      def call(options)
         pipe = self["pipetree"] # TODO: injectable? WTF? how cool is that?
 
-        outcome = pipe.(self, bla={ skills: options.merge("params" => params), dependencies: dependencies })
+        outcome = pipe.(self, options)
 
-        outcome == ::Pipetree::Stop ? bla[:skills] : outcome # THIS SUCKS a bit.
+        outcome == ::Pipetree::Stop ? options : outcome # THIS SUCKS a bit.
       end
     end
 
@@ -39,4 +39,3 @@ class Trailblazer::Operation
 end
 
 # TODO: test in pipetree_test the outcome of returning Stop. it's only implicitly tested with Policy.
-# TODO: test including Pipetree twice.

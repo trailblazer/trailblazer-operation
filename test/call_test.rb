@@ -12,9 +12,9 @@ class CallTest < Minitest::Spec
     # in 1.2, ::() returns op instance.
     it { Create.().must_be_instance_of Create }
 
-    it { Create.({}).inspect.must_equal %{<Skill {"valid"=>true} {\"params\"=>{}} {\"pipetree\"=>[Skill::Build|>New|>Call]}>} }
-    it { Create.(name: "Jacob").inspect.must_equal %{<Skill {"valid"=>true} {\"params\"=>{:name=>\"Jacob\"}} {\"pipetree\"=>[Skill::Build|>New|>Call]}>} }
-    it { Create.({ name: "Jacob" }, { policy: Object }).inspect.must_equal %{<Skill {"valid"=>true} {:policy=>Object, \"params\"=>{:name=>\"Jacob\"}} {\"pipetree\"=>[Skill::Build|>New|>Call]}>} }
+    it { Create.({}).inspect.must_equal %{<Skill {"valid"=>true} {\"params\"=>{}} {\"pipetree\"=>[New|>Call]}>} }
+    it { Create.(name: "Jacob").inspect.must_equal %{<Skill {"valid"=>true} {\"params\"=>{:name=>\"Jacob\"}} {\"pipetree\"=>[New|>Call]}>} }
+    it { Create.({ name: "Jacob" }, { policy: Object }).inspect.must_equal %{<Skill {"valid"=>true} {:policy=>Object, \"params\"=>{:name=>\"Jacob\"}} {\"pipetree\"=>[New|>Call]}>} }
   end
 end
 
