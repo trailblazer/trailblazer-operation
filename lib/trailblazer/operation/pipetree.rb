@@ -1,16 +1,16 @@
-require "pipetree"
+require "pipetree/monad"
 
 class Trailblazer::Operation
-  New  = ->(klass, options) { klass.new(options) } # returns operation instance.
-  Call = ->(operation, options) { operation.call(options["params"]) }          # returns #call result. # DISCUSS: do i like that?
+  New  = ->(klass, options)     { klass.new(options) }                # returns operation instance.
+  Call = ->(operation, options) { operation.call(options["params"]) } # returns #call result.
 
   module Pipetree
     def self.included(includer)
       includer.extend ClassMethods
       includer.extend Pipe
 
-      includer.| New
-      includer.| Call
+      includer.>> New, nil
+      includer.>> Call, nil
     end
 
     module ClassMethods
@@ -20,19 +20,49 @@ class Trailblazer::Operation
         pipe = self["pipetree"] # TODO: injectable? WTF? how cool is that?
 
         outcome = pipe.(self, options)
-
-        outcome == ::Pipetree::Stop ? options : outcome # THIS SUCKS a bit.
+        outcome.last
       end
     end
 
     module Pipe
-      def |(func, options=nil)
-        heritage.record(:|, func, options)
+      def |(func, options=nil, ficken=nil)
+        heritage.record(:|, func, options, ficken)
 
-        self["pipetree"] ||= ::Pipetree[]
+        self["pipetree"] ||= ::Pipetree::Monad[]
         options ||= { append: true } # per default, append.
 
-        self["pipetree"].insert!(func, options)#.class.inspect
+
+        self["pipetree"].|(func, options)#.class.inspect
+      end
+
+      def &(func, options=nil)
+        heritage.record(:&, func, options)
+
+        self["pipetree"] ||= ::Pipetree::Monad[]
+
+        options ||= { append: true } # per default, append.
+
+        self["pipetree"].&(func, options)
+      end
+
+      def >(func, options=nil)
+        heritage.record(:>, func, options)
+
+        self["pipetree"] ||= ::Pipetree::Monad[]
+
+        options ||= { append: true } # per default, append.
+
+        self["pipetree"].>(func, options)
+      end
+
+      def >>(func, options=nil)
+        heritage.record(:>>, func, options)
+
+        self["pipetree"] ||= ::Pipetree::Monad[]
+
+        options ||= { append: true } # per default, append.
+
+        self["pipetree"].>>(func, options)
       end
     end
   end
