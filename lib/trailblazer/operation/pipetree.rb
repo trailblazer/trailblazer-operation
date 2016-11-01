@@ -1,4 +1,4 @@
-require "pipetree/monad"
+require "pipetree/flow"
 
 class Trailblazer::Operation
   New  = ->(klass, options)     { klass.new(options) }                # returns operation instance.
@@ -28,7 +28,7 @@ class Trailblazer::Operation
       def |(func, options=nil, ficken=nil)
         heritage.record(:|, func, options, ficken)
 
-        self["pipetree"] ||= ::Pipetree::Monad[]
+        self["pipetree"] ||= ::Pipetree::Flow[]
         options ||= { append: true } # per default, append.
 
 
@@ -38,7 +38,7 @@ class Trailblazer::Operation
       def &(func, options=nil)
         heritage.record(:&, func, options)
 
-        self["pipetree"] ||= ::Pipetree::Monad[]
+        self["pipetree"] ||= ::Pipetree::Flow[]
 
         options ||= { append: true } # per default, append.
 
@@ -48,7 +48,7 @@ class Trailblazer::Operation
       def >(func, options=nil)
         heritage.record(:>, func, options)
 
-        self["pipetree"] ||= ::Pipetree::Monad[]
+        self["pipetree"] ||= ::Pipetree::Flow[]
 
         options ||= { append: true } # per default, append.
 
@@ -58,7 +58,7 @@ class Trailblazer::Operation
       def >>(func, options=nil)
         heritage.record(:>>, func, options)
 
-        self["pipetree"] ||= ::Pipetree::Monad[]
+        self["pipetree"] ||= ::Pipetree::Flow[]
 
         options ||= { append: true } # per default, append.
 
