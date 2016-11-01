@@ -1,3 +1,4 @@
+require "pipetree"
 require "pipetree/flow"
 
 class Trailblazer::Operation
@@ -25,44 +26,17 @@ class Trailblazer::Operation
     end
 
     module Pipe
-      def |(func, options=nil, ficken=nil)
-        heritage.record(:|, func, options, ficken)
+      def >>(*args); _insert(:>>, *args) end
+      def >(*args); _insert(:>, *args) end
+      def &(*args); _insert(:&, *args) end
+      def <(*args); _insert(:<, *args) end
+
+      # :private:
+      def _insert(*args)
+        heritage.record(:_insert, *args)
 
         self["pipetree"] ||= ::Pipetree::Flow[]
-        options ||= { append: true } # per default, append.
-
-
-        self["pipetree"].|(func, options)#.class.inspect
-      end
-
-      def &(func, options=nil)
-        heritage.record(:&, func, options)
-
-        self["pipetree"] ||= ::Pipetree::Flow[]
-
-        options ||= { append: true } # per default, append.
-
-        self["pipetree"].&(func, options)
-      end
-
-      def >(func, options=nil)
-        heritage.record(:>, func, options)
-
-        self["pipetree"] ||= ::Pipetree::Flow[]
-
-        options ||= { append: true } # per default, append.
-
-        self["pipetree"].>(func, options)
-      end
-
-      def >>(func, options=nil)
-        heritage.record(:>>, func, options)
-
-        self["pipetree"] ||= ::Pipetree::Flow[]
-
-        options ||= { append: true } # per default, append.
-
-        self["pipetree"].>>(func, options)
+        self["pipetree"].send(*args) # ex: pipetree.> Validate, after: Model::Build
       end
     end
   end
