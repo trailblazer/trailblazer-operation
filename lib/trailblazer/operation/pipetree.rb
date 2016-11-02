@@ -12,6 +12,7 @@ class Trailblazer::Operation
 
       includer.>> New, nil
       includer.>> Call, nil
+      includer._insert :_insert, Result::Build, { append: true }, Result::Build, "" # FIXME: nicer API, please.
     end
 
     module ClassMethods
@@ -20,8 +21,7 @@ class Trailblazer::Operation
       def call(options)
         pipe = self["pipetree"] # TODO: injectable? WTF? how cool is that?
 
-        outcome = pipe.(self, options)
-        outcome.last
+        pipe.(self, options)
       end
     end
 
@@ -40,6 +40,29 @@ class Trailblazer::Operation
       end
     end
   end
+
+  class Result
+    def initialize(success, data)
+      @success, @data = success, data
+    end
+
+    extend Uber::Delegates
+    delegates :@data, :[]
+
+    def success?
+      @success
+    end
+
+    def failure?
+      ! success?
+    end
+
+    def inspect
+      @data.inspect
+    end
+  end
+
+  Result::Build = ->(last, input, options) {  Result.new(last == ::Pipetree::Flow::Right, input) } # DISCUSS: call Operation#result! here?
 end
 
 # TODO: test in pipetree_test the outcome of returning Stop. it's only implicitly tested with Policy.

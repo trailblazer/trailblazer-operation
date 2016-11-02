@@ -1,7 +1,11 @@
 require "test_helper"
 
+ReturnResult = ->(last, input, options) { input }
+
 class OperationSkillTest < Minitest::Spec
+
   class Create < Trailblazer::Operation
+    self._insert :_insert, ReturnResult, {replace: Result::Build}, ReturnResult, ""
     def call(*); self; end
   end
 
@@ -17,6 +21,7 @@ class OperationCompetenceTest < Minitest::Spec
   # Operation#[]=
   # arbitrary options can be saved via Op#[].
   class Create < Trailblazer::Operation
+    self._insert :_insert, ReturnResult, {replace: Result::Build}, ReturnResult, ""
     def call(*)
       self["drink"] = "Little Creatures"
       self["drink"]
@@ -36,6 +41,7 @@ class OperationCompetenceTest < Minitest::Spec
   # Operation::[]
   # Operation::[]=
   class Update < Trailblazer::Operation
+    self._insert :_insert, ReturnResult, {replace: Result::Build}, ReturnResult, ""
     self["drink"] = "Beer"
 
     def call(*)
@@ -53,6 +59,7 @@ class OperationCompetenceTest < Minitest::Spec
 
   # instance can override class-level
   class Delete < Trailblazer::Operation
+    self._insert :_insert, ReturnResult, {replace: Result::Build}, ReturnResult, ""
     self["drink"] = "Beer"
 
     def call(*)
@@ -68,6 +75,7 @@ class OperationCompetenceTest < Minitest::Spec
 
   # we don't really need this test.
   class Reward < Trailblazer::Operation
+    self._insert :_insert, ReturnResult, {replace: Result::Build}, ReturnResult, ""
     self["drink"] = "Beer"
   end
 

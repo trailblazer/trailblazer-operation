@@ -14,7 +14,7 @@ module Trailblazer
 
     include Pipetree        # ::call, ::|
     # we want the skill dependency-mechanism.
-    include Skill           # self.| Skill::Build
+    include Skill           # ::call
 
     # we want the initializer and the ::call method.
     include Generic         # #initialize, #call, #process.

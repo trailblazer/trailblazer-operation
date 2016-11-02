@@ -3,13 +3,14 @@ module Trailblazer
   module Operation::Generic
     def initialize(skills={})
       @skills = skills
-      self["valid"]  = true # not sure if this flag will survive the power of result/waterfall/matcher objects.
     end
 
     def call(params)
       process(params)
       self
     end
+    # Alternatively, you could use your own Call module ->(input, options) { input.call(options["params"]) }
+    # and either use >Call (result doesn't matter) or >>Call (result matters).
 
     # dependency injection interface
     extend Uber::Delegates

@@ -9,12 +9,20 @@ class CallTest < Minitest::Spec
       end
     end
 
-    # in 1.2, ::() returns op instance.
-    it { Create.().must_be_instance_of Create }
+    it { Create.().must_be_instance_of Trailblazer::Operation::Result }
 
-    it { Create.({}).inspect.must_equal %{<Skill {"valid"=>true} {\"params\"=>{}} {\"pipetree\"=>[>>New,>>Call]}>} }
-    it { Create.(name: "Jacob").inspect.must_equal %{<Skill {"valid"=>true} {\"params\"=>{:name=>\"Jacob\"}} {\"pipetree\"=>[>>New,>>Call]}>} }
-    it { Create.({ name: "Jacob" }, { policy: Object }).inspect.must_equal %{<Skill {"valid"=>true} {:policy=>Object, \"params\"=>{:name=>\"Jacob\"}} {\"pipetree\"=>[>>New,>>Call]}>} }
+    it { Create.({}).inspect.must_equal %{<Skill {} {\"params\"=>{}} {\"pipetree\"=>[>>New,>>Call,Result::Build]}>} }
+    it { Create.(name: "Jacob").inspect.must_equal %{<Skill {} {\"params\"=>{:name=>\"Jacob\"}} {\"pipetree\"=>[>>New,>>Call,Result::Build]}>} }
+    it { Create.({ name: "Jacob" }, { policy: Object }).inspect.must_equal %{<Skill {} {:policy=>Object, \"params\"=>{:name=>\"Jacob\"}} {\"pipetree\"=>[>>New,>>Call,Result::Build]}>} }
+
+    #---
+    # success?
+    class Update < Trailblazer::Operation
+      self.& ->(input, options) { input["params"] }, after: Call
+    end
+
+    it { Update.(true).success?.must_equal true }
+    it { Update.(false).success?.must_equal false }
   end
 end
 
