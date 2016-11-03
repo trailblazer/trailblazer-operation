@@ -2,6 +2,18 @@ require "test_helper"
 require "dry-matcher"
 
 class ResultTest < Minitest::Spec
+  let (:success) { Trailblazer::Operation::Result.new(true, "x"=> String) }
+  it { success.success?.must_equal true }
+  it { success.failure?.must_equal false }
+  # it { success["success?"].must_equal true }
+  # it { success["failure?"].must_equal false }
+  it { success["x"].must_equal String }
+  it { success["not-existant"].must_equal nil }
+  it { success.slice("x").must_equal [String] }
+
+
+
+
   # provide standard outcomes, such as :success.
   Matcher = Dry::Matcher.new(
     success: Dry::Matcher::Case.new(

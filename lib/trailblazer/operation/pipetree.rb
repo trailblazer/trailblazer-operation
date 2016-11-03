@@ -1,5 +1,6 @@
 require "pipetree"
 require "pipetree/flow"
+require "trailblazer/operation/result"
 
 class Trailblazer::Operation
   New  = ->(klass, options)     { klass.new(options) }                # returns operation instance.
@@ -10,9 +11,9 @@ class Trailblazer::Operation
       includer.extend ClassMethods
       includer.extend Pipe
 
-      includer.>> New
-      includer.>> Call
-      includer._insert :_insert, Result::Build, { append: true }, Result::Build, "" # FIXME: nicer API, please.
+      includer.>> New, name: "operation.new"
+      includer.>> Call, name: "operation.call"
+      includer._insert :_insert, Result::Build, { append: true, name: "operation.result" }, Result::Build, "" # FIXME: nicer API, please.
     end
 
     module ClassMethods
@@ -38,32 +39,6 @@ class Trailblazer::Operation
         self["pipetree"] ||= ::Pipetree::Flow[]
         self["pipetree"].send(*args) # ex: pipetree.> Validate, after: Model::Build
       end
-    end
-  end
-
-  class Result
-    def initialize(success, data)
-      @success, @data = success, data
-    end
-
-    extend Uber::Delegates
-    delegates :@data, :[]
-
-    def success?
-      @success
-    end
-
-    def failure?
-      ! success?
-    end
-
-    # DISCUSS: the two methods below are more for testing.
-    def inspect
-      @data.inspect
-    end
-
-    def slice(*keys)
-      keys.collect { |k| self[k] }
     end
   end
 
