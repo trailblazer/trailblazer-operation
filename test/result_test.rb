@@ -10,7 +10,7 @@ class ResultTest < Minitest::Spec
   it { success["x"].must_equal String }
   it { success["not-existant"].must_equal nil }
   it { success.slice("x").must_equal [String] }
-
+  it { success.inspect.must_equal %{<Result:true {\"x\"=>String} >} }
 
 
 

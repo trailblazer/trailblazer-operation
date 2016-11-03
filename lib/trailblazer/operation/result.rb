@@ -17,7 +17,7 @@ class Trailblazer::Operation
 
     # DISCUSS: the two methods below are more for testing.
     def inspect
-      @data.inspect
+      "<Result:#{success?} #{@data.inspect} >"
     end
 
     def slice(*keys)
