@@ -10,8 +10,8 @@ class Trailblazer::Operation
       includer.extend ClassMethods
       includer.extend Pipe
 
-      includer.>> New, nil
-      includer.>> Call, nil
+      includer.>> New
+      includer.>> Call
       includer._insert :_insert, Result::Build, { append: true }, Result::Build, "" # FIXME: nicer API, please.
     end
 
@@ -57,8 +57,13 @@ class Trailblazer::Operation
       ! success?
     end
 
+    # DISCUSS: the two methods below are more for testing.
     def inspect
       @data.inspect
+    end
+
+    def slice(*keys)
+      keys.collect { |k| self[k] }
     end
   end
 
