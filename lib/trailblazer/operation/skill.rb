@@ -27,9 +27,5 @@ class Trailblazer::Operation
         super Trailblazer::Skill.new(mutual={}, options.merge("params" => params), *dependencies, self.skills)
       end
     end
-
-    def self.included(includer)
-      includer.extend Call
-    end
   end
 end
