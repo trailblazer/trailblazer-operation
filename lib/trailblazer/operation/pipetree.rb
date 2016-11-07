@@ -10,23 +10,25 @@ class Trailblazer::Operation
     def self.included(includer)
       includer.extend ClassMethods
       includer.extend Pipe
+      includer.extend DSLOperators
 
       includer.>> New, name: "operation.new"
-      includer.>> Call, name: "operation.call"
-      includer._insert :_insert, Result::Build, { append: true, name: "operation.result" }, Result::Build, "" # FIXME: nicer API, please.
     end
 
     module ClassMethods
       # Top-level, this method is called when you do Create.() and where
-      # all the fun starts.
+      # all the fun starts, ends, and hopefully starts again.
       def call(options)
         pipe = self["pipetree"] # TODO: injectable? WTF? how cool is that?
 
-        pipe.(self, options)
+        last, operation = pipe.(self, options) # operation == self, usually.
+
+        Result.new(last == ::Pipetree::Flow::Right, operation)
       end
     end
 
     module Pipe
+      # They all inherit.
       def >>(*args); _insert(:>>, *args) end
       def >(*args); _insert(:>, *args) end
       def &(*args); _insert(:&, *args) end
@@ -40,9 +42,23 @@ class Trailblazer::Operation
         self["pipetree"].send(*args) # ex: pipetree.> Validate, after: Model::Build
       end
     end
+
+    module DSLOperators
+      def ~(cfg)
+        heritage.record(:~, cfg)
+
+        self.|(cfg)
+      end
+
+      def |(cfg, *args)
+        if cfg.is_a?(Stepable::Configuration)
+          cfg[:module].import!(self, *cfg.args) and
+            heritage.record(:|, cfg, *args)
+          return
+        end
+
+        self.>(cfg, *args)
+      end
+    end
   end
-
-  Result::Build = ->(last, input, options) {  Result.new(last == ::Pipetree::Flow::Right, input) } # DISCUSS: call Operation#result! here?
 end
-
-# TODO: test in pipetree_test the outcome of returning Stop. it's only implicitly tested with Policy.
