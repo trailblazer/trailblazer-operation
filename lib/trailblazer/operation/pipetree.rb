@@ -1,7 +1,7 @@
 require "pipetree"
 require "pipetree/flow"
 require "trailblazer/operation/result"
-require "uber/options"
+require "uber/option"
 
 class Trailblazer::Operation
   New  = ->(klass, options)     { klass.new(options) }                # returns operation instance.
@@ -48,7 +48,7 @@ class Trailblazer::Operation
       def ~(cfg)
         heritage.record(:~, cfg)
 
-        self.|(cfg)
+        self.|(cfg, inheriting: true) # FIXME: not sure if this is the final API.
       end
 
       def |(cfg, options={})
@@ -61,12 +61,16 @@ class Trailblazer::Operation
           return
         end
 
-        self.> Uber::Options::Value.new(cfg), options # calls heritage.record
+        self.> Uber::Option[cfg], options # calls heritage.record
       end
 
       Import = Struct.new(:operation, :user_options) do
         def call(operator, step, options)
           operation["pipetree"].send operator, step, options.merge(user_options)
+        end
+
+        def inheriting?
+          user_options[:inheriting]
         end
       end
     end
