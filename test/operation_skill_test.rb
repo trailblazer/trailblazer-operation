@@ -1,12 +1,7 @@
 require "test_helper"
 
-ReturnResult = ->(last, input, options) { input }
-
 class OperationSkillTest < Minitest::Spec
-
   class Create < Trailblazer::Operation
-    self._insert :_insert, ReturnResult, {replace: Result::Build}, ReturnResult, ""
-    def call(*); self; end
   end
 
   # no dependencies provided.
@@ -17,20 +12,22 @@ class OperationSkillTest < Minitest::Spec
 end
 
 class OperationCompetenceTest < Minitest::Spec
+  Call = ->(input, options) { input.call }
   # Operation#[]
   # Operation#[]=
   # arbitrary options can be saved via Op#[].
   class Create < Trailblazer::Operation
-    self._insert :_insert, ReturnResult, {replace: Result::Build}, ReturnResult, ""
+    self.> Call
+
     def call(*)
       self["drink"] = "Little Creatures"
       self["drink"]
     end
   end
 
-  it { Create.().must_equal "Little Creatures" }
+  it { Create.()["drink"].must_equal "Little Creatures" }
   # instance can override constructor options.
-  it { Create.({}, "drink" => "Four Pines").must_equal "Little Creatures" }
+  it { Create.({}, "drink" => "Four Pines")["drink"].must_equal "Little Creatures" }
   # original hash doesn't get changed.
   it do
     Create.({}, hash = { "drink" => "Four Pines" })
@@ -41,7 +38,8 @@ class OperationCompetenceTest < Minitest::Spec
   # Operation::[]
   # Operation::[]=
   class Update < Trailblazer::Operation
-    self._insert :_insert, ReturnResult, {replace: Result::Build}, ReturnResult, ""
+    self.> Call
+
     self["drink"] = "Beer"
 
     def call(*)
@@ -52,14 +50,15 @@ class OperationCompetenceTest < Minitest::Spec
   it { Update["drink"].must_equal "Beer" }
 
   # class-level are available on instance-level via Op#[]
-  it { Update.().must_equal "Beer" }
+  it { Update.()["drink"].must_equal "Beer" }
 
   # runtime constructor options can override class-level.
-  it { Update.({}, "drink" => "Little Creatures").must_equal "Little Creatures" }
+  it { Update.({}, "drink" => "Little Creatures")["drink"].must_equal "Little Creatures" }
 
   # instance can override class-level
   class Delete < Trailblazer::Operation
-    self._insert :_insert, ReturnResult, {replace: Result::Build}, ReturnResult, ""
+    self.> Call
+
     self["drink"] = "Beer"
 
     def call(*)
@@ -69,13 +68,12 @@ class OperationCompetenceTest < Minitest::Spec
   end
 
   # Op#[]= can override class-level...
-  it { Delete.().must_equal "Little Creatures" }
+  it { Delete.()["drink"].must_equal "Little Creatures" }
   # ...but it doesn't change class-level.
   it { Delete["drink"].must_equal "Beer" }
 
   # we don't really need this test.
   class Reward < Trailblazer::Operation
-    self._insert :_insert, ReturnResult, {replace: Result::Build}, ReturnResult, ""
     self["drink"] = "Beer"
   end
 

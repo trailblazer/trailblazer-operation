@@ -11,14 +11,14 @@ class CallTest < Minitest::Spec
 
     it { Create.().must_be_instance_of Trailblazer::Operation::Result }
 
-    it { Create.({}).inspect.must_equal %{<Result:true <Skill {} {\"params\"=>{}} {\"pipetree\"=>[>>operation.new,>>operation.call,operation.result]}> >} }
-    it { Create.(name: "Jacob").inspect.must_equal %{<Result:true <Skill {} {\"params\"=>{:name=>\"Jacob\"}} {\"pipetree\"=>[>>operation.new,>>operation.call,operation.result]}> >} }
-    it { Create.({ name: "Jacob" }, { policy: Object }).inspect.must_equal %{<Result:true <Skill {} {:policy=>Object, \"params\"=>{:name=>\"Jacob\"}} {\"pipetree\"=>[>>operation.new,>>operation.call,operation.result]}> >} }
+    it { Create.({}).inspect.must_equal %{<Result:true <Skill {} {\"params\"=>{}} {\"pipetree\"=>[>>operation.new]}> >} }
+    it { Create.(name: "Jacob").inspect.must_equal %{<Result:true <Skill {} {\"params\"=>{:name=>\"Jacob\"}} {\"pipetree\"=>[>>operation.new]}> >} }
+    it { Create.({ name: "Jacob" }, { policy: Object }).inspect.must_equal %{<Result:true <Skill {} {:policy=>Object, \"params\"=>{:name=>\"Jacob\"}} {\"pipetree\"=>[>>operation.new]}> >} }
 
     #---
     # success?
     class Update < Trailblazer::Operation
-      self.& ->(input, options) { input["params"] }, after: Call
+      self.& ->(input, options) { input["params"] }, after: "operation.new"
     end
 
     it { Update.(true).success?.must_equal true }

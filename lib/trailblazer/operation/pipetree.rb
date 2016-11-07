@@ -50,14 +50,26 @@ class Trailblazer::Operation
         self.|(cfg)
       end
 
-      def |(cfg, *args)
+      def |(cfg, options={})
         if cfg.is_a?(Stepable::Configuration)
-          cfg[:module].import!(self, *cfg.args) and
-            heritage.record(:|, cfg, *args)
+
+
+
+          conf = Import.new(self, options)
+
+
+          cfg[:module].import!(self, conf, *cfg.args) and
+            heritage.record(:|, cfg, options)
           return
         end
 
-        self.>(cfg, *args)
+        self.>(cfg, options)
+      end
+
+      Import = Struct.new(:operation, :user_options) do
+        def call(operator, step, options)
+          operation["pipetree"].send operator, step, options.merge(user_options)
+        end
       end
     end
   end
