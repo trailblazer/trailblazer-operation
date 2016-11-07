@@ -1,6 +1,7 @@
 require "pipetree"
 require "pipetree/flow"
 require "trailblazer/operation/result"
+require "uber/options"
 
 class Trailblazer::Operation
   New  = ->(klass, options)     { klass.new(options) }                # returns operation instance.
@@ -53,17 +54,14 @@ class Trailblazer::Operation
       def |(cfg, options={})
         if cfg.is_a?(Stepable::Configuration)
 
-
-
           conf = Import.new(self, options)
-
 
           cfg[:module].import!(self, conf, *cfg.args) and
             heritage.record(:|, cfg, options)
           return
         end
 
-        self.>(cfg, options)
+        self.> Uber::Options::Value.new(cfg), options # calls heritage.record
       end
 
       Import = Struct.new(:operation, :user_options) do

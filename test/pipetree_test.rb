@@ -23,4 +23,15 @@ class PipetreeTest < Minitest::Spec
   end
 
   it { Update["pipetree"].inspect.must_equal %{[>>operation.new,>validate]} }
+
+  # with :symbol
+  class Delete < Trailblazer::Operation
+    self.| :call
+
+    def call(options)
+      self["x"] = options["params"]
+    end
+  end
+
+  it { Delete.("yo")["x"].must_equal "yo" }
 end
