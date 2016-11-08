@@ -52,7 +52,28 @@ class PipetreeTest < Minitest::Spec
 
   #---
   # ::>, ::<, ::>>, :&
+  # with proc, method, callable.
+  class Right < Trailblazer::Operation
+    self.> ->(input, options) { options[">"] = options["params"][:id] }
 
+    self.> :method_name!
+    def method_name!(options); self["method_name!"] = options["params"][:id] end
+
+    class MyCallable
+      include Uber::Callable
+      def call(operation, options); operation["callable"] = options["params"][:id] end
+    end
+    self.> MyCallable.new
+  end
+
+  it do
+    result = Right.( id: 1 )
+    result[">"].must_equal 1
+    result["method_name!"].must_equal 1
+    result["callable"].must_equal 1
+  end
+  #---
+  # inheritance
 end
 
 

@@ -43,9 +43,9 @@ class Trailblazer::Operation
       def <(*args); _insert(:<, *args) end
 
       # :private:
-      def _insert(*args)
-        heritage.record(:_insert, *args)
-        self["pipetree"].send(*args) # ex: pipetree.> Validate, after: Model::Build
+      def _insert(operator, proc, options={})
+        heritage.record(:_insert, operator, proc, options)
+        self["pipetree"].send(operator, Uber::Option[proc], options) # ex: pipetree.> Validate, after: Model::Build
       end
 
       def ~(cfg)
@@ -62,7 +62,7 @@ class Trailblazer::Operation
             heritage.record(:|, cfg, user_options)
         end
 
-        self.> Uber::Option[cfg], user_options # calls heritage.record
+        self.> cfg, user_options # calls heritage.record
       end
 
       # Try to abstract as much as possible from the imported module. This is for
