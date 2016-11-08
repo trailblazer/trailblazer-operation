@@ -51,17 +51,15 @@ class Trailblazer::Operation
         self.|(cfg, inheriting: true) # FIXME: not sure if this is the final API.
       end
 
-      def |(cfg, options={})
-        if cfg.is_a?(Stepable::Configuration)
+      def |(cfg, user_options={}) # sorry for the magic here, but still playing with the DSL.
+        if cfg.is_a?(Stepable) # e.g. Contract::Validate
+          import = Import.new(self, user_options)
 
-          conf = Import.new(self, options)
-
-          cfg[:module].import!(self, conf, *cfg.args) and
-            heritage.record(:|, cfg, options)
-          return
+          return cfg.import!(self, import) &&
+            heritage.record(:|, cfg, user_options)
         end
 
-        self.> Uber::Option[cfg], options # calls heritage.record
+        self.> Uber::Option[cfg], user_options # calls heritage.record
       end
 
       Import = Struct.new(:operation, :user_options) do
