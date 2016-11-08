@@ -9,10 +9,10 @@ class Trailblazer::Operation
 
   module Pipetree
     def self.included(includer)
-      includer.extend ClassMethods
-      includer.extend Pipe
-      includer.extend DSLOperators
+      includer.extend ClassMethods # ::call, ::inititalize_pipetree!
+      includer.extend DSL          # ::|, ::> and friends.
 
+      includer.initialize_pipetree!
       includer.>> New, name: "operation.new"
     end
 
@@ -26,9 +26,16 @@ class Trailblazer::Operation
 
         Result.new(last == ::Pipetree::Flow::Right, operation)
       end
+
+      # This method would be redundant if Ruby had a Class::finalize! method the way
+      # Dry.RB provides it. It has to be executed with every subclassing.
+      def initialize_pipetree!
+        heritage.record :initialize_pipetree!
+        self["pipetree"] = ::Pipetree::Flow[]
+      end
     end
 
-    module Pipe
+    module DSL
       # They all inherit.
       def >>(*args); _insert(:>>, *args) end
       def >(*args); _insert(:>, *args) end
@@ -38,13 +45,9 @@ class Trailblazer::Operation
       # :private:
       def _insert(*args)
         heritage.record(:_insert, *args)
-
-        self["pipetree"] ||= ::Pipetree::Flow[]
         self["pipetree"].send(*args) # ex: pipetree.> Validate, after: Model::Build
       end
-    end
 
-    module DSLOperators
       def ~(cfg)
         heritage.record(:~, cfg)
 
@@ -62,6 +65,8 @@ class Trailblazer::Operation
         self.> Uber::Option[cfg], user_options # calls heritage.record
       end
 
+      # Try to abstract as much as possible from the imported module. This is for
+      # forward-compatibility.
       Import = Struct.new(:operation, :user_options) do
         def call(operator, step, options)
           operation["pipetree"].send operator, step, options.merge(user_options)

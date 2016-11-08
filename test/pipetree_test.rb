@@ -25,7 +25,6 @@ class PipetreeTest < Minitest::Spec
 
   it { New["pipetree"].inspect.must_equal %{[>validate,>>operation.new]} }
 
-
   # with options
   class Update < Trailblazer::Operation
     self.| Validate, after: "operation.new"
@@ -44,13 +43,16 @@ class PipetreeTest < Minitest::Spec
 
   it { Delete.("yo")["x"].must_equal "yo" }
 
-  #---
-  # arguments
+  # proc arguments
   class Forward < Trailblazer::Operation
     self.| ->(input, options) { puts "@@@@@ #{input.inspect}"; puts "@@@@@ #{options.inspect}" }
   end
 
   it { skip; Forward.({ id: 1 }) }
+
+  #---
+  # ::>, ::<, ::>>, :&
+
 end
 
 
