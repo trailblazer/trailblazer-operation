@@ -66,14 +66,15 @@ class PipetreeTest < Minitest::Spec
     self.> MyCallable.new
   end
 
-  it do
-    result = Right.( id: 1 )
-    result[">"].must_equal 1
-    result["method_name!"].must_equal 1
-    result["callable"].must_equal 1
-  end
+  it { Right.( id: 1 ).slice(">", "method_name!", "callable").must_equal [1, 1, 1] }
+
   #---
   # inheritance
+  class Righter < Right
+    self.> ->(input, options) { options["righter"] = true }
+  end
+
+  it { Righter.( id: 1 ).slice(">", "method_name!", "callable", "righter").must_equal [1, 1, 1, true] }
 end
 
 
