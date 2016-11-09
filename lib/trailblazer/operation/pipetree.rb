@@ -4,8 +4,8 @@ require "trailblazer/operation/result"
 require "uber/option"
 
 class Trailblazer::Operation
-  New  = ->(klass, options)     { klass.new(options) }                # returns operation instance.
-  Call = ->(operation, options) { operation.call(options["params"]) } # returns #call result.
+  New     = ->(klass, options)     { klass.new(options) }                   # returns operation instance.
+  Process = ->(operation, options) { operation.process(options["params"]) }
 
   module Pipetree
     def self.included(includer)
