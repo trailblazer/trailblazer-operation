@@ -67,6 +67,7 @@ class PipetreeTest < Minitest::Spec
   end
 
   it { Right.( id: 1 ).slice(">", "method_name!", "callable").must_equal [1, 1, 1] }
+  it { Right["pipetree"].inspect.must_equal %{[>>operation.new,>self,>return,>#<PipetreeTest::Right::MyCallable:>]} }
 
   #---
   # inheritance
