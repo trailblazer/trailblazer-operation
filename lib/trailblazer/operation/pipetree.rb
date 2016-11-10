@@ -7,6 +7,7 @@ class Trailblazer::Operation
   New     = ->(klass, options)     { klass.new(options) }                   # returns operation instance.
   Process = ->(operation, options) { operation.process(options["params"]) }
 
+  # http://trailblazer.to/gems/operation/2.0/pipetree.html
   module Pipetree
     def self.included(includer)
       includer.extend ClassMethods # ::call, ::inititalize_pipetree!

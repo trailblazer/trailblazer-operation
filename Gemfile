@@ -9,7 +9,5 @@ gem "dry-auto_inject"
 gem "dry-matcher"
 
 gem "minitest-line"
-
 gem "benchmark-ips"
-
-gem "pipetree", path: "../pipetree"
+# gem "pipetree", path: "../pipetree"

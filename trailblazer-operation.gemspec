@@ -18,9 +18,9 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
 
-  spec.add_dependency "uber", ">= 0.0.15"
+  spec.add_dependency "uber", ">= 0.1.0", "< 0.2.0"
   spec.add_dependency "declarative"
-  spec.add_dependency "pipetree", ">= 0.0.2", "< 0.1.0"
+  spec.add_dependency "pipetree", ">= 0.0.4", "< 0.1.0"
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake"
