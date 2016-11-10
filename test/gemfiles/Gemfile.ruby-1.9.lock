@@ -1,0 +1,29 @@
+PATH
+  remote: ../../
+  specs:
+    trailblazer-operation (2.0.0)
+      declarative
+      pipetree (>= 0.0.4, < 0.1.0)
+      uber (>= 0.1.0, < 0.2.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    declarative (0.0.8)
+      uber (>= 0.0.15)
+    minitest (5.9.1)
+    pipetree (0.0.4)
+    rake (11.3.0)
+    uber (0.1.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bundler
+  minitest
+  rake
+  trailblazer-operation!
+
+BUNDLED WITH
+   1.13.6

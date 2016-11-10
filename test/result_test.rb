@@ -1,5 +1,4 @@
 require "test_helper"
-require "dry-matcher"
 
 class ResultTest < Minitest::Spec
   let (:success) { Trailblazer::Operation::Result.new(true, "x"=> String) }
