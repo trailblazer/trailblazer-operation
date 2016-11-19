@@ -16,7 +16,8 @@ class Trailblazer::Operation
     end
 
     # DISCUSS: the two methods below are more for testing.
-    def inspect
+    def inspect(*slices)
+      return "<Result:#{success?} #{slice(*slices).inspect} >" if slices.any?
       "<Result:#{success?} #{@data.inspect} >"
     end
 

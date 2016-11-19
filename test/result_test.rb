@@ -1,7 +1,8 @@
 require "test_helper"
 
 class ResultTest < Minitest::Spec
-  let (:success) { Trailblazer::Operation::Result.new(true, "x"=> String) }
+  Result = Trailblazer::Operation::Result
+  let (:success) { Result.new(true, "x"=> String) }
   it { success.success?.must_equal true }
   it { success.failure?.must_equal false }
   # it { success["success?"].must_equal true }
@@ -9,7 +10,11 @@ class ResultTest < Minitest::Spec
   it { success["x"].must_equal String }
   it { success["not-existant"].must_equal nil }
   it { success.slice("x").must_equal [String] }
+
+  #---
+  # inspect
   it { success.inspect.must_equal %{<Result:true {\"x\"=>String} >} }
+  it { Result.new(true, "x"=> true, "y"=>1, "z"=>2).inspect("z", "y").must_equal %{<Result:true [2, 1] >} }
 
   class Create < Trailblazer::Operation
     self.> ->(input, options) { input.call }
