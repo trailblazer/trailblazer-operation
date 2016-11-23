@@ -56,7 +56,7 @@ class Trailblazer::Operation
       end
 
       def |(cfg, user_options={}) # sorry for the magic here, but still playing with the DSL.
-        if cfg.is_a?(Stepable) # e.g. Contract::Validate
+        if cfg.is_a?(Macro) # e.g. Contract::Validate
           import = Import.new(self, user_options)
 
           return cfg.import!(self, import) &&
