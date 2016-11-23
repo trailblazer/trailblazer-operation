@@ -2,7 +2,7 @@ require "test_helper"
 
 class PipetreeTest < Minitest::Spec
   module Validate
-    extend Trailblazer::Operation::Stepable
+    extend Trailblazer::Operation::Macro
 
     def self.import!(operation, pipe)
       pipe.(:>, ->{ snippet }, name: "validate", before: "operation.new")
