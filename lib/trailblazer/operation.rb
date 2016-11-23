@@ -2,7 +2,7 @@ require "declarative" # FIXME: here?
 require "trailblazer/operation/skill"
 require "trailblazer/operation/pipetree"
 require "trailblazer/operation/generic"
-require "trailblazer/operation/stepable"
+require "trailblazer/operation/macro"
 
 module Trailblazer
   # The Trailblazer-style operation.
