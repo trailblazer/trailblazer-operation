@@ -1,7 +1,7 @@
 class Trailblazer::Operation
-  module Stepable
+  module Macro
     Configuration = Struct.new(:mod, :args, :block) do
-      include Stepable # mark it, so that ::| thinks this is a step module.
+      include Macro # mark it, so that ::| thinks this is a step module.
 
       def import!(operation, import)
         mod.import!(operation, import, *args)
