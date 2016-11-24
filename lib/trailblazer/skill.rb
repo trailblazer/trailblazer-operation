@@ -5,9 +5,9 @@
 # The runtime-data takes precedence over the class data.
 module Trailblazer
   class Skill
-    def initialize(mutuable_options, *containers)
-      @mutuable_options = mutuable_options
-      @resolver         = Resolver.new(@mutuable_options, *containers)
+    def initialize(mutable_options, *containers)
+      @mutable_options = mutable_options
+      @resolver         = Resolver.new(@mutable_options, *containers)
     end
 
     def [](name)
@@ -15,13 +15,13 @@ module Trailblazer
     end
 
     def []=(name, value)
-      @mutuable_options[name] = value
+      @mutable_options[name] = value
     end
 
     # Look through a list of containers until you find the skill.
     class Resolver
     # alternative implementation:
-    # containers.reverse.each do |container| @mutuable_options.merge!(container) end
+    # containers.reverse.each do |container| @mutable_options.merge!(container) end
     #
     # benchmark, merging in #initialize vs. this resolver.
     #                merge     39.678k (± 9.1%) i/s -    198.700k in   5.056653s
