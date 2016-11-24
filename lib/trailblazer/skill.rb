@@ -1,4 +1,8 @@
 # TODO: mark/make all but mutable_options as frozen.
+# The idea of Skill is to have a generic, ordered read/write interface that
+# collects mutable runtime-computed data while providing access to compile-time
+# information.
+# The runtime-data takes precedence over the class data.
 module Trailblazer
   class Skill
     def initialize(mutuable_options, *containers)

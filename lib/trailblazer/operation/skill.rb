@@ -24,7 +24,7 @@ class Trailblazer::Operation
     # Overrides Operation::call, creates the Skill hash and passes it to :call.
     module Call
       def call(params={}, options={}, *dependencies)
-        super Trailblazer::Skill.new(mutual={}, options.merge("params" => params), *dependencies, self.skills)
+        super Trailblazer::Skill.new(mutable={}, options.merge("params" => params), *dependencies, self.skills)
       end
     end
   end
