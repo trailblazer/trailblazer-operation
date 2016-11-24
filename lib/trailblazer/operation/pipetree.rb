@@ -25,7 +25,7 @@ class Trailblazer::Operation
 
         last, operation = pipe.(self, options) # operation == self, usually.
 
-        Result.new(last == ::Pipetree::Flow::Right, operation)
+        Result.new(last == ::Pipetree::Flow::Right, options)
       end
 
       # This method would be redundant if Ruby had a Class::finalize! method the way
