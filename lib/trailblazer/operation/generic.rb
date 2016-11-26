@@ -5,7 +5,7 @@ module Trailblazer
       @skills = skills
     end
 
-    # dependency injection interface
+    # dependency interface
     extend Uber::Delegates
     delegates :@skills, :[], :[]=
   end

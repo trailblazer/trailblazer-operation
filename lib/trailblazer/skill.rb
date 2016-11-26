@@ -5,9 +5,9 @@
 # The runtime-data takes precedence over the class data.
 module Trailblazer
   class Skill
-    def initialize(mutable_options, *containers)
-      @mutable_options = mutable_options
-      @resolver         = Resolver.new(@mutable_options, *containers)
+    def initialize(*containers)
+      @mutable_options = {}
+      @resolver        = Resolver.new(@mutable_options, *containers)
     end
 
     def [](name)
@@ -16,6 +16,16 @@ module Trailblazer
 
     def []=(name, value)
       @mutable_options[name] = value
+    end
+
+    # THIS METHOD IS CONSIDERED PRIVATE AND MIGHT BE REMOVED.
+    def to_runtime_data
+      @resolver.instance_variable_get(:@containers).slice(0..-2)
+    end
+
+    # THIS METHOD IS CONSIDERED PRIVATE AND MIGHT BE REMOVED.
+    def to_mutable_data
+      @mutable_options
     end
 
     # Look through a list of containers until you find the skill.

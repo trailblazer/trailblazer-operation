@@ -23,7 +23,7 @@ class Trailblazer::Operation
       def call(options)
         pipe = self["pipetree"] # TODO: injectable? WTF? how cool is that?
 
-        last, operation = pipe.(self, options) # operation == self, usually.
+        last, operation = pipe.(self, options)
 
         Result.new(last == ::Pipetree::Flow::Right, options)
       end

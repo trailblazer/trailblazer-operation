@@ -23,9 +23,20 @@ class Trailblazer::Operation
 
     # Overrides Operation::call, creates the Skill hash and passes it to :call.
     module Call
-      def call(params={}, options={}, *dependencies)
-        super Trailblazer::Skill.new(mutable={}, options.merge("params" => params), *dependencies, self.skills)
+      def call(options={}, *dependencies)
+        super Trailblazer::Skill.new(options, *dependencies, self.skills)
+      end
+      alias :_call :call
+
+      # It really sucks that Ruby doesn't have method overloading where we could simply have
+      # two different implementations of ::call.
+      # FIXME: that shouldn't be here in this namespace.
+      module Positional
+        def call(params={}, options={}, *dependencies)
+          super(options.merge("params" => params), *dependencies)
+        end
       end
     end
+
   end
 end
