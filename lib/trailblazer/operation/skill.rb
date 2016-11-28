@@ -25,6 +25,7 @@ class Trailblazer::Operation
     module Call
       def call(options={}, *dependencies)
         super Trailblazer::Skill.new(options, *dependencies, self.skills)
+        # DISCUSS: should this be: Trailblazer::Skill.new(runtime_options: [options, *dependencies], compiletime_options: [self.skills])
       end
       alias :_call :call
 
