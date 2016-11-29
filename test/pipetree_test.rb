@@ -55,25 +55,25 @@ class PipetreeTest < Minitest::Spec
   # with proc, method, callable.
   class Right < Trailblazer::Operation
     MyProc = ->(*) { }
-    self.> ->(input, options) { options[">"] = options["params"][:id] }
+    self.> ->(options) { options[">"] = options["params"][:id] }, better_api: true
 
     self.> :method_name!
     def method_name!(options); self["method_name!"] = options["params"][:id] end
 
     class MyCallable
       include Uber::Callable
-      def call(operation, options); operation["callable"] = options["params"][:id] end
+      def call(options); options["callable"] = options["params"][:id] end
     end
     self.> MyCallable.new
   end
 
   it { Right.( id: 1 ).slice(">", "method_name!", "callable").must_equal [1, 1, 1] }
-  it { Right["pipetree"].inspect.must_equal %{[>>operation.new,>self,>method_name!,>#<PipetreeTest::Right::MyCallable:>]} }
+  it { Right["pipetree"].inspect.must_equal %{[>>operation.new,>PipetreeTest::Right:58,>method_name!,>PipetreeTest::Right::MyCallable]} }
 
   #---
   # inheritance
   class Righter < Right
-    self.> ->(input, options) { options["righter"] = true }
+    self.> ->(options) { options["righter"] = true }
   end
 
   it { Righter.( id: 1 ).slice(">", "method_name!", "callable", "righter").must_equal [1, 1, 1, true] }

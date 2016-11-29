@@ -18,7 +18,7 @@ class CallTest < Minitest::Spec
     #---
     # success?
     class Update < Trailblazer::Operation
-      self.& ->(input, options) { input["params"] }, after: "operation.new"
+      self.& ->(options) { options["params"] }, after: "operation.new"
     end
 
     it { Update.(true).success?.must_equal true }

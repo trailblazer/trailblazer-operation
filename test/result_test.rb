@@ -17,7 +17,7 @@ class ResultTest < Minitest::Spec
   it { Result.new(true, "x"=> true, "y"=>1, "z"=>2).inspect("z", "y").must_equal %{<Result:true [2, 1] >} }
 
   class Create < Trailblazer::Operation
-    self.> ->(input, options) { input.call }
+    self.> :call
 
     def call(*)
       self[:message] = "Result objects are actually quite handy!"

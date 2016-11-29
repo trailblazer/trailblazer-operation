@@ -4,8 +4,7 @@ require "trailblazer/operation/result"
 require "uber/option"
 
 class Trailblazer::Operation
-  New     = ->(klass, options)     { klass.new(options) }                   # returns operation instance.
-  Process = ->(operation, options) { operation.process(options["params"]) }
+  New = ->(klass, options)     { klass.new(options) } # returns operation instance.
 
   # http://trailblazer.to/gems/operation/2.0/pipetree.html
   module Pipetree
@@ -14,7 +13,7 @@ class Trailblazer::Operation
       includer.extend DSL          # ::|, ::> and friends.
 
       includer.initialize_pipetree!
-      includer.>> New, name: "operation.new"
+      includer.>> New, name: "operation.new", wrap: false
     end
 
     module ClassMethods
@@ -47,13 +46,26 @@ class Trailblazer::Operation
       def <(*args); _insert(:<, *args) end
 
       # :private:
+      # High-level user API that allows ->(options) procs.
       def _insert(operator, proc, options={})
         heritage.record(:_insert, operator, proc, options)
 
-        options[:name] ||= proc if proc.is_a? Symbol
-        # options[:name] ||= "#{self.name}:#{proc.source_location.last}" if proc.is_a? Proc
+        # proc = Uber::Option[proc]
+        _proc =
+          if options[:wrap] == false
+            proc
+          elsif proc.is_a? Symbol
+            options[:name] ||= proc
+            ->(input, options) { input.send(proc, options) }
+          elsif proc.is_a? Proc
+            options[:name] ||= "#{self.name}:#{proc.source_location.last}" if proc.is_a? Proc
+            ->(input, options) { proc.(options) }
+          elsif proc.is_a? Uber::Callable
+            options[:name] ||= proc.class
+            ->(input, options) { proc.(options) }
+          end
 
-        self["pipetree"].send(operator, Uber::Option[proc], options) # ex: pipetree.> Validate, after: Model::Build
+        self["pipetree"].send(operator, _proc, options) # ex: pipetree.> Validate, after: Model::Build
       end
 
       def ~(cfg)
@@ -75,6 +87,8 @@ class Trailblazer::Operation
 
       # Try to abstract as much as possible from the imported module. This is for
       # forward-compatibility.
+      # Note that Import#call will push the step directly on the pipetree which gives it the
+      # low-level (input, options) interface.
       Import = Struct.new(:operation, :user_options) do
         def call(operator, step, options)
           operation["pipetree"].send operator, step, options.merge(user_options)
