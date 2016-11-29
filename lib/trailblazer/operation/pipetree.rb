@@ -51,7 +51,7 @@ class Trailblazer::Operation
         heritage.record(:_insert, operator, proc, options)
 
         options[:name] ||= proc if proc.is_a? Symbol
-        options[:name] ||= "#{self.name}:#{proc.source_location.last}" if proc.is_a? Proc
+        # options[:name] ||= "#{self.name}:#{proc.source_location.last}" if proc.is_a? Proc
 
         self["pipetree"].send(operator, Uber::Option[proc], options) # ex: pipetree.> Validate, after: Model::Build
       end
