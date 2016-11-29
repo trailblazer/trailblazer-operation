@@ -79,5 +79,17 @@ class PipetreeTest < Minitest::Spec
   it { Righter.( id: 1 ).slice(">", "method_name!", "callable", "righter").must_equal [1, 1, 1, true] }
 end
 
+#---
+#- kw args
+class OperationKwArgsTest < Minitest::Spec
+  Song = Struct.new(:id)
 
-# args: operation, skills
+  class Create < Trailblazer::Operation
+    self.> ->(options) { options["model"] = "Object" }
+    self.> ->(model:) { snippet }
+  end
+
+  it {
+    skip
+    Create.() }
+end

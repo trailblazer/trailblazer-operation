@@ -6,6 +6,8 @@ require "uber/option"
 class Trailblazer::Operation
   New = ->(klass, options)     { klass.new(options) } # returns operation instance.
 
+  # Implements the API to populate the operation's pipetree and
+  # `Operation::call` to invoke the latter.
   # http://trailblazer.to/gems/operation/2.0/pipetree.html
   module Pipetree
     def self.included(includer)
@@ -46,7 +48,7 @@ class Trailblazer::Operation
       def <(*args); _insert(:<, *args) end
 
       # :private:
-      # High-level user API that allows ->(options) procs.
+      # High-level user step API that allows ->(options) procs.
       def _insert(operator, proc, options={})
         heritage.record(:_insert, operator, proc, options)
 
@@ -56,13 +58,14 @@ class Trailblazer::Operation
             proc
           elsif proc.is_a? Symbol
             options[:name] ||= proc
-            ->(input, options) { input.send(proc, options) }
+            ->(input, _options) { input.send(proc, _options) }
           elsif proc.is_a? Proc
             options[:name] ||= "#{self.name}:#{proc.source_location.last}" if proc.is_a? Proc
-            ->(input, options) { proc.(options) }
+            # ->(input, options) { proc.(**options) }
+            ->(input, _options) { proc.(_options) }
           elsif proc.is_a? Uber::Callable
             options[:name] ||= proc.class
-            ->(input, options) { proc.(options) }
+            ->(input, _options) { proc.(_options) }
           end
 
         self["pipetree"].send(operator, _proc, options) # ex: pipetree.> Validate, after: Model::Build
