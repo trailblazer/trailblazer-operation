@@ -14,9 +14,7 @@ class SkillTest < Minitest::Spec
         "model.class" => Integer
       }
 
-      mutable_options = {}
-
-      skill = Trailblazer::Skill.new(mutable_options, runtime_skills, class_level_container)
+      skill = Trailblazer::Skill.new(runtime_skills, class_level_container)
 
       # non-existent key.
       skill[:nope].must_equal nil
@@ -34,8 +32,6 @@ class SkillTest < Minitest::Spec
       # add new tuple.
       skill["user.current"] = "Todd"
 
-      # options we add get added to the hash.
-      mutable_options.inspect.must_equal %{{"model.class"=>Fixnum, "user.current"=>"Todd"}}
       # original container don't get changed
       class_level_container.inspect.must_equal %{{"contract.class"=>Object, "model.class"=>String}}
       runtime_skills.inspect.must_equal %{{"contract"=>SkillTest::MyContract, "model.class"=>Integer}}
