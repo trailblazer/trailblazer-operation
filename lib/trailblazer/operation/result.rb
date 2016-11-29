@@ -1,11 +1,11 @@
 class Trailblazer::Operation
   class Result
     def initialize(success, data)
-      @success, @data = success, data
+      @success, @data = success, data # @data is a Skill instance.
     end
 
     extend Uber::Delegates
-    delegates :@data, :[]
+    delegates :@data, :[] # DISCUSS: make it a real delegator? see Nested.
 
     def success?
       @success

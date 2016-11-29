@@ -25,6 +25,9 @@ class Trailblazer::Operation
 
         last, operation = pipe.(self, options)
 
+        # The reason the Result wraps the Skill object (`options`), not the operation
+        # itself is because the op should be irrelevant, plus when stopping the pipe
+        # before op instantiation, this would be confusing (and wrong!).
         Result.new(last == ::Pipetree::Flow::Right, options)
       end
 
