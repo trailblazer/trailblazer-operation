@@ -81,17 +81,15 @@ end
 
 #---
 #- kw args
-unless RUBY_VERSION == "1.9.3"
-  class OperationKwArgsTest < Minitest::Spec
-    Song = Struct.new(:id)
+class OperationKwArgsTest < Minitest::Spec
+  Song = Struct.new(:id)
 
-    class Create < Trailblazer::Operation
-      self.> ->(options) { options["model"] = "Object" }
-      self.> ->(model:) { snippet }
-    end
-
-    it {
-      skip
-      Create.() }
+  class Create < Trailblazer::Operation
+    self.> ->(options) { options["model"] = "Object" }
+    # self.> ->(model:) { snippet }
   end
+
+  it {
+    skip
+    Create.() }
 end
