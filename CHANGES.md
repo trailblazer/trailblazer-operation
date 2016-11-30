@@ -1,3 +1,7 @@
+## 0.0.5
+
+* `_insert` provides better API now.
+
 ## 0.0.4
 
 * Don't pass the operation into `Result`, but the `Skill` options hash, only.
