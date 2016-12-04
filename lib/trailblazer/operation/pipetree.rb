@@ -77,14 +77,13 @@ class Trailblazer::Operation
         self.|(cfg, inheriting: true) # FIXME: not sure if this is the final API.
       end
 
-      def |(cfg, user_options={}) # sorry for the magic here, but still playing with the DSL.
+      def |(cfg, user_options={})
         if cfg.is_a?(Array) # e.g. Contract::Validate
-          import = Import.new(self, user_options)
-
           mod, args, block = cfg
-          res= mod.import!(self, import, *args, &block)
 
-          return res &&
+          import = Import.new(self, user_options) # API object.
+
+          return mod.import!(self, import, *args, &block) &&
             heritage.record(:|, cfg, user_options)
         end
 

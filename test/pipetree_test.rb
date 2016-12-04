@@ -19,15 +19,15 @@ class PipetreeTest < Minitest::Spec
   it { Create["pipetree"].inspect.must_equal %{[>validate,>>operation.new]} }
 
   # without any options or []
-  class New < Trailblazer::Operation
-    self.| Validate
-  end
+  # class New < Trailblazer::Operation
+  #   self.| Validate
+  # end
 
-  it { New["pipetree"].inspect.must_equal %{[>validate,>>operation.new]} }
+  # it { New["pipetree"].inspect.must_equal %{[>validate,>>operation.new]} }
 
   # with options
   class Update < Trailblazer::Operation
-    self.| Validate, after: "operation.new"
+    self.| Validate[], after: "operation.new"
   end
 
   it { Update["pipetree"].inspect.must_equal %{[>>operation.new,>validate]} }
