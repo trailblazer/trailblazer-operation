@@ -47,6 +47,15 @@ class Trailblazer::Operation
       def &(*args); _insert(:&, *args) end
       def <(*args); _insert(:<, *args) end
 
+      # self.| ->(*) { }, before: "operation.new"
+      # self.| :some_method
+      def |(cfg, user_options={})
+        DSL.import(self, self["pipetree"], cfg, user_options) &&
+          heritage.record(:|, cfg, user_options)
+      end
+
+      alias_method :step, :|
+
       # :public:
       # Wrap the step into a proc that only passes `options` to the step.
       # This is pure convenience for the developer and will be the default
@@ -84,6 +93,14 @@ class Trailblazer::Operation
         insert(pipe, :>, cfg, user_options, {}) # DOEES NOOOT calls heritage.record
       end
 
+      Macros = Module.new
+      def self.macro!(name, constant)
+        Macros.send :define_method, name do |*args, &block|
+          [constant, args, block]
+        end
+      end
+
+
       # :private:
       # High-level user step API that allows ->(options) procs.
       def _insert(operator, proc, options={})
@@ -96,13 +113,6 @@ class Trailblazer::Operation
         heritage.record(:~, cfg)
 
         self.|(cfg, inheriting: true) # FIXME: not sure if this is the final API.
-      end
-
-      # self.| ->(*) { }, before: "operation.new"
-      # self.| :some_method
-      def |(cfg, user_options={})
-        DSL.import(self, self["pipetree"], cfg, user_options) &&
-          heritage.record(:|, cfg, user_options)
       end
 
       # Try to abstract as much as possible from the imported module. This is for
@@ -120,4 +130,6 @@ class Trailblazer::Operation
       end
     end
   end
+
+  extend Pipetree::DSL::Macros
 end
