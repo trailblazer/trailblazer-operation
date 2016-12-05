@@ -4,7 +4,7 @@ require "trailblazer/operation/result"
 require "uber/option"
 
 class Trailblazer::Operation
-  New = ->(klass, options)     { klass.new(options) } # returns operation instance.
+  New = ->(klass, options) { klass.new(options) } # returns operation instance.
 
   # Implements the API to populate the operation's pipetree and
   # `Operation::call` to invoke the latter.
