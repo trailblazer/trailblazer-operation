@@ -72,6 +72,18 @@ class Trailblazer::Operation
         pipe.send(operator, _proc, options) # ex: pipetree.> Validate, after: Model::Build
       end
 
+      def self.import(operation, pipe, cfg, user_options={})
+        if cfg.is_a?(Array) # e.g. from Contract::Validate
+          mod, args, block = cfg
+
+          import = Import.new(pipe, user_options) # API object.
+
+          return mod.import!(operation, import, *args, &block)
+        end
+
+        insert(pipe, :>, cfg, user_options, {}) # DOEES NOOOT calls heritage.record
+      end
+
       # :private:
       # High-level user step API that allows ->(options) procs.
       def _insert(operator, proc, options={})
@@ -86,17 +98,11 @@ class Trailblazer::Operation
         self.|(cfg, inheriting: true) # FIXME: not sure if this is the final API.
       end
 
+      # self.| ->(*) { }, before: "operation.new"
+      # self.| :some_method
       def |(cfg, user_options={})
-        if cfg.is_a?(Array) # e.g. Contract::Validate
-          mod, args, block = cfg
-
-          import = Import.new(self["pipetree"], user_options) # API object.
-
-          return mod.import!(self, import, *args, &block) &&
-            heritage.record(:|, cfg, user_options)
-        end
-
-        self.> cfg, user_options # calls heritage.record
+        DSL.import(self, self["pipetree"], cfg, user_options) &&
+          heritage.record(:|, cfg, user_options)
       end
 
       # Try to abstract as much as possible from the imported module. This is for
