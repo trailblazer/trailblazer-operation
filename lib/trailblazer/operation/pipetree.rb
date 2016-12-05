@@ -47,12 +47,13 @@ class Trailblazer::Operation
       def &(*args); _insert(:&, *args) end
       def <(*args); _insert(:<, *args) end
 
-      # :private:
-      # High-level user step API that allows ->(options) procs.
-      def _insert(operator, proc, options={})
-        heritage.record(:_insert, operator, proc, options)
-
+      # :public:
+      # Wrap the step into a proc that only passes `options` to the step.
+      # This is pure convenience for the developer and will be the default
+      # API for steps. ATM, we also automatically generate a step `:name`.
+      def self.insert(pipe, operator, proc, options={}, definer_name:nil) # TODO: definer_name is a hack for debugging, only.
         # proc = Uber::Option[proc]
+
         _proc =
           if options[:wrap] == false
             proc
@@ -60,7 +61,7 @@ class Trailblazer::Operation
             options[:name] ||= proc
             ->(input, _options) { input.send(proc, _options) }
           elsif proc.is_a? Proc
-            options[:name] ||= "#{self.name}:#{proc.source_location.last}" if proc.is_a? Proc
+            options[:name] ||= "#{definer_name}:#{proc.source_location.last}" if proc.is_a? Proc
             # ->(input, options) { proc.(**options) }
             ->(input, _options) { proc.(_options) }
           elsif proc.is_a? Uber::Callable
@@ -68,7 +69,15 @@ class Trailblazer::Operation
             ->(input, _options) { proc.(_options) }
           end
 
-        self["pipetree"].send(operator, _proc, options) # ex: pipetree.> Validate, after: Model::Build
+        pipe.send(operator, _proc, options) # ex: pipetree.> Validate, after: Model::Build
+      end
+
+      # :private:
+      # High-level user step API that allows ->(options) procs.
+      def _insert(operator, proc, options={})
+        heritage.record(:_insert, operator, proc, options)
+
+        DSL.insert(self["pipetree"], operator, proc, options, definer_name: self.name)
       end
 
       def ~(cfg)
@@ -81,7 +90,7 @@ class Trailblazer::Operation
         if cfg.is_a?(Array) # e.g. Contract::Validate
           mod, args, block = cfg
 
-          import = Import.new(self, user_options) # API object.
+          import = Import.new(self["pipetree"], user_options) # API object.
 
           return mod.import!(self, import, *args, &block) &&
             heritage.record(:|, cfg, user_options)
@@ -94,9 +103,9 @@ class Trailblazer::Operation
       # forward-compatibility.
       # Note that Import#call will push the step directly on the pipetree which gives it the
       # low-level (input, options) interface.
-      Import = Struct.new(:operation, :user_options) do
+      Import = Struct.new(:pipetree, :user_options) do
         def call(operator, step, options)
-          operation["pipetree"].send operator, step, options.merge(user_options)
+          pipetree.send operator, step, options.merge(user_options)
         end
 
         def inheriting?
