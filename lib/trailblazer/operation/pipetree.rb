@@ -55,6 +55,29 @@ class Trailblazer::Operation
       end
 
       alias_method :step, :|
+      alias_method :consider, :&
+
+      # :private:
+      module Option
+        def self.call(proc, &block)
+          type = :proc
+
+          option =
+            if proc.is_a? Symbol
+              type = :symbol
+              ->(input, *_options) { input.send(proc, *_options) }
+            elsif proc.is_a? Proc
+              # ->(input, options) { proc.(**options) }
+              ->(input, *_options) { proc.(*_options) }
+            elsif proc.is_a? Uber::Callable
+              type = :callable
+              ->(input, *_options) { proc.(*_options) }
+            end
+
+          yield type if block_given?
+          option
+        end
+      end
 
       # :public:
       # Wrap the step into a proc that only passes `options` to the step.
@@ -63,19 +86,16 @@ class Trailblazer::Operation
       def self.insert(pipe, operator, proc, options={}, definer_name:nil) # TODO: definer_name is a hack for debugging, only.
         # proc = Uber::Option[proc]
 
+
         _proc =
           if options[:wrap] == false
             proc
-          elsif proc.is_a? Symbol
-            options[:name] ||= proc
-            ->(input, _options) { input.send(proc, _options) }
-          elsif proc.is_a? Proc
-            options[:name] ||= "#{definer_name}:#{proc.source_location.last}" if proc.is_a? Proc
-            # ->(input, options) { proc.(**options) }
-            ->(input, _options) { proc.(_options) }
-          elsif proc.is_a? Uber::Callable
-            options[:name] ||= proc.class
-            ->(input, _options) { proc.(_options) }
+          else
+            Option.(proc) do |type|
+              options[:name] ||= proc if type == :symbol
+              options[:name] ||= "#{definer_name}:#{proc.source_location.last}" if proc.is_a? Proc if type == :proc
+              options[:name] ||= proc.class  if type == :callable
+            end
           end
 
         pipe.send(operator, _proc, options) # ex: pipetree.> Validate, after: Model::Build
