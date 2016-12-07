@@ -11,9 +11,7 @@ Rake::TestTask.new(:test) do |test|
 
   if RUBY_VERSION == "1.9.3"
     test_files = test_files - %w{test/dry_container_test.rb}
-
   end
 
-  puts test_files.inspect
   test.test_files = test_files
 end

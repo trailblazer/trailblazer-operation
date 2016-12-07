@@ -6,7 +6,6 @@ gemspec
 gem "multi_json"
 
 gem "dry-auto_inject"
-gem "dry-matcher"
 
 gem "minitest-line"
 gem "benchmark-ips"
