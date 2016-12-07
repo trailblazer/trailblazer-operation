@@ -2,8 +2,6 @@ require "test_helper"
 
 class PipetreeTest < Minitest::Spec
   module Validate
-    extend Trailblazer::Operation::Macro
-
     def self.import!(operation, pipe)
       pipe.(:>, ->{ snippet }, name: "validate", before: "operation.new")
     end
@@ -13,7 +11,7 @@ class PipetreeTest < Minitest::Spec
   # ::|
   # without options
   class Create < Trailblazer::Operation
-    self.| Validate[]
+    self.| [Validate]
   end
 
   it { Create["pipetree"].inspect.must_equal %{[>validate,>>operation.new]} }
@@ -27,7 +25,7 @@ class PipetreeTest < Minitest::Spec
 
   # with options
   class Update < Trailblazer::Operation
-    self.| Validate[], after: "operation.new"
+    self.| [Validate], after: "operation.new"
   end
 
   it { Update["pipetree"].inspect.must_equal %{[>>operation.new,>validate]} }
@@ -68,7 +66,7 @@ class PipetreeTest < Minitest::Spec
   end
 
   it { Right.( id: 1 ).slice(">", "method_name!", "callable").must_equal [1, 1, 1] }
-  it { Right["pipetree"].inspect.must_equal %{[>>operation.new,>PipetreeTest::Right:58,>method_name!,>PipetreeTest::Right::MyCallable]} }
+  it { Right["pipetree"].inspect.must_equal %{[>>operation.new,>PipetreeTest::Right:56,>method_name!,>PipetreeTest::Right::MyCallable]} }
 
   #---
   # inheritance

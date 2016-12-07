@@ -56,6 +56,8 @@ class Trailblazer::Operation
 
       alias_method :step, :|
       alias_method :consider, :&
+      alias_method :failure, :<
+      alias_method :success, :>
 
       # :private:
       module Option
@@ -83,17 +85,15 @@ class Trailblazer::Operation
       # Wrap the step into a proc that only passes `options` to the step.
       # This is pure convenience for the developer and will be the default
       # API for steps. ATM, we also automatically generate a step `:name`.
-      def self.insert(pipe, operator, proc, options={}, definer_name:nil) # TODO: definer_name is a hack for debugging, only.
+      def self.insert(pipe, operator, proc, options={}, kws={}) # TODO: definer_name is a hack for debugging, only.
         # proc = Uber::Option[proc]
-
-
         _proc =
           if options[:wrap] == false
             proc
           else
             Option.(proc) do |type|
               options[:name] ||= proc if type == :symbol
-              options[:name] ||= "#{definer_name}:#{proc.source_location.last}" if proc.is_a? Proc if type == :proc
+              options[:name] ||= "#{kws[:definer_name]}:#{proc.source_location.last}" if proc.is_a? Proc if type == :proc
               options[:name] ||= proc.class  if type == :callable
             end
           end
@@ -119,7 +119,6 @@ class Trailblazer::Operation
           [constant, args, block]
         end
       end
-
 
       # :private:
       # High-level user step API that allows ->(options) procs.
