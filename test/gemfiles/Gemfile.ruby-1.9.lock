@@ -1,7 +1,7 @@
 PATH
   remote: ../../
   specs:
-    trailblazer-operation (0.0.3)
+    trailblazer-operation (0.0.6)
       declarative
       pipetree (>= 0.0.4, < 0.1.0)
       uber (>= 0.1.0, < 0.2.0)

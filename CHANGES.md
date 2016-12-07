@@ -1,3 +1,7 @@
+## 0.0.6
+
+* Improvements with the pipe DSL.
+
 ## 0.0.5
 
 * `_insert` provides better API now.
