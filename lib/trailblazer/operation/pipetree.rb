@@ -114,8 +114,9 @@ class Trailblazer::Operation
       end
 
       Macros = Module.new
-      def self.macro!(name, constant)
-        Macros.send :define_method, name do |*args, &block|
+      # create a class method on `target`, e.g. Contract::Validate() for step macros.
+      def self.macro!(name, constant, target=Macros)
+        target.send :define_method, name do |*args, &block|
           [constant, args, block]
         end
       end
