@@ -20,7 +20,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "uber", ">= 0.1.0", "< 0.2.0"
   spec.add_dependency "declarative"
-  spec.add_dependency "pipetree", ">= 0.0.4", "< 0.1.0"
+  spec.add_dependency "pipetree", ">= 0.0.5", "< 0.1.0"
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake"

@@ -15,7 +15,7 @@ class Trailblazer::Operation
       includer.extend DSL          # ::|, ::> and friends.
 
       includer.initialize_pipetree!
-      includer.>> New, name: "operation.new", wrap: false
+      includer._insert(:>>, New, name: "operation.new", wrap: false)
     end
 
     module ClassMethods
@@ -36,13 +36,12 @@ class Trailblazer::Operation
       # Dry.RB provides it. It has to be executed with every subclassing.
       def initialize_pipetree!
         heritage.record :initialize_pipetree!
-        self["pipetree"] = ::Pipetree::Flow[]
+        self["pipetree"] = ::Pipetree::Flow.new
       end
     end
 
     module DSL
       # They all inherit.
-      def >>(*args); _insert(:>>, *args) end
       def >(*args); _insert(:>, *args) end
       def &(*args); _insert(:&, *args) end
       def <(*args); _insert(:<, *args) end
@@ -58,6 +57,7 @@ class Trailblazer::Operation
       alias_method :consider, :&
       alias_method :failure, :<
       alias_method :success, :>
+
 
       # :private:
       module Option
@@ -129,11 +129,8 @@ class Trailblazer::Operation
         DSL.insert(self["pipetree"], operator, proc, options, definer_name: self.name)
       end
 
-      def ~(cfg)
-        heritage.record(:~, cfg)
-
-        self.|(cfg, inheriting: true) # FIXME: not sure if this is the final API.
-      end
+      alias_method :override, :|
+      alias_method :~, :override
 
       # Try to abstract as much as possible from the imported module. This is for
       # forward-compatibility.
@@ -141,11 +138,15 @@ class Trailblazer::Operation
       # low-level (input, options) interface.
       Import = Struct.new(:pipetree, :user_options) do
         def call(operator, step, options)
-          pipetree.send operator, step, options.merge(user_options)
-        end
+          insert_options = options.merge(user_options)
 
-        def inheriting?
-          user_options[:inheriting]
+          # Inheritance: when the step is already defined in the pipe,
+          # simply replace it with the new.
+          if name = insert_options[:name]
+            insert_options[:replace] = name if pipetree.index(name)
+          end
+
+          pipetree.send operator, step, insert_options
         end
       end
     end
