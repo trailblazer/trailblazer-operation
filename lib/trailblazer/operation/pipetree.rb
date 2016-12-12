@@ -3,6 +3,12 @@ require "pipetree/flow"
 require "trailblazer/operation/result"
 require "uber/option"
 
+if RUBY_VERSION == "1.9.3"
+  require "trailblazer/operation/1.9.3/option" # TODO: rename to something better.
+else
+  require "trailblazer/operation/option" # TODO: rename to something better.
+end
+
 class Trailblazer::Operation
   New = ->(klass, options) { klass.new(options) } # returns operation instance.
 
@@ -64,28 +70,6 @@ class Trailblazer::Operation
         heritage.record(:_insert, operator, proc, options)
 
         DSL.insert(self["pipetree"], operator, proc, options, definer_name: self.name)
-      end
-
-      # :private:
-      module Option
-        def self.call(proc, &block)
-          type = :proc
-
-          option =
-            if proc.is_a? Symbol
-              type = :symbol
-              ->(input, *_options) { input.send(proc, *_options) }
-            elsif proc.is_a? Proc
-              # ->(input, options) { proc.(**options) }
-              ->(input, *_options) { proc.(*_options) }
-            elsif proc.is_a? Uber::Callable
-              type = :callable
-              ->(input, *_options) { proc.(*_options) }
-            end
-
-          yield type if block_given?
-          option
-        end
       end
 
       # :public:

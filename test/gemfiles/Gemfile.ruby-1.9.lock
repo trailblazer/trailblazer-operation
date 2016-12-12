@@ -1,9 +1,9 @@
 PATH
   remote: ../../
   specs:
-    trailblazer-operation (0.0.6)
+    trailblazer-operation (0.0.7)
       declarative
-      pipetree (>= 0.0.4, < 0.1.0)
+      pipetree (>= 0.0.5, < 0.1.0)
       uber (>= 0.1.0, < 0.2.0)
 
 GEM
@@ -11,9 +11,10 @@ GEM
   specs:
     declarative (0.0.8)
       uber (>= 0.0.15)
-    minitest (5.9.1)
-    pipetree (0.0.4)
-    rake (11.3.0)
+    minitest (5.10.1)
+    pipetree (0.0.5)
+      uber
+    rake (12.0.0)
     uber (0.1.0)
 
 PLATFORMS

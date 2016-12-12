@@ -30,6 +30,20 @@ module Trailblazer
       @mutable_options
     end
 
+    # Called when Ruby transforms options into kw args, via **options.
+    # TODO: this method has massive potential for speed improvements.
+    def to_hash
+      {}.tap do |h|
+        arr = to_runtime_data << to_mutable_data
+
+
+        arr.each { |hsh|
+         hsh.each { |k, v| h[k.to_sym] = v }
+        }
+
+      end
+    end
+
     # Look through a list of containers until you find the skill.
     class Resolver
     # alternative implementation:
