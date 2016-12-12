@@ -11,28 +11,32 @@ class PipetreeTest < Minitest::Spec
   # ::|
   # without options
   class Create < Trailblazer::Operation
-    self.| [Validate]
+    step [Validate]
   end
 
   it { Create["pipetree"].inspect.must_equal %{[>validate,>>operation.new]} }
 
   # without any options or []
   # class New < Trailblazer::Operation
-  #   self.| Validate
+  #   step Validate
   # end
 
   # it { New["pipetree"].inspect.must_equal %{[>validate,>>operation.new]} }
 
   # with options
   class Update < Trailblazer::Operation
-    self.| [Validate], after: "operation.new"
+    step [Validate], after: "operation.new"
   end
 
   it { Update["pipetree"].inspect.must_equal %{[>>operation.new,>validate]} }
 
-  # with :symbol
+  #---
+  # ::step
+
+  #-
+  #- with :symbol
   class Delete < Trailblazer::Operation
-    self.| :call!
+    step :call!
 
     def call!(options)
       self["x"] = options["params"]
@@ -41,9 +45,15 @@ class PipetreeTest < Minitest::Spec
 
   it { Delete.("yo")["x"].must_equal "yo" }
 
+  #- inheritance
+  class Remove < Delete
+  end
+
+  it { Remove.("yo")["x"].must_equal "yo" }
+
   # proc arguments
   class Forward < Trailblazer::Operation
-    self.| ->(input, options) { puts "@@@@@ #{input.inspect}"; puts "@@@@@ #{options.inspect}" }
+    step ->(input, options) { puts "@@@@@ #{input.inspect}"; puts "@@@@@ #{options.inspect}" }
   end
 
   it { skip; Forward.({ id: 1 }) }
@@ -66,7 +76,7 @@ class PipetreeTest < Minitest::Spec
   end
 
   it { Right.( id: 1 ).slice(">", "method_name!", "callable").must_equal [1, 1, 1] }
-  it { Right["pipetree"].inspect.must_equal %{[>>operation.new,>PipetreeTest::Right:56,>method_name!,>PipetreeTest::Right::MyCallable]} }
+  it { Right["pipetree"].inspect.must_equal %{[>>operation.new,>PipetreeTest::Right:66,>method_name!,>PipetreeTest::Right::MyCallable]} }
 
   #---
   # inheritance

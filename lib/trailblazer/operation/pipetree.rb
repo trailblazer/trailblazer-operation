@@ -46,8 +46,6 @@ class Trailblazer::Operation
       def &(*args); _insert(:&, *args) end
       def <(*args); _insert(:<, *args) end
 
-      # self.| ->(*) { }, before: "operation.new"
-      # self.| :some_method
       def |(cfg, user_options={})
         DSL.import(self, self["pipetree"], cfg, user_options) &&
           heritage.record(:|, cfg, user_options)
@@ -59,6 +57,14 @@ class Trailblazer::Operation
       alias_method :success,  :>
       alias_method :override, :|
       alias_method :~, :override
+
+      # :private:
+      # High-level user step API that allows ->(options) procs.
+      def _insert(operator, proc, options={})
+        heritage.record(:_insert, operator, proc, options)
+
+        DSL.insert(self["pipetree"], operator, proc, options, definer_name: self.name)
+      end
 
       # :private:
       module Option
@@ -102,25 +108,16 @@ class Trailblazer::Operation
         pipe.send(operator, _proc, options) # ex: pipetree.> Validate, after: Model::Build
       end
 
+      # note: does not calls heritage.record
       def self.import(operation, pipe, cfg, user_options={})
-        if cfg.is_a?(Array) # e.g. from Contract::Validate
-          mod, args, block = cfg
+        return insert(pipe, :>, cfg, user_options, {}) unless cfg.is_a?(Array)
 
-          import = Import.new(pipe, user_options) # API object.
+        # e.g. from Contract::Validate
+        mod, args, block = cfg
 
-          return mod.import!(operation, import, *args, &block)
-        end
+        import = Import.new(pipe, user_options) # API object.
 
-        insert(pipe, :>, cfg, user_options, {}) # DOEES NOOOT calls heritage.record
-      end
-
-
-      # :private:
-      # High-level user step API that allows ->(options) procs.
-      def _insert(operator, proc, options={})
-        heritage.record(:_insert, operator, proc, options)
-
-        DSL.insert(self["pipetree"], operator, proc, options, definer_name: self.name)
+        mod.import!(operation, import, *args, &block)
       end
 
       # Try to abstract as much as possible from the imported module. This is for
