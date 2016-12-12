@@ -53,11 +53,12 @@ class Trailblazer::Operation
           heritage.record(:|, cfg, user_options)
       end
 
-      alias_method :step, :|
+      alias_method :step,     :|
       alias_method :consider, :&
-      alias_method :failure, :<
-      alias_method :success, :>
-
+      alias_method :failure,  :<
+      alias_method :success,  :>
+      alias_method :override, :|
+      alias_method :~, :override
 
       # :private:
       module Option
@@ -113,13 +114,6 @@ class Trailblazer::Operation
         insert(pipe, :>, cfg, user_options, {}) # DOEES NOOOT calls heritage.record
       end
 
-      Macros = Module.new
-      # create a class method on `target`, e.g. Contract::Validate() for step macros.
-      def self.macro!(name, constant, target=Macros)
-        target.send :define_method, name do |*args, &block|
-          [constant, args, block]
-        end
-      end
 
       # :private:
       # High-level user step API that allows ->(options) procs.
@@ -128,9 +122,6 @@ class Trailblazer::Operation
 
         DSL.insert(self["pipetree"], operator, proc, options, definer_name: self.name)
       end
-
-      alias_method :override, :|
-      alias_method :~, :override
 
       # Try to abstract as much as possible from the imported module. This is for
       # forward-compatibility.
@@ -149,7 +140,15 @@ class Trailblazer::Operation
           pipetree.send operator, step, insert_options
         end
       end
-    end
+
+      Macros = Module.new
+      # create a class method on `target`, e.g. Contract::Validate() for step macros.
+      def self.macro!(name, constant, target=Macros)
+        target.send :define_method, name do |*args, &block|
+          [constant, args, block]
+        end
+      end
+    end # DSL
   end
 
   extend Pipetree::DSL::Macros
