@@ -7,7 +7,6 @@ gem "multi_json"
 
 gem "dry-auto_inject"
 
-gem "minitest"
 gem "minitest-line"
 gem "benchmark-ips"
 # gem "pipetree", path: "../pipetree"

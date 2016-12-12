@@ -1,3 +1,5 @@
+require "test_helper"
+
 class Ruby200PipetreeTest < Minitest::Spec
   class Create < Trailblazer::Operation
     consider ->(*, params:, **) { params["run"] }    # only test kws.
