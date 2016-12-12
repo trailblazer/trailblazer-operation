@@ -1,3 +1,7 @@
+## 0.0.7
+
+* Simplify inheritance by basically removing it.
+
 ## 0.0.6
 
 * Improvements with the pipe DSL.
