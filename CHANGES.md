@@ -1,10 +1,10 @@
 ## 0.0.8
 
-* Introduce a new (optional, but probably soon default) keyword signature for steps:
+* Introduce a new keyword signature for steps:
 
-        ```ruby
-        step ->(options, params:, **) { options["x"] = params[:id] }
-        ```
+    ```ruby
+    step ->(options, params:, **) { options["x"] = params[:id] }
+    ```
 
     The same API works for instance methods and `Callable`s.
 
