@@ -77,12 +77,11 @@ class Trailblazer::Operation
       # This is pure convenience for the developer and will be the default
       # API for steps. ATM, we also automatically generate a step `:name`.
       def self.insert(pipe, operator, proc, options={}, kws={}) # TODO: definer_name is a hack for debugging, only.
-        # proc = Uber::Option[proc]
         _proc =
           if options[:wrap] == false
             proc
           else
-            Option.(proc) do |type|
+            Option::KW.(proc) do |type|
               options[:name] ||= proc if type == :symbol
               options[:name] ||= "#{kws[:definer_name]}:#{proc.source_location.last}" if proc.is_a? Proc if type == :proc
               options[:name] ||= proc.class  if type == :callable

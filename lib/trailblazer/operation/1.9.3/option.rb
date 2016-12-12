@@ -4,7 +4,6 @@ class Trailblazer::Operation
     def self.call(proc, &block)
       type = :proc
 
-
       option =
         if proc.is_a? Symbol
           type = :symbol
@@ -31,5 +30,7 @@ class Trailblazer::Operation
     def self.call_callable(callable, input, options)
       callable.(options)
     end
-  end
+
+    KW = Option
+  end # Option
 end
