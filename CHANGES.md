@@ -1,3 +1,15 @@
+## 0.0.9
+
+Removing `Operation::consider`, which is now `step`.
+We now have three methods, only.
+
+* `step` import macro or add step with the & operator, meaning its result is always evaluated and
+decides about left or right.
+* `success` always adds to right track.
+* `failure` always adds to left track.
+
+This was heavily inspired by a discussion with @dnd, so, thanks! 🍻
+
 ## 0.0.8
 
 * Introduce a new keyword signature for steps:
