@@ -7,5 +7,7 @@ matrix:
       gemfile: "test/gemfiles/Gemfile.ruby-1.9"
     - rvm: 2.1
       gemfile: Gemfile
+    - rvm: 2.2
+      gemfile: Gemfile
     - rvm: 2.3.1
       gemfile: Gemfile
