@@ -2,9 +2,9 @@ require "test_helper"
 
 class Ruby200PipetreeTest < Minitest::Spec
   class Create < Trailblazer::Operation
-    consider ->(*, params:, **) { params["run"] }    # only test kws.
-    step     ->(options, params:nil, **) { options["x"] = params["run"] } # read and write.
-    step     ->(options) { options["y"] = options["params"]["run"] } # old API.
+    step ->(*, params:, **) { params["run"] }    # only test kws.
+    step ->(options, params:nil, **) { options["x"] = params["run"] } # read and write.
+    step ->(options) { options["y"] = options["params"]["run"] } # old API.
   end
 
   it { Create.("run" => false).inspect("x", "y").must_equal %{<Result:false [nil, nil] >} }
@@ -12,9 +12,9 @@ class Ruby200PipetreeTest < Minitest::Spec
 
   #- instance methods
   class Update < Trailblazer::Operation
-    consider :params!    # only test kws.
-    step     :x! # read and write.
-    step     :y! # old API.
+    step :params!    # only test kws.
+    step :x! # read and write.
+    step :y! # old API.
 
     def params!(*, params:, **)
       params["run"]
@@ -55,9 +55,9 @@ class Ruby200PipetreeTest < Minitest::Spec
       end
     end
 
-    consider Params
-    step     X
-    step     Y
+    step Params
+    step X
+    step Y
   end
 
   it { Delete.("run" => false).inspect("x", "y").must_equal %{<Result:false [nil, nil] >} }

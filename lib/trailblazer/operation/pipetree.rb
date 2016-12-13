@@ -58,7 +58,6 @@ class Trailblazer::Operation
       end
 
       alias_method :step,     :|
-      alias_method :consider, :&
       alias_method :failure,  :<
       alias_method :success,  :>
       alias_method :override, :|
@@ -93,7 +92,8 @@ class Trailblazer::Operation
 
       # note: does not calls heritage.record
       def self.import(operation, pipe, cfg, user_options={})
-        return insert(pipe, :>, cfg, user_options, {}) unless cfg.is_a?(Array)
+        # a normal step is added as "consider"/"may deviate", so its result matters.
+        return insert(pipe, :&, cfg, user_options, {}) unless cfg.is_a?(Array)
 
         # e.g. from Contract::Validate
         mod, args, block = cfg
