@@ -10,7 +10,7 @@ class KWBugsTest < Minitest::Spec
      }
 
     step :add!
-    def add!(yo:nil, model:nil, **)
+    def add!(yo:, model:, **)
       raise if model.nil?
     end
   end
@@ -21,7 +21,7 @@ end
 
 class Ruby200PipetreeTest < Minitest::Spec
   class Create < Trailblazer::Operation
-    step ->(*, params:nil, **) { params["run"] }    # only test kws.
+    step ->(*, params:, **) { params["run"] }    # only test kws.
     step ->(options, params:nil, **) { options["x"] = params["run"] } # read and write.
     step ->(options) { options["y"] = options["params"]["run"] } # old API.
   end
@@ -35,7 +35,7 @@ class Ruby200PipetreeTest < Minitest::Spec
     step :x! # read and write.
     step :y! # old API.
 
-    def params!(*, params:nil, **)
+    def params!(*, params:, **)
       params["run"]
     end
 
@@ -55,7 +55,7 @@ class Ruby200PipetreeTest < Minitest::Spec
   class Delete < Trailblazer::Operation
     class Params
       extend Uber::Callable
-      def self.call(*, params:nil, **)
+      def self.call(*, params:, **)
         params["run"]
       end
     end
