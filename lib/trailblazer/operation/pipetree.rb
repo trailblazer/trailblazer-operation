@@ -60,6 +60,7 @@ class Trailblazer::Operation
       alias_method :step,     :|
       alias_method :failure,  :<
       alias_method :success,  :>
+      alias_method :pass,     :>
       alias_method :override, :|
       alias_method :~, :override
 
