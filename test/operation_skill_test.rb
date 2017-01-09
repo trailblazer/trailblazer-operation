@@ -16,7 +16,7 @@ class OperationCompetenceTest < Minitest::Spec
   # Operation#[]=
   # arbitrary options can be saved via Op#[].
   class Create < Trailblazer::Operation
-    self.> :call
+    success :call
 
     def call(*)
       self["drink"] = "Little Creatures"
@@ -37,7 +37,7 @@ class OperationCompetenceTest < Minitest::Spec
   # Operation::[]
   # Operation::[]=
   class Update < Trailblazer::Operation
-    self.> :call
+    success :call
 
     self["drink"] = "Beer"
 
@@ -56,7 +56,7 @@ class OperationCompetenceTest < Minitest::Spec
 
   # instance can override class-level
   class Delete < Trailblazer::Operation
-    self.> :call
+    success :call
 
     self["drink"] = "Beer"
 
