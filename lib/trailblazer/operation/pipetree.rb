@@ -21,9 +21,6 @@ class Trailblazer::Operation
       includer.extend DSL          # ::|, ::> and friends.
 
       includer.initialize_pipetree!
-
-      strut = ->(last, input, options) { [last, New.(input, options)] }
-      includer.add(::Pipetree::Flow::Right, strut, { name: "operation.new" }, New, :>>)
     end
 
     module ClassMethods
@@ -44,57 +41,46 @@ class Trailblazer::Operation
       # Dry.RB provides it. It has to be executed with every subclassing.
       def initialize_pipetree!
         heritage.record :initialize_pipetree!
+
         self["pipetree"] = ::Pipetree::Flow.new
+
+        strut = ->(last, input, options) { [last, New.(input, options)] } # first step in pipe.
+        self["pipetree"].add(::Pipetree::Flow::Right, strut, name: "operation.new") # DISCUSS: using pipe API directly here. clever?
       end
     end
 
+    Flow = ::Pipetree::Flow
+
     module DSL
       # They all inherit.
-      def success(*args); stay(::Pipetree::Flow::Right, *args) end
-      def failure(*args); stay(::Pipetree::Flow::Left,  *args) end
-
-      def step(cfg, user_options={})
-        heritage.record(:step, cfg, user_options)
-
-        DSL.import(self, self["pipetree"], cfg, user_options) #&&
-      end
+      def success(*args); add(Flow::Right, Flow::Stay, *args) end
+      def failure(*args); add(Flow::Left,  Flow::Stay, *args) end
+      def step(*args)   ; add(Flow::Right, Flow::And,  *args) end
 
       alias_method :override, :step
 
-      # :private:
-      def stay(track, proc, options={}, **kws)
-        # heritage.record(:_insert, operator, proc, options)
+    private
+      # Operation-level entry point.
+      def add(track, strut_class, proc, options={})
+        heritage.record(:add, track, strut_class, proc, options)
+
+        DSL.insert(self, self["pipetree"], track, strut_class, proc, options)
+      end
+
+      # TODO: REMOVE operation ARGUMENT.
+      def self.insert(operation, pipe, track, strut_class, proc, options={})
+        return DSL.import(operation, pipe, proc, options) if proc.is_a?(Array) # TODO: remove that!
+
         _proc = Option::KW.(proc) do |type|
           options[:name] ||= proc if type == :symbol
-          options[:name] ||= "#{kws[:definer_name]}:#{proc.source_location.last}" if proc.is_a? Proc if type == :proc
+          options[:name] ||= "#{proc.source_location[0].split("/").last}:#{proc.source_location.last}" if proc.is_a? Proc if type == :proc
           options[:name] ||= proc.class  if type == :callable
         end
 
-        add(track, ::Pipetree::Flow::Stay.new(_proc), options, proc, "")
+        pipe.add(track, strut_class.new(_proc), options) # ex: pipetree.> Validate, after: Model::Build
       end
 
-      def add(track, strut, options, step, operator) # TODO: remove step and operator, no one needs it.
-        heritage.record(:add, track, strut, options, step, operator)
-
-        # strut always exposes a ->(last, input, options) interface.
-        self["pipetree"].add track, strut, options, operator
-      end
-
-      def self.insert(pipe, operator, proc, options={}, kws={}) # TODO: definer_name is a hack for debugging, only.
-        _proc = Option::KW.(proc) do |type|
-          options[:name] ||= proc if type == :symbol
-          options[:name] ||= "#{kws[:definer_name]}:#{proc.source_location.last}" if proc.is_a? Proc if type == :proc
-          options[:name] ||= proc.class  if type == :callable
-        end
-
-        pipe.send(operator, _proc, options) # ex: pipetree.> Validate, after: Model::Build
-      end
-
-      # note: does not calls heritage.record
       def self.import(operation, pipe, cfg, user_options={})
-        # a normal step is added as "consider"/"may deviate", so its result matters.
-        return insert(pipe, :&, cfg, user_options, {}) unless cfg.is_a?(Array)
-
         # e.g. from Contract::Validate
         mod, args, block = cfg
 

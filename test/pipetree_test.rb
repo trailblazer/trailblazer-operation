@@ -14,7 +14,7 @@ class PipetreeTest < Minitest::Spec
     step [Validate]
   end
 
-  it { Create["pipetree"].inspect.must_equal %{[>validate,>>operation.new]} }
+  it { Create["pipetree"].inspect.must_equal %{[>validate,operation.new]} }
 
   # without any options or []
   # class New < Trailblazer::Operation
@@ -28,7 +28,7 @@ class PipetreeTest < Minitest::Spec
     step [Validate], after: "operation.new"
   end
 
-  it { Update["pipetree"].inspect.must_equal %{[>>operation.new,>validate]} }
+  it { Update["pipetree"].inspect.must_equal %{[operation.new,>validate]} }
 
   #---
   # ::step
@@ -76,7 +76,7 @@ class PipetreeTest < Minitest::Spec
   end
 
   it { Right.( id: 1 ).slice(">", "method_name!", "callable").must_equal [1, 1, 1] }
-  it { Right["pipetree"].inspect.must_equal %{[>>operation.new,>PipetreeTest::Right:66,>method_name!,>PipetreeTest::Right::MyCallable]} }
+  it { Right["pipetree"].inspect.must_equal %{[operation.new,pipetree_test.rb:66,method_name!,PipetreeTest::Right::MyCallable]} }
 
   #---
   # inheritance
