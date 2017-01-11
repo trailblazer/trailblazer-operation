@@ -1,3 +1,7 @@
+## 0.0.10
+
+* Add `fail!`, `fail_fast!`, `pass!`, and `pass_fast!`.
+
 ## 0.0.9
 
 Removing `Operation::consider`, which is now `step`.
