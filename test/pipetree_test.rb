@@ -145,3 +145,21 @@ class FailFastBangTest < Minitest::Spec
 
   it { Update.().inspect("y", "x", "a").must_equal %{<Result:false [true, true, nil] >} }
 end
+
+class PassFastBangTest < Minitest::Spec
+  class Create < Trailblazer::Operation
+    step ->(options, *) { options["x"] = true; Step.pass_fast! }
+    step ->(options, *) { options["y"] = true }
+    failure ->(options, *) { options["a"] = true }
+  end
+
+  it { Create.().inspect("x", "y", "a").must_equal %{<Result:true [true, nil, nil] >} }
+
+  class Update < Trailblazer::Operation
+    success ->(options, *) { options["x"] = true; Step.pass_fast! }
+    success ->(options, *) { options["y"] = true }
+    failure ->(options, *) { options["a"] = true }
+  end
+
+  it { Update.().inspect("x", "y", "a").must_equal %{<Result:true [true, nil, nil] >} }
+end

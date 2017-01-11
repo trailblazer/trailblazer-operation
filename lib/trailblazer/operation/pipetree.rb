@@ -20,6 +20,10 @@ class Trailblazer::Operation
     def self.fail_fast!
       Pipetree::Flow::Left::FailFast # TODO: combine Step and Flow.
     end
+
+    def self.pass_fast!
+      Pipetree::Flow::Right::PassFast # TODO: combine Step and Flow.
+    end
   end
 
   # Implements the API to populate the operation's pipetree and
@@ -44,7 +48,7 @@ class Trailblazer::Operation
         # The reason the Result wraps the Skill object (`options`), not the operation
         # itself is because the op should be irrelevant, plus when stopping the pipe
         # before op instantiation, this would be confusing (and wrong!).
-        Result.new(last == ::Pipetree::Flow::Right, options)
+        Result.new(!!(last <= ::Pipetree::Flow::Right), options)
       end
 
       # This method would be redundant if Ruby had a Class::finalize! method the way
@@ -61,6 +65,7 @@ class Trailblazer::Operation
 
     Flow = ::Pipetree::Flow
     Flow::Left::FailFast = Class.new(Flow::Left)
+    Flow::Right::PassFast = Class.new(Flow::Right)
 
     class Switch # Tie
       def initialize(proc, decider, options)
@@ -73,6 +78,7 @@ class Trailblazer::Operation
         result = @proc.(input, options)
 
         return result if result == Flow::Left::FailFast
+        return result if result == Flow::Right::PassFast
         return result if result == Flow::Left
 
 
