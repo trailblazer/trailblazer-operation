@@ -14,7 +14,7 @@ class Trailblazer::Operation
 
   module Step
     def self.fail!
-      false
+      Pipetree::Flow::Left
     end
 
     def self.fail_fast!
@@ -63,18 +63,26 @@ class Trailblazer::Operation
     Flow::Left::FailFast = Class.new(Flow::Left)
 
     class Switch # Tie
-      def initialize(proc, decider)
+      def initialize(proc, decider, options)
         @proc    = proc
         @decider = decider
+        @stay    = options[:stay]
       end
 
       def call(last, input, options)
-        track  = @decider.(@proc.(input, options))
+        result = @proc.(input, options)
+
+        return result if result == Flow::Left::FailFast
+        return result if result == Flow::Left
+
+
+        # FIXME: THIS SUCKS, that's Stay and And repeated.
+        track = @stay ? last : @decider.(result)
+
         [track, input]
       end
 
       Decider = ->(result) do
-        return result if result == Flow::Left::FailFast
 
         # And logic:
         result ? Flow::Right : Flow::Left
@@ -113,9 +121,11 @@ class Trailblazer::Operation
           strut_class = Flow::And
           strut_args << { on_true: Flow::Left::FailFast, on_false: Flow::Left::FailFast } # PoC.
 
-        elsif strut_class == Flow::And
-          strut_class = Switch
+        else
           strut_args << Switch::Decider
+          strut_args << (strut_class==Flow::Stay ? { stay: true } : {})
+
+          strut_class = Switch
         end
 
         pipe.add(track, strut_class.new(_proc, *strut_args), options) # ex: pipetree.> Validate, after: Model::Build
