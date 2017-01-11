@@ -146,6 +146,25 @@ class FailFastBangTest < Minitest::Spec
   it { Update.().inspect("y", "x", "a").must_equal %{<Result:false [true, true, nil] >} }
 end
 
+class PassBangTest < Minitest::Spec
+  class Create < Trailblazer::Operation
+    step ->(options, *) { options["x"] = true; Step.pass! }
+    step ->(options, *) { options["y"] = true }
+    failure ->(options, *) { options["a"] = true }
+  end
+
+  it { Create.().inspect("x", "y", "a").must_equal %{<Result:true [true, true, nil] >} }
+
+  class Update < Trailblazer::Operation
+    step ->(options, *) { options["x"] = true; false }
+    failure ->(options, *) { options["y"] = true; Step.pass! }
+    failure ->(options, *) { options["a"] = true }
+    step ->(options, *) { options["b"] = true }
+  end
+
+  it { Update.().inspect("x", "y", "a", "b").must_equal %{<Result:true [true, true, nil, true] >} }
+end
+
 class PassFastBangTest < Minitest::Spec
   class Create < Trailblazer::Operation
     step ->(options, *) { options["x"] = true; Step.pass_fast! }
@@ -162,4 +181,13 @@ class PassFastBangTest < Minitest::Spec
   end
 
   it { Update.().inspect("x", "y", "a").must_equal %{<Result:true [true, nil, nil] >} }
+
+  class Delete < Trailblazer::Operation
+    step ->(options, *) { options["x"] = true; false }
+    failure ->(options, *) { options["a"] = true; Step.pass_fast! }
+    failure ->(options, *) { options["b"] = true }
+    success ->(options, *) { options["y"] = true }
+  end
+
+  it { Delete.().inspect("x", "a", "b", "y").must_equal %{<Result:true [true, true, nil, nil] >} }
 end

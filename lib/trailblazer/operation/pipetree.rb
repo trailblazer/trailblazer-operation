@@ -21,6 +21,10 @@ class Trailblazer::Operation
       Pipetree::Flow::Left::FailFast # TODO: combine Step and Flow.
     end
 
+    def self.pass!
+      Pipetree::Flow::Right # TODO: combine Step and Flow.
+    end
+
     def self.pass_fast!
       Pipetree::Flow::Right::PassFast # TODO: combine Step and Flow.
     end
@@ -79,6 +83,7 @@ class Trailblazer::Operation
 
         return result if result == Flow::Left::FailFast
         return result if result == Flow::Right::PassFast
+        return result if result == Flow::Right
         return result if result == Flow::Left
 
 
