@@ -12,6 +12,16 @@ end
 class Trailblazer::Operation
   New = ->(klass, options) { klass.new(options) } # returns operation instance.
 
+  module Step
+    def self.fail!
+      false
+    end
+
+    def self.fail_fast!
+      Pipetree::Flow::Left::FailFast # TODO: combine Step and Flow.
+    end
+  end
+
   # Implements the API to populate the operation's pipetree and
   # `Operation::call` to invoke the latter.
   # http://trailblazer.to/gems/operation/2.0/pipetree.html
@@ -50,6 +60,26 @@ class Trailblazer::Operation
     end
 
     Flow = ::Pipetree::Flow
+    Flow::Left::FailFast = Class.new(Flow::Left)
+
+    class Switch # Tie
+      def initialize(proc, decider)
+        @proc    = proc
+        @decider = decider
+      end
+
+      def call(last, input, options)
+        track  = @decider.(@proc.(input, options))
+        [track, input]
+      end
+
+      Decider = ->(result) do
+        return result if result == Flow::Left::FailFast
+
+        # And logic:
+        result ? Flow::Right : Flow::Left
+      end
+    end
 
     module DSL
       # They all inherit.
@@ -77,7 +107,18 @@ class Trailblazer::Operation
           options[:name] ||= proc.class  if type == :callable
         end
 
-        pipe.add(track, strut_class.new(_proc), options) # ex: pipetree.> Validate, after: Model::Build
+        # TODO: ALLOW for macros, too.
+        strut_args = []
+        if options[:fail_fast] == true # DISCUSS: allow other signals, e.g. false?
+          strut_class = Flow::And
+          strut_args << { on_true: Flow::Left::FailFast, on_false: Flow::Left::FailFast } # PoC.
+
+        elsif strut_class == Flow::And
+          strut_class = Switch
+          strut_args << Switch::Decider
+        end
+
+        pipe.add(track, strut_class.new(_proc, *strut_args), options) # ex: pipetree.> Validate, after: Model::Build
       end
 
       def self.import(operation, pipe, cfg, user_options={})

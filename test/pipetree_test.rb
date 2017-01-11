@@ -86,3 +86,46 @@ class PipetreeTest < Minitest::Spec
 
   it { Righter.( id: 1 ).slice(">", "method_name!", "callable", "righter").must_equal [1, 1, 1, true] }
 end
+
+
+class FailFastTest < Minitest::Spec
+  class Create < Trailblazer::Operation
+    step ->(options, *) { options["x"] = options["dont_fail"] }
+    failure ->(options, *) { options["a"] = true; options["fail_fast"] }, fail_fast: true
+    failure ->(options, *) { options["b"] = true }
+    step ->(options, *) { options["y"] = true }
+  end
+
+  it { Create.({}, "fail_fast" => true, "dont_fail" => true ).inspect("x", "a", "b", "y").must_equal %{<Result:true [true, nil, nil, true] >} }
+  it { Create.({}, "fail_fast" => true                  ).inspect("x", "a", "b", "y").must_equal %{<Result:false [nil, true, nil, nil] >} }
+  it { Create.({}, "fail_fast" => false                 ).inspect("x", "a", "b", "y").must_equal %{<Result:false [nil, true, nil, nil] >} }
+
+  class Update < Trailblazer::Operation
+    step ->(options, *) { options["x"] = true }
+    step ->(options, *) { options["a"] = true }, fail_fast: true
+    failure ->(options, *) { options["b"] = true }
+    step ->(options, *) { options["y"] = true }
+  end
+
+  it { Update.({}).inspect("x", "a", "b", "y").must_equal %{<Result:false [true, true, nil, nil] >} }
+end
+
+class FailBangTest < Minitest::Spec
+  class Create < Trailblazer::Operation
+    step ->(options, *) { options["x"] = true; Step.fail! }
+    step ->(options, *) { options["y"] = true }
+    failure ->(options, *) { options["a"] = true }
+  end
+
+  it { Create.().inspect("x", "y", "a").must_equal %{<Result:false [true, nil, true] >} }
+end
+
+class FailFastBangTest < Minitest::Spec
+  class Create < Trailblazer::Operation
+    step ->(options, *) { options["x"] = true; Step.fail_fast! }
+    step ->(options, *) { options["y"] = true }
+    failure ->(options, *) { options["a"] = true }
+  end
+
+  it { Create.().inspect("x", "y", "a").must_equal %{<Result:false [true, nil, nil] >} }
+end
