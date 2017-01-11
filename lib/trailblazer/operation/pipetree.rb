@@ -64,10 +64,8 @@ class Trailblazer::Operation
       def call(last, input, options)
         result = @proc.(input, options)
 
-        return result if result == Flow::FailFast
-        return result if result == Flow::PassFast
-        return result if result == Flow::Right
-        return result if result == Flow::Left
+        # if step returns a Track constant, always instantly return this.
+        return result if result.is_a?(Class) && result <= Flow::Track
 
 
         # FIXME: THIS SUCKS, that's Stay and And repeated.
