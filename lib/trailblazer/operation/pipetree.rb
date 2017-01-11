@@ -12,24 +12,6 @@ end
 class Trailblazer::Operation
   New = ->(klass, options) { klass.new(options) } # returns operation instance.
 
-  module Step
-    def self.fail!
-      Pipetree::Flow::Left
-    end
-
-    def self.fail_fast!
-      Pipetree::Flow::Left::FailFast # TODO: combine Step and Flow.
-    end
-
-    def self.pass!
-      Pipetree::Flow::Right # TODO: combine Step and Flow.
-    end
-
-    def self.pass_fast!
-      Pipetree::Flow::Right::PassFast # TODO: combine Step and Flow.
-    end
-  end
-
   # Implements the API to populate the operation's pipetree and
   # `Operation::call` to invoke the latter.
   # http://trailblazer.to/gems/operation/2.0/pipetree.html
@@ -52,7 +34,7 @@ class Trailblazer::Operation
         # The reason the Result wraps the Skill object (`options`), not the operation
         # itself is because the op should be irrelevant, plus when stopping the pipe
         # before op instantiation, this would be confusing (and wrong!).
-        Result.new(!!(last <= ::Pipetree::Flow::Right), options)
+        Result.new(!!(last <= Flow::Right), options)
       end
 
       # This method would be redundant if Ruby had a Class::finalize! method the way
@@ -60,16 +42,17 @@ class Trailblazer::Operation
       def initialize_pipetree!
         heritage.record :initialize_pipetree!
 
-        self["pipetree"] = ::Pipetree::Flow.new
+        self["pipetree"] = Flow.new
 
         strut = ->(last, input, options) { [last, New.(input, options)] } # first step in pipe.
-        self["pipetree"].add(::Pipetree::Flow::Right, strut, name: "operation.new") # DISCUSS: using pipe API directly here. clever?
+        self["pipetree"].add(Flow::Right, strut, name: "operation.new") # DISCUSS: using pipe API directly here. clever?
       end
     end
 
-    Flow = ::Pipetree::Flow
-    Flow::Left::FailFast = Class.new(Flow::Left)
-    Flow::Right::PassFast = Class.new(Flow::Right)
+    class Flow < ::Pipetree::Flow
+      FailFast = Class.new(Left)
+      PassFast = Class.new(Right)
+    end
 
     class Switch # Tie
       def initialize(proc, decider, options)
@@ -81,8 +64,8 @@ class Trailblazer::Operation
       def call(last, input, options)
         result = @proc.(input, options)
 
-        return result if result == Flow::Left::FailFast
-        return result if result == Flow::Right::PassFast
+        return result if result == Flow::FailFast
+        return result if result == Flow::PassFast
         return result if result == Flow::Right
         return result if result == Flow::Left
 
@@ -128,9 +111,9 @@ class Trailblazer::Operation
 
         # TODO: ALLOW for macros, too.
         strut_args = []
-        if options[:fail_fast] == true # DISCUSS: allow other signals, e.g. false?
+        if options[:fail_fast] == true
           strut_class = Flow::And
-          strut_args << { on_true: Flow::Left::FailFast, on_false: Flow::Left::FailFast } # PoC.
+          strut_args << { on_true: Flow::FailFast, on_false: Flow::FailFast } # PoC.
 
         else
           strut_args << Switch::Decider
@@ -177,7 +160,16 @@ class Trailblazer::Operation
         end
       end
     end # DSL
+
+    module Step
+      def self.fail!     ; Flow::Left     end
+      def self.fail_fast!; Flow::FailFast end
+      def self.pass!     ; Flow::Right    end
+      def self.pass_fast!; Flow::PassFast end
+    end
   end
+
+  Step = Pipetree::Step
 
   extend Pipetree::DSL::Macros
 end
