@@ -14,7 +14,7 @@ class Trailblazer::Operation
 
   # Implements the API to populate the operation's pipetree and
   # `Operation::call` to invoke the latter.
-  # http://trailblazer.to/gems/operation/2.0/pipetree.html
+  # Learn more about the Pipetree gem here: https://github.com/apotonick/pipetree
   module Pipetree
     def self.included(includer)
       includer.extend ClassMethods # ::call, ::inititalize_pipetree!
@@ -54,51 +54,33 @@ class Trailblazer::Operation
       PassFast = Class.new(Right)
     end
 
-    class Switch # Tie
-      def initialize(proc, decider, options)
-        @proc    = proc
-        @decider = decider
-        @stay    = options[:stay]
-      end
+    # The Tie wrapping each step. Makes sure that Track signals are returned immediately.
+    class Switch < ::Pipetree::Flow::Tie
+      Decider = ->(result, config, *args) do
+        return result if result.is_a?(Class) && result <= Flow::Track # this might be pretty slow?
 
-      def call(last, input, options)
-        result = @proc.(input, options)
-
-        # if step returns a Track constant, always instantly return this.
-        return result if result.is_a?(Class) && result <= Flow::Track
-
-
-        # FIXME: THIS SUCKS, that's Stay and And repeated.
-        track = @stay ? last : @decider.(result)
-
-        [track, input]
-      end
-
-      Decider = ->(result) do
-
-        # And logic:
-        result ? Flow::Right : Flow::Left
+        config[:decider_class].(result, config, *args) # e.g. And::Decider.(result, ..)
       end
     end
 
     module DSL
       # They all inherit.
-      def success(*args); add(Flow::Right, Flow::Stay, *args) end
-      def failure(*args); add(Flow::Left,  Flow::Stay, *args) end
-      def step(*args)   ; add(Flow::Right, Flow::And,  *args) end
+      def success(*args); add(Flow::Right, Flow::Stay::Decider, *args) end
+      def failure(*args); add(Flow::Left,  Flow::Stay::Decider, *args) end
+      def step(*args)   ; add(Flow::Right, Flow::And::Decider,  *args) end
 
       alias_method :override, :step
 
     private
       # Operation-level entry point.
-      def add(track, strut_class, proc, options={})
-        heritage.record(:add, track, strut_class, proc, options)
+      def add(track, decider_class, proc, options={})
+        heritage.record(:add, track, decider_class, proc, options)
 
-        DSL.insert(self, self["pipetree"], track, strut_class, proc, options)
+        DSL.insert(self, self["pipetree"], track, decider_class, proc, options)
       end
 
       # TODO: REMOVE operation ARGUMENT.
-      def self.insert(operation, pipe, track, strut_class, proc, options={})
+      def self.insert(operation, pipe, track, decider_class, proc, options={})
         return DSL.import(operation, pipe, proc, options) if proc.is_a?(Array) # TODO: remove that!
 
         _proc = Option::KW.(proc) do |type|
@@ -108,19 +90,13 @@ class Trailblazer::Operation
         end
 
         # TODO: ALLOW for macros, too.
-        strut_args = []
         if options[:fail_fast] == true
-          strut_class = Flow::And
-          strut_args << { on_true: Flow::FailFast, on_false: Flow::FailFast } # PoC.
-
+          tie_args = { decider_class: Flow::And::Decider, on_true: Flow::FailFast, on_false: Flow::FailFast } # PoC.
         else
-          strut_args << Switch::Decider
-          strut_args << (strut_class==Flow::Stay ? { stay: true } : {})
-
-          strut_class = Switch
+          tie_args = { decider_class: decider_class }
         end
 
-        pipe.add(track, strut_class.new(_proc, *strut_args), options) # ex: pipetree.> Validate, after: Model::Build
+        pipe.add(track, Switch.new(_proc, tie_args), options) # ex: pipetree.> Validate, after: Model::Build
       end
 
       def self.import(operation, pipe, cfg, user_options={})
