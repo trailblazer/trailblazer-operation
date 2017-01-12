@@ -52,6 +52,11 @@ class Trailblazer::Operation
     class Flow < ::Pipetree::Flow
       FailFast = Class.new(Left)
       PassFast = Class.new(Right)
+
+      def self.fail!     ; Left     end
+      def self.fail_fast!; FailFast end
+      def self.pass!     ; Right    end
+      def self.pass_fast!; PassFast end
     end
 
     # The Tie wrapping each step. Makes sure that Track signals are returned immediately.
@@ -134,16 +139,9 @@ class Trailblazer::Operation
         end
       end
     end # DSL
-
-    module Step
-      def self.fail!     ; Flow::Left     end
-      def self.fail_fast!; Flow::FailFast end
-      def self.pass!     ; Flow::Right    end
-      def self.pass_fast!; Flow::PassFast end
-    end
   end
 
-  Step = Pipetree::Step
+  Flow = Pipetree::Flow
 
   extend Pipetree::DSL::Macros
 end
