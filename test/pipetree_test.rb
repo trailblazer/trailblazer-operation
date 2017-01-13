@@ -88,7 +88,7 @@ class PipetreeTest < Minitest::Spec
 end
 
 
-class FailFastTest < Minitest::Spec
+class FailFastOptionTest < Minitest::Spec
   class Create < Trailblazer::Operation
     step ->(options, *) { options["x"] = options["dont_fail"] }
     failure ->(options, *) { options["a"] = true; options["fail_fast"] }, fail_fast: true
@@ -100,14 +100,27 @@ class FailFastTest < Minitest::Spec
   it { Create.({}, "fail_fast" => true                  ).inspect("x", "a", "b", "y").must_equal %{<Result:false [nil, true, nil, nil] >} }
   it { Create.({}, "fail_fast" => false                 ).inspect("x", "a", "b", "y").must_equal %{<Result:false [nil, true, nil, nil] >} }
 
+  # #step fails fast if option set and returns false
   class Update < Trailblazer::Operation
     step ->(options, *) { options["x"] = true }
-    step ->(options, *) { options["a"] = true }, fail_fast: true
+    step ->(options, *) { options["a"] = options["dont_fail"] }, fail_fast: true # only on false.
     failure ->(options, *) { options["b"] = true }
     step ->(options, *) { options["y"] = true }
   end
 
-  it { Update.({}).inspect("x", "a", "b", "y").must_equal %{<Result:false [true, true, nil, nil] >} }
+  it { Update.({}, "dont_fail" => true).inspect("x", "a", "b", "y").must_equal %{<Result:true [true, true, nil, true] >} }
+  it { Update.({}                     ).inspect("x", "a", "b", "y").must_equal %{<Result:false [true, nil, nil, nil] >} }
+
+  # #step passes fast if option set and returns false
+  class Update < Trailblazer::Operation
+    step ->(options, *) { options["x"] = true }
+    step ->(options, *) { options["a"] = options["dont_fail"] }, fail_fast: true # only on false.
+    failure ->(options, *) { options["b"] = true }
+    step ->(options, *) { options["y"] = true }
+  end
+
+  it { Update.({}, "dont_fail" => true).inspect("x", "a", "b", "y").must_equal %{<Result:true [true, true, nil, true] >} }
+  it { Update.({}                     ).inspect("x", "a", "b", "y").must_equal %{<Result:false [true, nil, nil, nil] >} }
 end
 
 class FailBangTest < Minitest::Spec
@@ -119,13 +132,34 @@ class FailBangTest < Minitest::Spec
 
   it { Create.().inspect("x", "y", "a").must_equal %{<Result:false [true, nil, true] >} }
 
+  # fail! is ignored in success.
   class Update < Trailblazer::Operation
     success ->(options, *) { options["x"] = true; Flow.fail! }
     success ->(options, *) { options["y"] = true }
     failure ->(options, *) { options["a"] = true }
   end
 
-  it { Update.().inspect("x", "y", "a").must_equal %{<Result:false [true, nil, true] >} }
+  it { Update.().inspect("x", "y", "a").must_equal %{<Result:true [true, true, nil] >} }
+end
+
+class PassBangTest < Minitest::Spec
+  class Create < Trailblazer::Operation
+    step ->(options, *) { options["x"] = true; Flow.pass! }
+    step ->(options, *) { options["y"] = true }
+    failure ->(options, *) { options["a"] = true }
+  end
+
+  it { Create.().inspect("x", "y", "a").must_equal %{<Result:true [true, true, nil] >} }
+
+  # pass! is ignored in failure.
+  class Update < Trailblazer::Operation
+    step ->(options, *) { options["x"] = true; false }
+    failure ->(options, *) { options["y"] = true; Flow.pass! }
+    failure ->(options, *) { options["a"] = true }
+    step ->(options, *) { options["b"] = true }
+  end
+
+  it { Update.().inspect("x", "y", "a", "b").must_equal %{<Result:false [true, true, true, nil] >} }
 end
 
 class FailFastBangTest < Minitest::Spec
@@ -146,24 +180,6 @@ class FailFastBangTest < Minitest::Spec
   it { Update.().inspect("y", "x", "a").must_equal %{<Result:false [true, true, nil] >} }
 end
 
-class PassBangTest < Minitest::Spec
-  class Create < Trailblazer::Operation
-    step ->(options, *) { options["x"] = true; Flow.pass! }
-    step ->(options, *) { options["y"] = true }
-    failure ->(options, *) { options["a"] = true }
-  end
-
-  it { Create.().inspect("x", "y", "a").must_equal %{<Result:true [true, true, nil] >} }
-
-  class Update < Trailblazer::Operation
-    step ->(options, *) { options["x"] = true; false }
-    failure ->(options, *) { options["y"] = true; Flow.pass! }
-    failure ->(options, *) { options["a"] = true }
-    step ->(options, *) { options["b"] = true }
-  end
-
-  it { Update.().inspect("x", "y", "a", "b").must_equal %{<Result:true [true, true, nil, true] >} }
-end
 
 class PassFastBangTest < Minitest::Spec
   class Create < Trailblazer::Operation

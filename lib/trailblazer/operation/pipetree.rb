@@ -94,8 +94,22 @@ class Trailblazer::Operation
           options[:name] ||= proc.class  if type == :callable
         end
 
+        if decider_class == Flow::Stay::Decider
+          return pipe.add(track, Flow::And.new(_proc, on_true: Flow::FailFast, on_false: Flow::FailFast), options) if options[:fail_fast]
+          return pipe.add(track, Flow::Stay.new(_proc), options)
+          # only wrap if :fail_fast or :pass_fast
+        else # And
+          return pipe.add(track, Switch.new(_proc, decider_class: Flow::And::Decider, on_true: Flow::Right, on_false: Flow::FailFast), options) if options[:fail_fast]
+          return pipe.add(track, Switch.new(_proc, decider_class: Flow::And::Decider, on_true: Flow::PassFast, on_false: Flow::Left), options) if options[:pass_fast]
+          return pipe.add(track, Switch.new(_proc, decider_class: Flow::And::Decider), options)
+          # Switch.new # handles all signals
+          # handle :fail_fast and :pass_fast, too, here
+        end
+
         # TODO: ALLOW for macros, too.
         if options[:fail_fast] == true
+          # step: only FailFast when false
+          # fail: always FailFast
           tie_args = { decider_class: Flow::And::Decider, on_true: Flow::FailFast, on_false: Flow::FailFast } # PoC.
         else
           tie_args = { decider_class: decider_class }
