@@ -96,6 +96,7 @@ class Trailblazer::Operation
 
         if decider_class == Flow::Stay::Decider
           return pipe.add(track, Flow::And.new(_proc, on_true: Flow::FailFast, on_false: Flow::FailFast), options) if options[:fail_fast]
+          return pipe.add(track, Flow::And.new(_proc, on_true: Flow::PassFast, on_false: Flow::PassFast), options) if options[:pass_fast]
           return pipe.add(track, Flow::Stay.new(_proc), options)
           # only wrap if :fail_fast or :pass_fast
         else # And
