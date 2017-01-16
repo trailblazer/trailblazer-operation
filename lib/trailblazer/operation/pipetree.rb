@@ -1,5 +1,5 @@
 require "pipetree"
-require "pipetree/flow"
+require "pipetree/railway"
 require "trailblazer/operation/result"
 require "uber/option"
 
@@ -34,7 +34,7 @@ class Trailblazer::Operation
         # The reason the Result wraps the Skill object (`options`), not the operation
         # itself is because the op should be irrelevant, plus when stopping the pipe
         # before op instantiation, this would be confusing (and wrong!).
-        Result.new(!!(last <= Flow::Right), options)
+        Result.new(!!(last <= Railway::Right), options)
       end
 
       # This method would be redundant if Ruby had a Class::finalize! method the way
@@ -42,14 +42,14 @@ class Trailblazer::Operation
       def initialize_pipetree!
         heritage.record :initialize_pipetree!
 
-        self["pipetree"] = Flow.new
+        self["pipetree"] = Railway.new
 
         strut = ->(last, input, options) { [last, New.(input, options)] } # first step in pipe.
-        self["pipetree"].add(Flow::Right, strut, name: "operation.new") # DISCUSS: using pipe API directly here. clever?
+        self["pipetree"].add(Railway::Right, strut, name: "operation.new") # DISCUSS: using pipe API directly here. clever?
       end
     end
 
-    class Flow < ::Pipetree::Flow
+    class Railway < ::Pipetree::Railway
       FailFast = Class.new(Left)
       PassFast = Class.new(Right)
 
@@ -59,10 +59,10 @@ class Trailblazer::Operation
       def self.pass_fast!; PassFast end
     end
 
-    # The Tie wrapping each step. Makes sure that Track signals are returned immediately.
-    class Switch < ::Pipetree::Flow::Tie
+    # The Strut wrapping each step. Makes sure that Track signals are returned immediately.
+    class Switch < ::Pipetree::Railway::Strut
       Decider = ->(result, config, *args) do
-        return result if result.is_a?(Class) && result <= Flow::Track # this might be pretty slow?
+        return result if result.is_a?(Class) && result <= Railway::Track # this might be pretty slow?
 
         config[:decider_class].(result, config, *args) # e.g. And::Decider.(result, ..)
       end
@@ -70,9 +70,9 @@ class Trailblazer::Operation
 
     module DSL
       # They all inherit.
-      def success(*args); add(Flow::Right, Flow::Stay::Decider, *args) end
-      def failure(*args); add(Flow::Left,  Flow::Stay::Decider, *args) end
-      def step(*args)   ; add(Flow::Right, Flow::And::Decider,  *args) end
+      def success(*args); add(Railway::Right, Railway::Stay::Decider, *args) end
+      def failure(*args); add(Railway::Left,  Railway::Stay::Decider, *args) end
+      def step(*args)   ; add(Railway::Right, Railway::And::Decider,  *args) end
 
       alias_method :override, :step
 
@@ -94,15 +94,15 @@ class Trailblazer::Operation
           options[:name] ||= proc.class  if type == :callable
         end
 
-        if decider_class == Flow::Stay::Decider
-          return pipe.add(track, Flow::And.new(_proc, on_true: Flow::FailFast, on_false: Flow::FailFast), options) if options[:fail_fast]
-          return pipe.add(track, Flow::And.new(_proc, on_true: Flow::PassFast, on_false: Flow::PassFast), options) if options[:pass_fast]
-          return pipe.add(track, Flow::Stay.new(_proc), options)
+        if decider_class == Railway::Stay::Decider
+          return pipe.add(track, Railway::And.new(_proc, on_true: Railway::FailFast, on_false: Railway::FailFast), options) if options[:fail_fast]
+          return pipe.add(track, Railway::And.new(_proc, on_true: Railway::PassFast, on_false: Railway::PassFast), options) if options[:pass_fast]
+          return pipe.add(track, Railway::Stay.new(_proc), options)
           # only wrap if :fail_fast or :pass_fast
         else # And
-          return pipe.add(track, Switch.new(_proc, decider_class: Flow::And::Decider, on_true: Flow::Right, on_false: Flow::FailFast), options) if options[:fail_fast]
-          return pipe.add(track, Switch.new(_proc, decider_class: Flow::And::Decider, on_true: Flow::PassFast, on_false: Flow::Left), options) if options[:pass_fast]
-          return pipe.add(track, Switch.new(_proc, decider_class: Flow::And::Decider), options)
+          return pipe.add(track, Switch.new(_proc, decider_class: Railway::And::Decider, on_true: Railway::Right, on_false: Railway::FailFast), options) if options[:fail_fast]
+          return pipe.add(track, Switch.new(_proc, decider_class: Railway::And::Decider, on_true: Railway::PassFast, on_false: Railway::Left), options) if options[:pass_fast]
+          return pipe.add(track, Switch.new(_proc, decider_class: Railway::And::Decider), options)
           # Switch.new # handles all signals
           # handle :fail_fast and :pass_fast, too, here
         end
@@ -111,7 +111,7 @@ class Trailblazer::Operation
         if options[:fail_fast] == true
           # step: only FailFast when false
           # fail: always FailFast
-          tie_args = { decider_class: Flow::And::Decider, on_true: Flow::FailFast, on_false: Flow::FailFast } # PoC.
+          tie_args = { decider_class: Railway::And::Decider, on_true: Railway::FailFast, on_false: Railway::FailFast } # PoC.
         else
           tie_args = { decider_class: decider_class }
         end
@@ -142,7 +142,7 @@ class Trailblazer::Operation
             insert_options[:replace] = name if pipetree.index(name)
           end
 
-          pipetree.send operator, step, insert_options
+          pipetree.add(Railway::Right, Railway::And.new(step), insert_options)
         end
       end
 
@@ -156,7 +156,7 @@ class Trailblazer::Operation
     end # DSL
   end
 
-  Flow = Pipetree::Flow
+  Railway = Pipetree::Railway
 
   extend Pipetree::DSL::Macros
 end
