@@ -68,12 +68,12 @@ class Trailblazer::Operation
       end
     end
 
+    # Strut that doesn't evaluate the step's result but stays on `last` or configured :signal.
     class Stay < ::Pipetree::Railway::Strut
       Decider = ->(result, config, last, *) { config[:signal] || last }
     end
 
     module DSL
-      # They all inherit.
       def success(*args); add(Railway::Right, Stay::Decider, *args) end
       def failure(*args); add(Railway::Left,  Stay::Decider, *args) end
       def step(*args)   ; add(Railway::Right, Railway::And::Decider, *args) end
