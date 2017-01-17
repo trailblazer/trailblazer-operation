@@ -173,3 +173,19 @@ class PassFastBangTest < Minitest::Spec
 
   it { Create.().inspect("x", "y", "a").must_equal %{<Result:true [true, nil, nil] >} }
 end
+
+
+class OverrideTest < Minitest::Spec
+  class Create < Trailblazer::Operation
+    step :a
+    step :b
+  end
+
+  class Update < Create
+    step :a, override: true
+  end
+
+# FIXME: also test Macro
+  it { Create["pipetree"].inspect.must_equal %{[>operation.new,>a,>b]} }
+  it { Update["pipetree"].inspect.must_equal %{[>operation.new,>a,>b]} }
+end

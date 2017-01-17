@@ -68,13 +68,15 @@ class Trailblazer::Operation
       end
     end
 
+    class Stay < ::Pipetree::Railway::Strut
+      Decider = ->(result, config, last, *) { config[:signal] || last }
+    end
+
     module DSL
       # They all inherit.
-      def success(*args); add(Railway::Right, Railway::Stay::Decider, *args) end
-      def failure(*args); add(Railway::Left,  Railway::Stay::Decider, *args) end
-      def step(*args)   ; add(Railway::Right, Railway::And::Decider,  *args) end
-
-      alias_method :override, :step
+      def success(*args); add(Railway::Right, Stay::Decider, *args) end
+      def failure(*args); add(Railway::Left,  Stay::Decider, *args) end
+      def step(*args)   ; add(Railway::Right, Railway::And::Decider, *args) end
 
     private
       # Operation-level entry point.
@@ -85,7 +87,8 @@ class Trailblazer::Operation
       end
 
       # TODO: REMOVE operation ARGUMENT.
-      def self.insert(operation, pipe, track, decider_class, proc, options={})
+      def self.insert(operation, pipe, track, decider_class, proc, options={}) # TODO: make :name required arg.
+
         return DSL.import(operation, pipe, proc, options) if proc.is_a?(Array) # TODO: remove that!
 
         _proc = Option::KW.(proc) do |type|
@@ -94,29 +97,14 @@ class Trailblazer::Operation
           options[:name] ||= proc.class  if type == :callable
         end
 
-        if decider_class == Railway::Stay::Decider
-          return pipe.add(track, Railway::And.new(_proc, on_true: Railway::FailFast, on_false: Railway::FailFast), options) if options[:fail_fast]
-          return pipe.add(track, Railway::And.new(_proc, on_true: Railway::PassFast, on_false: Railway::PassFast), options) if options[:pass_fast]
-          return pipe.add(track, Railway::Stay.new(_proc), options)
-          # only wrap if :fail_fast or :pass_fast
-        else # And
-          return pipe.add(track, Switch.new(_proc, decider_class: Railway::And::Decider, on_true: Railway::Right, on_false: Railway::FailFast), options) if options[:fail_fast]
-          return pipe.add(track, Switch.new(_proc, decider_class: Railway::And::Decider, on_true: Railway::PassFast, on_false: Railway::Left), options) if options[:pass_fast]
-          return pipe.add(track, Switch.new(_proc, decider_class: Railway::And::Decider), options)
-          # Switch.new # handles all signals
-          # handle :fail_fast and :pass_fast, too, here
-        end
+          # "Inheritance": replace it when :override set.
+        options = options.merge(replace: options[:name]) if options[:override]
 
+
+        strut_class, strut_options = AddOptions.(decider_class, options)
+
+        pipe.add(track, strut_class.new(_proc, strut_options), options)
         # TODO: ALLOW for macros, too.
-        if options[:fail_fast] == true
-          # step: only FailFast when false
-          # fail: always FailFast
-          tie_args = { decider_class: Railway::And::Decider, on_true: Railway::FailFast, on_false: Railway::FailFast } # PoC.
-        else
-          tie_args = { decider_class: decider_class }
-        end
-
-        pipe.add(track, Switch.new(_proc, tie_args), options) # ex: pipetree.> Validate, after: Model::Build
       end
 
       def self.import(operation, pipe, cfg, user_options={})
@@ -128,6 +116,19 @@ class Trailblazer::Operation
         mod.import!(operation, import, *args, &block)
       end
 
+      AddOptions = ->(decider_class, options) do
+        # for #failure and #success:
+        if decider_class == Stay::Decider
+          return [Stay, signal: Railway::FailFast] if options[:fail_fast]
+          return [Stay, signal: Railway::PassFast] if options[:pass_fast]
+          return [Stay, {}]
+        else # for #step:
+          return [Switch, decider_class: decider_class, on_false: Railway::FailFast] if options[:fail_fast]
+          return [Switch, decider_class: decider_class, on_true:  Railway::PassFast] if options[:pass_fast]
+          return [Switch, decider_class: decider_class]
+        end
+      end
+
       # Try to abstract as much as possible from the imported module. This is for
       # forward-compatibility.
       # Note that Import#call will push the step directly on the pipetree which gives it the
@@ -135,12 +136,7 @@ class Trailblazer::Operation
       Import = Struct.new(:pipetree, :user_options) do
         def call(operator, step, options)
           insert_options = options.merge(user_options)
-
-          # Inheritance: when the step is already defined in the pipe,
-          # simply replace it with the new.
-          if name = insert_options[:name]
-            insert_options[:replace] = name if pipetree.index(name)
-          end
+          insert_options = insert_options.merge(replace: insert_options[:name]) if insert_options[:override]
 
           pipetree.add(Railway::Right, Railway::And.new(step), insert_options)
         end
