@@ -83,20 +83,22 @@ class Trailblazer::Operation
       def add(track, decider_class, proc, options={})
         heritage.record(:add, track, decider_class, proc, options)
 
-        DSL.insert(self, self["pipetree"], track, decider_class, proc, options)
+        DSL.insert(self["pipetree"], track, decider_class, proc, options)
       end
 
-      # TODO: REMOVE operation ARGUMENT.
-      def self.insert(operation, pipe, track, decider_class, proc, options={}) # TODO: make :name required arg.
+      def self.insert(pipe, track, decider_class, proc, options={}) # TODO: make :name required arg.
 
-        return DSL.import(operation, pipe, proc, options) if proc.is_a?(Array) # TODO: remove that!
+if proc.is_a?(Array) && proc.size == 2 # TODO: remove that!
+            _proc, macro_options = proc
+            options = macro_options.merge(options) # FIXME: TEST.
+else
 
         _proc = Option::KW.(proc) do |type|
           options[:name] ||= proc if type == :symbol
           options[:name] ||= "#{proc.source_location[0].split("/").last}:#{proc.source_location.last}" if proc.is_a? Proc if type == :proc
           options[:name] ||= proc.class  if type == :callable
         end
-
+end
           # "Inheritance": replace it when :override set.
         options = options.merge(replace: options[:name]) if options[:override]
 
@@ -128,31 +130,23 @@ class Trailblazer::Operation
           return [Switch, decider_class: decider_class]
         end
       end
-
-      # Try to abstract as much as possible from the imported module. This is for
-      # forward-compatibility.
-      # Note that Import#call will push the step directly on the pipetree which gives it the
-      # low-level (input, options) interface.
-      Import = Struct.new(:pipetree, :user_options) do
-        def call(operator, step, options)
-          insert_options = options.merge(user_options)
-          insert_options = insert_options.merge(replace: insert_options[:name]) if insert_options[:override]
-
-          pipetree.add(Railway::Right, Railway::And.new(step), insert_options)
-        end
-      end
-
-      Macros = Module.new
-      # create a class method on `target`, e.g. Contract::Validate() for step macros.
-      def self.macro!(name, constant, target=Macros)
-        target.send :define_method, name do |*args, &block|
-          [constant, args, block]
-        end
-      end
     end # DSL
   end
 
   Railway = Pipetree::Railway
 
-  extend Pipetree::DSL::Macros
+  # Allows defining dependencies and inject/override them via runtime options, if desired.
+  class Railway::Step
+    include Uber::Callable
+
+    def initialize(step, dependencies={})
+      @step, @dependencies = step, dependencies
+    end
+
+    def call(input, options)
+      @dependencies.each { |k, v| options[k] ||= v } # not sure i like this, but the step's API is cool.
+
+      @step.(input, options)
+    end
+  end
 end
