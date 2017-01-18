@@ -31,9 +31,7 @@ class Trailblazer::Operation
 
         last, operation = pipe.(self, options)
 
-        # The reason the Result wraps the Skill object (`options`), not the operation
-        # itself is because the op should be irrelevant, plus when stopping the pipe
-        # before op instantiation, this would be confusing (and wrong!).
+        # Any subclass of Right will be interpreted as successful.
         Result.new(!!(last <= Railway::Right), options)
       end
 
@@ -107,15 +105,6 @@ end
 
         pipe.add(track, strut_class.new(_proc, strut_options), options)
         # TODO: ALLOW for macros, too.
-      end
-
-      def self.import(operation, pipe, cfg, user_options={})
-        # e.g. from Contract::Validate
-        mod, args, block = cfg
-
-        import = Import.new(pipe, user_options) # API object.
-
-        mod.import!(operation, import, *args, &block)
       end
 
       AddOptions = ->(decider_class, options) do
