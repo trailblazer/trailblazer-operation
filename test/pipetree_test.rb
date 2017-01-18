@@ -1,31 +1,25 @@
 require "test_helper"
 
 class PipetreeTest < Minitest::Spec
-  module Validate
-    def self.import!(operation, pipe)
-      pipe.(:>, ->{ snippet }, name: "validate", before: "operation.new")
-    end
+  def self.Validate
+    step = ->{ snippet }
+
+    [ step, name: "validate", before: "operation.new" ]
   end
 
-  #---
-  # ::|
   # without options
   class Create < Trailblazer::Operation
-    step [Validate]
+    step PipetreeTest::Validate()
+    step PipetreeTest::Validate(), name: "VALIDATE!"
   end
 
-  it { Create["pipetree"].inspect.must_equal %{[>validate,>operation.new]} }
+  it { Create["pipetree"].inspect.must_equal %{[>validate,>VALIDATE!,>operation.new]} }
 
-  # without any options or []
-  # class New < Trailblazer::Operation
-  #   step Validate
-  # end
 
-  # it { New["pipetree"].inspect.must_equal %{[>validate,>>operation.new]} }
 
   # with options
   class Update < Trailblazer::Operation
-    step [Validate], after: "operation.new"
+    step PipetreeTest::Validate(), after: "operation.new"
   end
 
   it { Update["pipetree"].inspect.must_equal %{[>operation.new,>validate]} }
@@ -76,7 +70,7 @@ class PipetreeTest < Minitest::Spec
   end
 
   it { Right.( id: 1 ).slice(">", "method_name!", "callable").must_equal [1, 1, 1] }
-  it { Right["pipetree"].inspect.must_equal %{[>operation.new,>pipetree_test.rb:66,>method_name!,>PipetreeTest::Right::MyCallable]} }
+  it { Right["pipetree"].inspect.must_equal %{[>operation.new,>pipetree_test.rb:60,>method_name!,>PipetreeTest::Right::MyCallable]} }
 
   #---
   # inheritance

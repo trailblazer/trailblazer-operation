@@ -85,26 +85,29 @@ class Trailblazer::Operation
       end
 
       def self.insert(pipe, track, decider_class, proc, options={}) # TODO: make :name required arg.
+        _proc, options = proc.is_a?(Array) ? macro!(proc, options) : step!(proc, options)
 
-if proc.is_a?(Array) && proc.size == 2 # TODO: remove that!
-            _proc, macro_options = proc
-            options = macro_options.merge(options) # FIXME: TEST.
-else
-
-        _proc = Option::KW.(proc) do |type|
-          options[:name] ||= proc if type == :symbol
-          options[:name] ||= "#{proc.source_location[0].split("/").last}:#{proc.source_location.last}" if proc.is_a? Proc if type == :proc
-          options[:name] ||= proc.class  if type == :callable
-        end
-end
-          # "Inheritance": replace it when :override set.
-        options = options.merge(replace: options[:name]) if options[:override]
-
-
-        strut_class, strut_options = AddOptions.(decider_class, options)
+        options = options.merge(replace: options[:name]) if options[:override] # :override
+        strut_class, strut_options = AddOptions.(decider_class, options)       # :fail_fast and friends.
 
         pipe.add(track, strut_class.new(_proc, strut_options), options)
-        # TODO: ALLOW for macros, too.
+      end
+
+      def self.macro!(proc, options)
+        _proc, macro_options = proc
+
+        [ _proc, macro_options.merge(options) ]
+      end
+
+      def self.step!(proc, options)
+        name  = ""
+        _proc = Option::KW.(proc) do |type|
+          name = proc if type == :symbol
+          name = "#{proc.source_location[0].split("/").last}:#{proc.source_location.last}" if proc.is_a? Proc if type == :proc
+          name = proc.class  if type == :callable
+        end
+
+        [ _proc, { name: name }.merge(options) ]
       end
 
       AddOptions = ->(decider_class, options) do
