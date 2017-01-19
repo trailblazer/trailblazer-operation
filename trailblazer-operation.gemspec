@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Nick Sutterer"]
   spec.email         = ["apotonick@gmail.com"]
   spec.description   = %q{Trailblazer's operation object.}
-  spec.summary       = %q{Trailblazer's operation object with dependency management and pipetree flow.}
+  spec.summary       = %q{Trailblazer's operation object with railway flow and integrated error handling.}
   spec.homepage      = "http://trailblazer.to"
   spec.license       = "MIT"
 
@@ -20,7 +20,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "uber", ">= 0.1.0", "< 0.2.0"
   spec.add_dependency "declarative"
-  spec.add_dependency "pipetree", "0.1.0"
+  spec.add_dependency "pipetree", ">= 0.1.0", "< 0.2.0"
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake"

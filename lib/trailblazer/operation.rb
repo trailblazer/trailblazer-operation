@@ -10,14 +10,14 @@ module Trailblazer
     extend Declarative::Heritage::Inherited
     extend Declarative::Heritage::DSL
 
-    extend Skill::Accessors # ::[] and ::[]=
+    extend Skill::Accessors        # ::[] and ::[]=
 
-    include Pipetree        # ::call, ::|
+    include Pipetree               # ::call, ::step, ...
     # we want the skill dependency-mechanism.
-    extend Skill::Call      # ::call
+    extend Skill::Call             # ::call(params: {}, current_user: ..)
     extend Skill::Call::Positional # ::call(params, options)
 
     # we want the initializer and the ::call method.
-    include Generic         # #initialize, #call, #process.
+    include Generic                # #initialize, #call, #process.
   end
 end
