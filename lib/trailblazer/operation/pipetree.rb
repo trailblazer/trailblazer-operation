@@ -125,10 +125,8 @@ class Trailblazer::Operation
     end # DSL
   end
 
-  Railway = Pipetree::Railway
-
   # Allows defining dependencies and inject/override them via runtime options, if desired.
-  class Railway::Step
+  class Pipetree::Step
     include Uber::Callable
 
     def initialize(step, dependencies={})
