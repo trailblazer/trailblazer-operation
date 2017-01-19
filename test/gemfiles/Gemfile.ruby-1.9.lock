@@ -1,16 +1,9 @@
-GIT
-  remote: git://github.com/apotonick/pipetree.git
-  revision: cfbe426cf2b3050050199e07348d56f5409e5a89
-  specs:
-    pipetree (0.0.6)
-      uber
-
 PATH
   remote: ../../
   specs:
-    trailblazer-operation (0.0.9)
+    trailblazer-operation (0.0.10)
       declarative
-      pipetree (>= 0.0.5, < 0.1.0)
+      pipetree (= 0.1.0)
       uber (>= 0.1.0, < 0.2.0)
 
 GEM
@@ -19,6 +12,8 @@ GEM
     declarative (0.0.8)
       uber (>= 0.0.15)
     minitest (5.10.1)
+    pipetree (0.1.0)
+      uber
     rake (12.0.0)
     uber (0.1.0)
 
@@ -29,7 +24,6 @@ DEPENDENCIES
   bundler
   declarative
   minitest
-  pipetree!
   rake
   trailblazer-operation!
 
