@@ -1,6 +1,11 @@
 ## 0.0.10
 
+* `Flow` is not `Railway`.
+* Any `Right` subclass will now be interpreted as success.
 * Add `fail!`, `fail_fast!`, `pass!`, and `pass_fast!`.
+* The only semi-public method to modify the pipe is `Railway#add`
+* Removed `&, `>`, `<` "operators" in favor of `#add`.
+* Extremely simplified the macro API. Macros now return a callable step with the interface `->(input, options)` and their pipe options, e.g. `[ step, name: "my.macro"]`.
 
 ## 0.0.9
 
