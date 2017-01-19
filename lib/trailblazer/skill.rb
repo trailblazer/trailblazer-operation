@@ -14,10 +14,6 @@ module Trailblazer
       @resolver[name]
     end
 
-    def key?(name) # FIXME: test.
-      @resolver.key?(name)
-    end
-
     def []=(name, value)
       @mutable_options[name] = value
     end
@@ -62,10 +58,6 @@ module Trailblazer
 
       def [](name)
         @containers.find { |container| container.key?(name) && (return container[name]) }
-      end
-
-      def key?(name) # FIXME.
-        @containers.find { |container| container.key?(name) }
       end
     end
 
