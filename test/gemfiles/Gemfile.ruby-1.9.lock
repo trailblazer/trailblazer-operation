@@ -3,7 +3,7 @@ PATH
   specs:
     trailblazer-operation (0.0.10)
       declarative
-      pipetree (= 0.1.0)
+      pipetree (>= 0.1.0, < 0.2.0)
       uber (>= 0.1.0, < 0.2.0)
 
 GEM
