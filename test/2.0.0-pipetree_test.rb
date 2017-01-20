@@ -18,6 +18,22 @@ class KWBugsTest < Minitest::Spec
   it { Merchant::New.( {}, { "yo"=> nil   } ) }
 end
 
+class KWOptionsTest < Minitest::Spec
+  X = Trailblazer::Operation::Option::KW.( ->(options, **) { options["x"] = true } )
+  Y = Trailblazer::Operation::Option::KW.( ->(options, params:nil, **) { options["y"] = params } )
+  Z = Trailblazer::Operation::Option::KW.( ->(options, params:nil, z:nil, **) { options["kw_z"] = z } )
+  A = Trailblazer::Operation::Option::KW.( ->(options, params:nil, z:nil, **) { options["options_z"] = options["z"] } )
+
+  class Create < Trailblazer::Operation
+    step [ ->(input, options) { X.(input, options, z: "Z!") }, name: "X" ]
+    step [ ->(input, options) { Y.(input, options, z: "Z!") }, name: "Y" ]
+    step [ ->(input, options) { Z.(input, options, z: "Z!") }, name: "Z" ]
+    step [ ->(input, options) { A.(input, options, z: "Z!") }, name: "A" ]
+  end
+
+  it { Create.({ params: "yo" }, "z" => 1).inspect("x", "y", "kw_z", "options_z").must_equal %{<Result:true [true, {:params=>\"yo\"}, "Z!", 1] >} }
+end
+
 
 class Ruby200PipetreeTest < Minitest::Spec
   class Create < Trailblazer::Operation

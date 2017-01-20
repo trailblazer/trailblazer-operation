@@ -35,19 +35,19 @@ class Trailblazer::Operation
 
     # Call the option with keyword arguments. Ruby <= 2.0.
     class KW < Option
-      def self.call_proc(proc, input, options)
+      def self.call_proc(proc, input, options, tmp_options={})
         return proc.(options) if proc.arity == 1
-        proc.(options, **options)
+        proc.(options, **options.to_hash(tmp_options))
       end
 
-      def self.call_method(proc, input, options)
+      def self.call_method(proc, input, options, tmp_options={})
         return input.send(proc, options) if input.method(proc).arity == 1 # TODO: remove this
-        input.send(proc, options, **options)
+        input.send(proc, options, **options.to_hash(tmp_options))
       end
 
-      def self.call_callable(callable, input, options)
+      def self.call_callable(callable, input, options, tmp_options={})
         return callable.(options) if callable.method(:call).arity == 1
-        callable.(options, **options)
+        callable.(options, **options.to_hash(tmp_options))
       end
     end
   end

@@ -32,15 +32,16 @@ module Trailblazer
 
     # Called when Ruby transforms options into kw args, via **options.
     # TODO: this method has massive potential for speed improvements.
-    def to_hash
+    # The `tmp_options` argument is experimental. It allows adding temporary options
+    # to the kw args.
+    #:private:
+    def to_hash(tmp_options={})
       {}.tap do |h|
-        arr = to_runtime_data << to_mutable_data
-
+        arr = to_runtime_data << to_mutable_data << tmp_options
 
         arr.each { |hsh|
-         hsh.each { |k, v| h[k.to_sym] = v }
+          hsh.each { |k, v| h[k.to_sym] = v }
         }
-
       end
     end
 

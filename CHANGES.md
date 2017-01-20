@@ -1,3 +1,12 @@
+## 0.0.11
+
+* Allow passing tmp options into `KW::Option` that will be merged with `options` and then transformed into kw args, but only locally for the step scope (or wherever you do `Option.()`). The API:
+
+    ```ruby
+    Option::KW.(proc).(input, options, some: "more", ...)
+    ```
+  Note that `KW::Option` could be massively sped up with simple optimizations.
+
 ## 0.0.10
 
 * `Flow` is now `Railway`.
