@@ -46,12 +46,3 @@ class SkillTest < Minitest::Spec
     end
   end
 end
-# resolve: prefer @instance_attrs over competences
-#   or instace_atrt is competences
-
-# dependencies = { current_user: Runtime::User..., container: BLA }
-# dependencies[:current_user]
-# dependencies["user.create.contract"] # delegates to container, somehow.
-
-# Create.(params, dependencies) # not sure if op should build this runtime dependencies hash or if it comes from outside.
-
