@@ -6,7 +6,7 @@ module Trailblazer
     end
 
     # dependency interface
-    extend Uber::Delegates
-    delegates :@skills, :[], :[]=
+    extend Forwardable
+    def_delegators :@skills, :[], :[]=
   end
 end

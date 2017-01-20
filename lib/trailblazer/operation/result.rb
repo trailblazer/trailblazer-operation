@@ -4,8 +4,8 @@ class Trailblazer::Operation
       @success, @data = success, data # @data is a Skill instance.
     end
 
-    extend Uber::Delegates
-    delegates :@data, :[] # DISCUSS: make it a real delegator? see Nested.
+    extend Forwardable
+    def_delegators :@data, :[] # DISCUSS: make it a real delegator? see Nested.
 
     def success?
       @success

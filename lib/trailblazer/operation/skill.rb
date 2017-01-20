@@ -1,6 +1,4 @@
 require "trailblazer/skill"
-require "uber/delegates"
-
 # Dependency ("skill") management for Operation.
 # Op::[]
 # Op::[]=
@@ -17,8 +15,8 @@ class Trailblazer::Operation
         @skills ||= {}
       end
 
-      extend Uber::Delegates
-      delegates :skills, :[], :[]=
+      extend Forwardable
+      def_delegators :skills, :[], :[]=
     end
 
     # Overrides Operation::call, creates the Skill hash and passes it to :call.

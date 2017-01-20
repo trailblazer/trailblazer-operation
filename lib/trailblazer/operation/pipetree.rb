@@ -1,7 +1,6 @@
 require "pipetree"
 require "pipetree/railway"
 require "trailblazer/operation/result"
-require "uber/option"
 
 if RUBY_VERSION == "1.9.3"
   require "trailblazer/operation/1.9.3/option" # TODO: rename to something better.
@@ -125,6 +124,7 @@ class Trailblazer::Operation
     end # DSL
   end
 
+  require "uber/callable"
   # Allows defining dependencies and inject/override them via runtime options, if desired.
   class Pipetree::Step
     include Uber::Callable

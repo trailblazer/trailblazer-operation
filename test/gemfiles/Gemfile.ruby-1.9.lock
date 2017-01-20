@@ -3,8 +3,8 @@ PATH
   specs:
     trailblazer-operation (0.0.10)
       declarative
-      pipetree (>= 0.1.0, < 0.2.0)
-      uber (>= 0.1.0, < 0.2.0)
+      pipetree (>= 0.1.1, < 0.2.0)
+      uber
 
 GEM
   remote: https://rubygems.org/
@@ -12,8 +12,7 @@ GEM
     declarative (0.0.8)
       uber (>= 0.0.15)
     minitest (5.10.1)
-    pipetree (0.1.0)
-      uber
+    pipetree (0.1.1)
     rake (12.0.0)
     uber (0.1.0)
 
