@@ -1,4 +1,4 @@
-require "declarative" # FIXME: here?
+require "declarative"
 require "trailblazer/operation/skill"
 require "trailblazer/operation/pipetree"
 require "trailblazer/operation/generic"
