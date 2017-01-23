@@ -9,7 +9,7 @@ else
 end
 
 class Trailblazer::Operation
-  New = ->(klass, options) { klass.new(options) } # returns operation instance.
+  Instantiate = ->(klass, options) { klass.new(options) } # returns operation instance.
 
   # Implements the API to populate the operation's pipetree and
   # `Operation::call` to invoke the latter.
@@ -41,7 +41,7 @@ class Trailblazer::Operation
 
         self["pipetree"] = Railway.new
 
-        strut = ->(last, input, options) { [last, New.(input, options)] } # first step in pipe.
+        strut = ->(last, input, options) { [last, Instantiate.(input, options)] } # first step in pipe.
         self["pipetree"].add(Railway::Right, strut, name: "operation.new") # DISCUSS: using pipe API directly here. clever?
       end
     end
