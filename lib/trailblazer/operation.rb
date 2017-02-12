@@ -1,3 +1,4 @@
+require "forwardable"
 require "declarative"
 require "trailblazer/operation/skill"
 require "trailblazer/operation/pipetree"
