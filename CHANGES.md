@@ -1,3 +1,8 @@
+## 0.0.13
+
+* Rename `Operation::New` to `:Instantiate` to avoid name clashes with `New` operations in applications.
+* Fix Ruby > 2.3.3's `Forwardable` issue.
+
 ## 0.0.12
 
 * Allow passing tmp options into `KW::Option` that will be merged with `options` and then transformed into kw args, but only locally for the step scope (or wherever you do `Option.()`). The API:
