@@ -33,7 +33,8 @@ class PipetreeTest < Minitest::Spec
     step :call!
 
     def call!(options)
-      self["x"] = options["params"]
+      # self["x"] = options["params"]
+      options["x"] = options["params"]
     end
   end
 

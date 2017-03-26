@@ -11,3 +11,5 @@ gem "minitest-line"
 gem "benchmark-ips"
 # gem "pipetree", path: "../pipetree"
 # gem "pipetree", github: "apotonick/pipetree"
+
+gem "trailblazer-circuit", path: "../trailblazer-circuit"

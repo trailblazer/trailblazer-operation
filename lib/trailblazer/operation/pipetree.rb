@@ -2,6 +2,8 @@ require "pipetree"
 require "pipetree/railway"
 require "trailblazer/operation/result"
 
+require "trailblazer/circuit"
+
 if RUBY_VERSION == "1.9.3"
   require "trailblazer/operation/1.9.3/option" # TODO: rename to something better.
 else
@@ -9,7 +11,7 @@ else
 end
 
 class Trailblazer::Operation
-  Instantiate = ->(klass, options) { klass.new(options) } # returns operation instance.
+  # Instantiate = ->(klass, options, flow_options) { klass.new(options) } # returns operation instance.
 
   # Implements the API to populate the operation's pipetree and
   # `Operation::call` to invoke the latter.
@@ -26,12 +28,19 @@ class Trailblazer::Operation
       # Top-level, this method is called when you do Create.() and where
       # all the fun starts, ends, and hopefully starts again.
       def call(options)
-        pipe = self["pipetree"] # TODO: injectable? WTF? how cool is that?
+        circuit = self["pipetree"] # TODO: injectable? WTF? how cool is that?
 
-        last, operation = pipe.(self, options)
+        # ___start = circuit[:Start]
+        ___start, _ = circuit.instance_variable_get(:@map).first
+        ___success_end, _ = circuit.instance_variable_get(:@map)[1]
+
+
+        operation = new
+
+        last, operation, flow_options = circuit.(___start, options, context: new)
 
         # Any subclass of Right will be interpreted as successful.
-        Result.new(!!(last <= Railway::Right), options)
+        Result.new(last == ___success_end, options)
       end
 
       # This method would be redundant if Ruby had a Class::finalize! method the way
@@ -39,10 +48,17 @@ class Trailblazer::Operation
       def initialize_pipetree!
         heritage.record :initialize_pipetree!
 
-        self["pipetree"] = Railway.new
+        self["pipetree"] = Trailblazer::Circuit::Activity(id: "bla") do |evt|
+          {
+            evt[:Start] => { Trailblazer::Circuit::Right => evt[:End] }
+          }
+        end.to_circuit # FIXME: MAYBE A DIFFERENT BUILDER INTERFACE
 
-        strut = ->(last, input, options) { [last, Instantiate.(input, options)] } # first step in pipe.
-        self["pipetree"].add(Railway::Right, strut, name: "operation.new") # DISCUSS: using pipe API directly here. clever?
+        # strut = ->(last, input, options) { [last, Instantiate.(input, options)] } # first step in pipe.
+
+
+        # self["pipetree"].add(Railway::Right, strut, name: "operation.new") # DISCUSS: using pipe API directly here. clever?
+        # self["pipetree"] = Trailblazer::Circuit::Alter(self["pipetree"], :append, strut)
       end
     end
 
@@ -70,26 +86,45 @@ class Trailblazer::Operation
       Decider = ->(result, config, last, *) { config[:signal] || last }
     end
 
+
     module DSL
       def success(*args); add(Railway::Right, Stay::Decider, *args) end
       def failure(*args); add(Railway::Left,  Stay::Decider, *args) end
       def step(*args)   ; add(Railway::Right, Railway::And::Decider, *args) end
 
     private
+      def self.Step(step)
+        ->(direction, options, flow_options) do
+          result = step.(flow_options[:context], options)
+
+          [ result ? Trailblazer::Circuit::Right : Trailblazer::Circuit::Left, options, flow_options ]
+        end
+      end
+
       # Operation-level entry point.
       def add(track, decider_class, proc, options={})
         heritage.record(:add, track, decider_class, proc, options)
 
-        DSL.insert(self["pipetree"], track, decider_class, proc, options)
+        self["pipetree"] = DSL.insert(self["pipetree"], track, decider_class, proc, options)
       end
 
       def self.insert(pipe, track, decider_class, proc, options={}) # TODO: make :name required arg.
         _proc, options = proc.is_a?(Array) ? macro!(proc, options) : step!(proc, options)
 
         options = options.merge(replace: options[:name]) if options[:override] # :override
+
+
+        # TODO: what about left track?
+        step = Step(_proc)
+        return Trailblazer::Circuit::Alter(pipe, :append, step, options)
+
+
+
+
         strut_class, strut_options = AddOptions.(decider_class, options)       # :fail_fast and friends.
 
-        pipe.add(track, strut_class.new(_proc, strut_options), options)
+        Trailblazer::Circuit::Alter(pipe, :append, strut_class, strut_options)
+        # pipe.add(track, strut_class.new(_proc, strut_options), options)
       end
 
       def self.macro!(proc, options)
