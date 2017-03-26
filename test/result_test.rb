@@ -1,4 +1,4 @@
-require "test_helper"
+  require "test_helper"
 
 class ResultTest < Minitest::Spec
   Result = Trailblazer::Operation::Result
@@ -19,8 +19,8 @@ class ResultTest < Minitest::Spec
   class Create < Trailblazer::Operation
     success :call
 
-    def call(*)
-      self[:message] = "Result objects are actually quite handy!"
+    def call(options, **)
+      options[:message] = "Result objects are actually quite handy!"
     end
   end
 
