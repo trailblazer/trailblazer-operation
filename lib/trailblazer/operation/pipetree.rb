@@ -10,168 +10,166 @@ else
   require "trailblazer/operation/option" # TODO: rename to something better.
 end
 
-class Trailblazer::Operation
-  # Instantiate = ->(klass, options, flow_options) { klass.new(options) } # returns operation instance.
+module Trailblazer
+  class Operation
+    # Instantiate = ->(klass, options, flow_options) { klass.new(options) } # returns operation instance.
 
-  # Implements the API to populate the operation's pipetree and
-  # `Operation::call` to invoke the latter.
-  # Learn more about the Pipetree gem here: https://github.com/apotonick/pipetree
-  module Pipetree
-    def self.included(includer)
-      includer.extend ClassMethods # ::call, ::inititalize_pipetree!
-      includer.extend DSL          # ::|, ::> and friends.
+    # Implements the API to populate the operation's pipetree and
+    # `Operation::call` to invoke the latter.
+    # Learn more about the Pipetree gem here: https://github.com/apotonick/pipetree
+    module Pipetree
+      def self.included(includer)
+        includer.extend ClassMethods # ::call, ::inititalize_pipetree!
+        includer.extend DSL          # ::|, ::> and friends.
 
-      includer.initialize_pipetree!
-    end
-
-    module ClassMethods
-      # Top-level, this method is called when you do Create.() and where
-      # all the fun starts, ends, and hopefully starts again.
-      def call(options)
-        circuit = self["pipetree"] # TODO: injectable? WTF? how cool is that?
-
-        # ___start = circuit[:Start]
-        ___start, _ = circuit.instance_variable_get(:@map).first
-        ___success_end, _ = circuit.instance_variable_get(:@map)[1]
-
-
-        operation = new
-
-        last, operation, flow_options = circuit.(___start, options, context: new)
-
-        # Any subclass of Right will be interpreted as successful.
-        Result.new(last == ___success_end, options)
+        includer.initialize_pipetree!
       end
 
-      # This method would be redundant if Ruby had a Class::finalize! method the way
-      # Dry.RB provides it. It has to be executed with every subclassing.
-      def initialize_pipetree!
-        heritage.record :initialize_pipetree!
+      module ClassMethods
+        # Top-level, this method is called when you do Create.() and where
+        # all the fun starts, ends, and hopefully starts again.
+        def call(options)
+          activity = self["pipetree"] # TODO: injectable? WTF? how cool is that?
 
-        self["pipetree"] = Trailblazer::Circuit::Activity(id: "bla") do |evt|
-          {
-            evt[:Start] => { Trailblazer::Circuit::Right => evt[:End] }
+          circuit, _ = activity.values
+          require "pp"
+          pp circuit
+          # puts "@@@@@ #{circuit.inspect}"
+
+          last, operation, flow_options = activity.(activity[:Start], options, context: new)
+
+          # Result is successful if the activity ended with the "right" End event.
+          Result.new(last == activity[:End, :right], options)
+        end
+
+        # This method would be redundant if Ruby had a Class::finalize! method the way
+        # Dry.RB provides it. It has to be executed with every subclassing.
+        def initialize_pipetree!
+          heritage.record :initialize_pipetree!
+
+          self["___railway"] = []
+        end
+      end
+
+      # Transform railway array into an Activity.
+      def self.to_activity(railway)
+        activity = initial_activity
+
+        railway.each do |(step, track, direction, connections)|
+          # insert the new step before the track's End, taking over all its incoming connections.
+          activity = Circuit::Activity::Alter(activity, :before, activity[:End, track], step, direction: direction) # TODO: direction => outgoing
+
+          # connect new task to End.left (if it's a step), or End.fail_fast, etc.
+          connections.each do |(direction, end_name)|
+            activity = Circuit::Activity::Connect(activity, step, direction, activity[:End, end_name])
+          end
+        end
+
+        activity
+      end
+
+      # The initial Activity with no-op wiring.
+      def self.initial_activity()
+        Circuit::Activity({id: "A/"},
+          end: {
+            right:     Circuit::End.new(:right),
+            left:      Circuit::End.new(:left),
+            pass_fast: Circuit::End.new(:pass_fast),
+            fail_fast: Circuit::End.new(:fail_fast)
           }
-        end.to_circuit # FIXME: MAYBE A DIFFERENT BUILDER INTERFACE
-
-        # strut = ->(last, input, options) { [last, Instantiate.(input, options)] } # first step in pipe.
-
-
-        # self["pipetree"].add(Railway::Right, strut, name: "operation.new") # DISCUSS: using pipe API directly here. clever?
-        # self["pipetree"] = Trailblazer::Circuit::Alter(self["pipetree"], :append, strut)
-      end
-    end
-
-    class Railway < ::Pipetree::Railway
-      FailFast = Class.new(Left)
-      PassFast = Class.new(Right)
-
-      def self.fail!     ; Left     end
-      def self.fail_fast!; FailFast end
-      def self.pass!     ; Right    end
-      def self.pass_fast!; PassFast end
-    end
-
-    # The Strut wrapping each step. Makes sure that Track signals are returned immediately.
-    class Switch < ::Pipetree::Railway::Strut
-      Decider = ->(result, config, *args) do
-        return result if result.is_a?(Class) && result <= Railway::Track # this might be pretty slow?
-
-        config[:decider_class].(result, config, *args) # e.g. And::Decider.(result, ..)
-      end
-    end
-
-    # Strut that doesn't evaluate the step's result but stays on `last` or configured :signal.
-    class Stay < ::Pipetree::Railway::Strut
-      Decider = ->(result, config, last, *) { config[:signal] || last }
-    end
-
-
-    module DSL
-      def success(*args); add(Railway::Right, Stay::Decider, *args) end
-      def failure(*args); add(Railway::Left,  Stay::Decider, *args) end
-      def step(*args)   ; add(Railway::Right, Railway::And::Decider, *args) end
-
-    private
-      def self.Step(step)
-        ->(direction, options, flow_options) do
-          result = step.(flow_options[:context], options)
-
-          [ result ? Trailblazer::Circuit::Right : Trailblazer::Circuit::Left, options, flow_options ]
+        ) do |evt|
+          { evt[:Start] => { Circuit::Right => evt[:End, :right], Circuit::Left => evt[:End, :left] } }
         end
       end
 
-      # Operation-level entry point.
-      def add(track, decider_class, proc, options={})
-        heritage.record(:add, track, decider_class, proc, options)
+      class Railway < ::Pipetree::Railway
+        FailFast = Class.new(Left)
+        PassFast = Class.new(Right)
 
-        self["pipetree"] = DSL.insert(self["pipetree"], track, decider_class, proc, options)
+        def self.fail!     ; Left     end
+        def self.fail_fast!; FailFast end
+        def self.pass!     ; Right    end
+        def self.pass_fast!; PassFast end
       end
 
-      def self.insert(pipe, track, decider_class, proc, options={}) # TODO: make :name required arg.
-        _proc, options = proc.is_a?(Array) ? macro!(proc, options) : step!(proc, options)
-
-        options = options.merge(replace: options[:name]) if options[:override] # :override
 
 
-        # TODO: what about left track?
-        step = Step(_proc)
-        return Trailblazer::Circuit::Alter(pipe, :append, step, options)
+      module DSL
+        def success(*args); add(:right, Circuit::Right, [], *args) end
+        def failure(*args); add(:left,  Circuit::Left,  [], *args) end
+        def step(*args)   ; add(:right, Circuit::Right, [[Circuit::Left, :left]], *args) end
 
+      private
+        # call the step proc with (options, flow_options), omitting `direction`.
+        def self.Step(step)
+          ->(direction, options, flow_options) do
+            result = step.(options, flow_options)
 
-
-
-        strut_class, strut_options = AddOptions.(decider_class, options)       # :fail_fast and friends.
-
-        Trailblazer::Circuit::Alter(pipe, :append, strut_class, strut_options)
-        # pipe.add(track, strut_class.new(_proc, strut_options), options)
-      end
-
-      def self.macro!(proc, options)
-        _proc, macro_options = proc
-
-        [ _proc, macro_options.merge(options) ]
-      end
-
-      def self.step!(proc, options)
-        name  = ""
-        _proc = Option::KW.(proc) do |type|
-          name = proc if type == :symbol
-          name = "#{proc.source_location[0].split("/").last}:#{proc.source_location.last}" if proc.is_a? Proc if type == :proc
-          name = proc.class  if type == :callable
+            [ result ? Circuit::Right : Circuit::Left, options, flow_options ]
+          end
         end
 
-        [ _proc, { name: name }.merge(options) ]
-      end
+        def self.Stay(step, direction)
+          ->(direction, options, flow_options) do
+            result = step.(options, flow_options)
 
-      AddOptions = ->(decider_class, options) do
-        # for #failure and #success:
-        if decider_class == Stay::Decider
-          return [Stay, signal: Railway::FailFast] if options[:fail_fast]
-          return [Stay, signal: Railway::PassFast] if options[:pass_fast]
-          return [Stay, {}]
-        else # for #step:
-          return [Switch, decider_class: decider_class, on_false: Railway::FailFast] if options[:fail_fast]
-          return [Switch, decider_class: decider_class, on_true:  Railway::PassFast] if options[:pass_fast]
-          return [Switch, decider_class: decider_class]
+            [ direction, options, flow_options ]
+          end
         end
-      end
-    end # DSL
-  end
 
-  require "uber/callable"
-  # Allows defining dependencies and inject/override them via runtime options, if desired.
-  class Pipetree::Step
-    include Uber::Callable
+        # Operation-level entry point.
+        def add(track, decider_class, connections, proc, options={})
+          heritage.record(:add, track, decider_class, proc, options)
 
-    def initialize(step, dependencies={})
-      @step, @dependencies = step, dependencies
+          self["pipetree"] = DSL.insert(self["___railway"], track, decider_class, connections, proc, options)
+        end
+
+        def self.insert(railway, track, direction, connections, proc, options={}) # TODO: make :name required arg.
+          _proc, options = proc.is_a?(Array) ? macro!(proc, options) : step!(proc, options)
+
+          options = options.merge(replace: options[:name]) if options[:override] # :override
+
+          # TODO: what about left track?
+          step = connections.any? ? Step(_proc) : Stay(_proc, direction)
+
+          # connections = [[Circuit::Left, :left]]
+          railway << [ step, track, direction, connections ]
+
+          Pipetree.to_activity(railway)
+        end
+
+        def self.macro!(proc, options)
+          _proc, macro_options = proc
+
+          [ _proc, macro_options.merge(options) ]
+        end
+
+        def self.step!(proc, options)
+          name  = ""
+          _proc = Option::KW.(proc) do |type|
+            name = proc if type == :symbol
+            name = "#{proc.source_location[0].split("/").last}:#{proc.source_location.last}" if proc.is_a? Proc if type == :proc
+            name = proc.class  if type == :callable
+          end
+
+          [ _proc, { name: name }.merge(options) ]
+        end
+
+
+      end # DSL
     end
 
-    def call(input, options)
-      @dependencies.each { |k, v| options[k] ||= v } # not sure i like this, but the step's API is cool.
+    # Allows defining dependencies and inject/override them via runtime options, if desired.
+    class Pipetree::Step
+      def initialize(step, dependencies={})
+        @step, @dependencies = step, dependencies
+      end
 
-      @step.(input, options)
+      def call(input, options)
+        @dependencies.each { |k, v| options[k] ||= v } # not sure i like this, but the step's API is cool.
+
+        @step.(input, options)
+      end
     end
   end
 end

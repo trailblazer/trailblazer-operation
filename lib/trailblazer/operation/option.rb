@@ -25,7 +25,8 @@ class Trailblazer::Operation
       proc.(*options)
     end
 
-    def self.call_method(proc, input, *options)
+    def self.call_method(*args)
+      raise args.inspect
       input.send(proc, *options)
     end
 
@@ -33,21 +34,15 @@ class Trailblazer::Operation
       callable.(*options)
     end
 
-    # Call the option with keyword arguments. Ruby <= 2.0.
+    # Call the option with keyword arguments. Ruby >= 2.0.
     class KW < Option
-      def self.call_proc(proc, input, options, tmp_options={})
-        return proc.(options) if proc.arity == 1
+      def self.call_proc(proc, options, flow_options, tmp_options={})
         proc.(options, **options.to_hash(tmp_options))
       end
 
-      def self.call_method(proc, input, options, tmp_options={})
-        return input.send(proc, options) if input.method(proc).arity == 1 # TODO: remove this
-        input.send(proc, options, **options.to_hash(tmp_options))
-      end
-
-      def self.call_callable(callable, input, options, tmp_options={})
-        return callable.(options) if callable.method(:call).arity == 1
-        callable.(options, **options.to_hash(tmp_options))
+      # FIXME: sort tmp_options.
+      def self.call_method(proc, options, flow_options, tmp_options={})
+        flow_options[:context].send(proc, options, **options.to_hash(tmp_options))
       end
     end
   end
