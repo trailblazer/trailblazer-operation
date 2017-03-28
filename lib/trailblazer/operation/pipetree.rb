@@ -1,5 +1,3 @@
-require "pipetree"
-require "pipetree/railway"
 require "trailblazer/operation/result"
 require "trailblazer/circuit"
 require "trailblazer/operation/option" # TODO: rename to something better.
@@ -70,13 +68,13 @@ module Trailblazer
         end
       end
 
-      class Railway < ::Pipetree::Railway
-        FailFast = Class.new(Left)
-        PassFast = Class.new(Right)
+      class Railway
+        FailFast = Class.new(Circuit::Left)
+        PassFast = Class.new(Circuit::Right)
 
-        def self.fail!     ; Left     end
+        def self.fail!     ; Circuit::Left     end
         def self.fail_fast!; FailFast end
-        def self.pass!     ; Right    end
+        def self.pass!     ; Circuit::Right    end
         def self.pass_fast!; PassFast end
       end
 
@@ -89,6 +87,7 @@ module Trailblazer
 
       private
         # Returns task to call the step proc with (options, flow_options), omitting `direction`.
+        # When called, the task always returns a direction signal.
         def self.Step(step, on_true, on_false)
           ->(direction, options, flow_options) do
             result = step.(options, flow_options)
@@ -109,7 +108,6 @@ module Trailblazer
 
           options = options.merge(replace: options[:name]) if options[:override] # :override
 
-          # TODO: what about left track?
           step = connections.any? ? Step(_proc, Circuit::Right, Circuit::Left) : Step(_proc, direction, direction)
 
           # connections = [[Circuit::Left, :left]]

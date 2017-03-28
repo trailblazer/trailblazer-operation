@@ -18,13 +18,12 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
 
-  spec.add_dependency "uber" # Uber::Callable is all we need.
   spec.add_dependency "declarative"
-  spec.add_dependency "pipetree", ">= 0.1.1", "< 0.2.0"
+  spec.add_dependency "trailblazer-circuit"#, ">= 0.1.1", "< 0.2.0"
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake"
   spec.add_development_dependency "minitest"
 
-  spec.required_ruby_version = '>= 1.9.3'
+  spec.required_ruby_version = '>= 2.0.0'
 end
