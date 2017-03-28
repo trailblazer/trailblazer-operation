@@ -73,3 +73,4 @@ module MiniTest::Assertions
   end
 end
 Trailblazer::Circuit::Activity.infect_an_assertion :assert_inspect, :must_inspect
+=end

@@ -1,32 +1,24 @@
 class Trailblazer::Operation
   # :private:
   module Option
-    # Call the option with keyword arguments. Ruby >= 2.0.
-    class KW
-      def self.call(proc, &block)
-        type = :proc
-
-        option =
-          if proc.is_a? Symbol
-            type = :symbol
-            ->(input, *_options) { call_method(proc, input, *_options) }
-          else
-            type = :callable
-            ->(input, *_options) { call_proc(proc, input, *_options) }
-          end
-
-        yield type if block_given?
-        option
+    # Return task to call the option with keyword arguments. Ruby >= 2.0.
+    # This is used by `Operation::step` to wrap the argument and make it
+    # callable in the circuit
+    def self.KW(proc)
+      if proc.is_a? Symbol
+        ->(*args) { meth!(proc, *args) }
+      else
+        ->(*args) { call!(proc, *args) }
       end
+    end
 
-      def self.call_proc(proc, options, flow_options, tmp_options={})
-        proc.(options, **options.to_hash(tmp_options))
-      end
+    def self.call!(proc, options, flow_options, tmp_options={})
+      proc.(options, **options.to_hash(tmp_options))
+    end
 
-      # FIXME: sort tmp_options.
-      def self.call_method(proc, options, flow_options, tmp_options={})
-        flow_options[:context].send(proc, options, **options.to_hash(tmp_options))
-      end
+    # FIXME: sort tmp_options.
+    def self.meth!(proc, options, flow_options, tmp_options={})
+      flow_options[:context].send(proc, options, **options.to_hash(tmp_options))
     end
   end
 end
