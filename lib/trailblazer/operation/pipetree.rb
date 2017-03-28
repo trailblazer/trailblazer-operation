@@ -35,7 +35,7 @@ module Trailblazer
 
       # Transform railway array into an Activity.
       def self.to_activity(railway)
-        activity = initial_activity
+        activity = InitialActivity()
 
         railway.each do |(step, track, direction, connections)|
           # insert the new step before the track's End, taking over all its incoming connections.
@@ -51,7 +51,7 @@ module Trailblazer
       end
 
       # The initial Activity with no-op wiring.
-      def self.initial_activity()
+      def self.InitialActivity()
         Circuit::Activity({id: "A/"},
           end: {
             right:     Circuit::End.new(:right),
@@ -88,12 +88,15 @@ module Trailblazer
           self["pipetree"] = DSL.insert(self["___railway"], track, decider_class, connections, proc, options)
         end
 
+        # :private:
         def self.insert(railway, track, direction, connections, proc, options={}) # TODO: make :name required arg.
           _proc, options = proc.is_a?(Array) ? macro!(proc, options) : step!(proc, options)
 
           options = options.merge(replace: options[:name]) if options[:override] # :override
 
-          step = connections.any? ? Step(_proc, Circuit::Right, Circuit::Left) : Step(_proc, direction, direction)
+          step = connections.any? ?
+            Step(_proc, Circuit::Right, Circuit::Left) : # if connections, this is usually #step.
+            Step(_proc, direction, direction)            # or pass/fail
 
           railway << [ step, track, direction, connections ] # connections = [[Circuit::Left, :left]]
 
