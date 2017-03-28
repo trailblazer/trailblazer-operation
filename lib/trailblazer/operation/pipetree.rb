@@ -18,10 +18,6 @@ module Trailblazer
         def call(options)
           activity = self["pipetree"] # TODO: injectable? WTF? how cool is that?
 
-          circuit, _ = activity.values
-          # require "pp"
-          # pp circuit
-
           last, operation, flow_options = activity.(activity[:Start], options, context: new)
 
           # Result is successful if the activity ended with the "right" End event.
