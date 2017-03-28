@@ -1,26 +1,15 @@
 require "pipetree"
 require "pipetree/railway"
 require "trailblazer/operation/result"
-
 require "trailblazer/circuit"
-
-if RUBY_VERSION == "1.9.3"
-  require "trailblazer/operation/1.9.3/option" # TODO: rename to something better.
-else
-  require "trailblazer/operation/option" # TODO: rename to something better.
-end
+require "trailblazer/operation/option" # TODO: rename to something better.
 
 module Trailblazer
   class Operation
-    # Instantiate = ->(klass, options, flow_options) { klass.new(options) } # returns operation instance.
-
-    # Implements the API to populate the operation's pipetree and
-    # `Operation::call` to invoke the latter.
-    # Learn more about the Pipetree gem here: https://github.com/apotonick/pipetree
     module Pipetree
       def self.included(includer)
         includer.extend ClassMethods # ::call, ::inititalize_pipetree!
-        includer.extend DSL          # ::|, ::> and friends.
+        includer.extend DSL
 
         includer.initialize_pipetree!
       end
@@ -32,9 +21,8 @@ module Trailblazer
           activity = self["pipetree"] # TODO: injectable? WTF? how cool is that?
 
           circuit, _ = activity.values
-          require "pp"
-          pp circuit
-          # puts "@@@@@ #{circuit.inspect}"
+          # require "pp"
+          # pp circuit
 
           last, operation, flow_options = activity.(activity[:Start], options, context: new)
 
@@ -100,7 +88,7 @@ module Trailblazer
         def step(*args)   ; add(:right, Circuit::Right, [[Circuit::Left, :left]], *args) end
 
       private
-        # call the step proc with (options, flow_options), omitting `direction`.
+        # Returns task to call the step proc with (options, flow_options), omitting `direction`.
         def self.Step(step, on_true, on_false)
           ->(direction, options, flow_options) do
             result = step.(options, flow_options)
@@ -146,8 +134,6 @@ module Trailblazer
 
           [ _proc, { name: name }.merge(options) ]
         end
-
-
       end # DSL
     end
 

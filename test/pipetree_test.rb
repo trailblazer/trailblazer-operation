@@ -46,32 +46,6 @@ class PipetreeTest < Minitest::Spec
 
   it { Remove.("yo")["x"].must_equal "yo" }
 
-  # proc arguments
-  class Forward < Trailblazer::Operation
-    step ->(input, options) { puts "@@@@@ #{input.inspect}"; puts "@@@@@ #{options.inspect}" }
-  end
-
-  it { skip; Forward.({ id: 1 }) }
-
-  #---
-  # ::>, ::<, ::>>, :&
-  # with proc, method, callable.
-  class Right < Trailblazer::Operation
-    MyProc = ->(*) { }
-    success ->(options) { options[">"] = options["params"][:id] }, better_api: true
-
-    success :method_name!
-    def method_name!(options); self["method_name!"] = options["params"][:id] end
-
-    class MyCallable
-      include Uber::Callable
-      def call(options); options["callable"] = options["params"][:id] end
-    end
-    success MyCallable.new
-  end
-
-  it { Right.( id: 1 ).slice(">", "method_name!", "callable").must_equal [1, 1, 1] }
-  it { Right["pipetree"].inspect.must_equal %{[>operation.new,>pipetree_test.rb:60,>method_name!,>PipetreeTest::Right::MyCallable]} }
 
   #---
   # inheritance

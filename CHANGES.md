@@ -1,3 +1,7 @@
+## 0.1.0
+
+* Remove `Uber::Callable` requirement and treat all non-`:symbol` steps as callable objects.
+
 ## 0.0.13
 
 * Rename `Operation::New` to `:Instantiate` to avoid name clashes with `New` operations in applications.

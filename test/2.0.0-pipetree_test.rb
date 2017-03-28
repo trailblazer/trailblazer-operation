@@ -70,21 +70,18 @@ class Ruby200PipetreeTest < Minitest::Spec
 
   class Delete < Trailblazer::Operation
     class Params
-      extend Uber::Callable
       def self.call(*, params:nil, **)
         params["run"]
       end
     end
 
     class X
-      extend Uber::Callable
       def self.call(options, params:nil, **)
         options["x"] = params["run"]
       end
     end
 
     class Y
-      extend Uber::Callable
       def self.call(options)
         options["y"] = options["params"]["run"]
       end

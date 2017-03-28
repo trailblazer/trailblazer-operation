@@ -5,7 +5,8 @@ class DeclarativeApiTest < Minitest::Spec
     step :decide!
     success :wasnt_ok!
     success :was_ok!
-  #   failure :wasnt_ok!
+    failure :return_true!
+    failure :return_false!
 
     def decide!(options, decide:, **)
       options["a"] = true
@@ -19,16 +20,16 @@ class DeclarativeApiTest < Minitest::Spec
     def was_ok!(options, **)
       options["x"] = true
     end
+
+    def return_true! (options, **); options["b"] = true end
+    def return_false!(options, **); options["c"] = false end
   end
 
-  it "what" do
-    puts Create["pipetree"].inspect
-  end
-
-  it { Create.({}, decide: true).inspect("a", "x", "y").must_equal %{<Result:true [true, true, false] >} }
-  it { Create.({}, decide: false).inspect("a", "x", "y").must_equal %{<Result:true [true] >} }
+  it { Create.({}, decide: true).inspect("a", "x", "y", "b", "c").must_equal %{<Result:true [true, true, false, nil, nil] >} }
+  it { Create.({}, decide: false).inspect("a", "x", "y", "b", "c").must_equal %{<Result:false [true, nil, nil, true, false] >} }
 end
 
+=begin
 class BlaTest < Minitest::Spec
   Circuit = Trailblazer::Circuit
 
