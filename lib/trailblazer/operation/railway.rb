@@ -4,12 +4,12 @@ require "trailblazer/operation/option"
 
 module Trailblazer
   class Operation
-    module Pipetree
+    module Railway
       def self.included(includer)
         includer.extend ClassMethods # ::call, ::inititalize_pipetree!
         includer.extend DSL
 
-        includer.initialize_pipetree!
+        includer.initialize_railway!
       end
 
       module ClassMethods
@@ -24,12 +24,9 @@ module Trailblazer
           Result.new(last == activity[:End, :right], options)
         end
 
-        # This method would be redundant if Ruby had a Class::finalize! method the way
-        # Dry.RB provides it. It has to be executed with every subclassing.
-        def initialize_pipetree!
-          heritage.record :initialize_pipetree!
-
-          self["___railway"] = []
+        def initialize_railway!
+          heritage.record :initialize_railway!
+          self["railway"] = []
         end
       end
 
@@ -64,17 +61,6 @@ module Trailblazer
         end
       end
 
-      module Railway
-        module_function
-          def fail!     ; Circuit::Left  end
-          def fail_fast!; FailFast       end
-          def pass!     ; Circuit::Right end
-          def pass_fast!; PassFast       end
-
-        private
-          FailFast = Class.new(Circuit::Left)
-          PassFast = Class.new(Circuit::Right)
-      end
 
       module DSL
         def success(*args); add(:right, Circuit::Right, [], *args) end
@@ -85,7 +71,7 @@ module Trailblazer
         def add(track, decider_class, connections, proc, options={})
           heritage.record(:add, track, decider_class, proc, options)
 
-          self["pipetree"] = DSL.insert(self["___railway"], track, decider_class, connections, proc, options)
+          self["pipetree"] = DSL.insert(self["railway"], track, decider_class, connections, proc, options)
         end
 
         # :private:
@@ -98,7 +84,7 @@ module Trailblazer
             Step(_proc, Circuit::Right, Circuit::Left) : # if connections, this is usually #step.
             Step(_proc, direction, direction)            # or pass/fail
 
-          railway << [ step, track, direction, connections ] # connections = [[Circuit::Left, :left]]
+          railway << [ step, track, direction, connections ]
 
           Pipetree.to_activity(railway)
         end
@@ -123,7 +109,18 @@ module Trailblazer
           end
         end
       end # DSL
+
+      module_function
+      def fail!     ; Circuit::Left  end
+      def fail_fast!; FailFast       end
+      def pass!     ; Circuit::Right end
+      def pass_fast!; PassFast       end
+
+      private
+      FailFast = Class.new(Circuit::Left)
+      PassFast = Class.new(Circuit::Right)
     end
+
 
     # Allows defining dependencies and inject/override them via runtime options, if desired.
     class Pipetree::Step
