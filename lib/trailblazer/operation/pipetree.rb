@@ -125,14 +125,7 @@ module Trailblazer
         end
 
         def self.step!(proc, options)
-          name  = ""
-          _proc = Option::KW(proc) do |type|
-            name = proc if type == :symbol
-            name = "#{proc.source_location[0].split("/").last}:#{proc.source_location.last}" if proc.is_a? Proc if type == :proc
-            name = proc.class  if type == :callable
-          end
-
-          [ _proc, { name: name }.merge(options) ]
+          [ Option::KW(proc), { name: proc }.merge(options) ]
         end
       end # DSL
     end
