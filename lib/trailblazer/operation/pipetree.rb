@@ -68,14 +68,16 @@ module Trailblazer
         end
       end
 
-      class Railway
+      module Railway
+        module_function
+          def fail!     ; Circuit::Left  end
+          def fail_fast!; FailFast       end
+          def pass!     ; Circuit::Right end
+          def pass_fast!; PassFast       end
+
+        # :private:
         FailFast = Class.new(Circuit::Left)
         PassFast = Class.new(Circuit::Right)
-
-        def self.fail!     ; Circuit::Left     end
-        def self.fail_fast!; FailFast end
-        def self.pass!     ; Circuit::Right    end
-        def self.pass_fast!; PassFast end
       end
 
 
