@@ -101,19 +101,11 @@ module Trailblazer
 
       private
         # call the step proc with (options, flow_options), omitting `direction`.
-        def self.Step(step)
+        def self.Step(step, on_true, on_false)
           ->(direction, options, flow_options) do
             result = step.(options, flow_options)
 
-            [ result ? Circuit::Right : Circuit::Left, options, flow_options ]
-          end
-        end
-
-        def self.Stay(step, direction)
-          ->(direction, options, flow_options) do
-            result = step.(options, flow_options)
-
-            [ direction, options, flow_options ]
+            [ result ? on_true : on_false, options, flow_options ]
           end
         end
 
@@ -130,7 +122,7 @@ module Trailblazer
           options = options.merge(replace: options[:name]) if options[:override] # :override
 
           # TODO: what about left track?
-          step = connections.any? ? Step(_proc) : Stay(_proc, direction)
+          step = connections.any? ? Step(_proc, Circuit::Right, Circuit::Left) : Step(_proc, direction, direction)
 
           # connections = [[Circuit::Left, :left]]
           railway << [ step, track, direction, connections ]
