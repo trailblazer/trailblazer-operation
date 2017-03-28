@@ -1,6 +1,6 @@
 require "trailblazer/operation/result"
 require "trailblazer/circuit"
-require "trailblazer/operation/option" # TODO: rename to something better.
+require "trailblazer/operation/option"
 
 module Trailblazer
   class Operation
@@ -75,12 +75,10 @@ module Trailblazer
           def pass!     ; Circuit::Right end
           def pass_fast!; PassFast       end
 
-        # :private:
-        FailFast = Class.new(Circuit::Left)
-        PassFast = Class.new(Circuit::Right)
+        private
+          FailFast = Class.new(Circuit::Left)
+          PassFast = Class.new(Circuit::Right)
       end
-
-
 
       module DSL
         def success(*args); add(:right, Circuit::Right, [], *args) end
@@ -88,17 +86,6 @@ module Trailblazer
         def step(*args)   ; add(:right, Circuit::Right, [[Circuit::Left, :left]], *args) end
 
       private
-        # Returns task to call the step proc with (options, flow_options), omitting `direction`.
-        # When called, the task always returns a direction signal.
-        def self.Step(step, on_true, on_false)
-          ->(direction, options, flow_options) do
-            result = step.(options, flow_options)
-
-            [ result ? on_true : on_false, options, flow_options ]
-          end
-        end
-
-        # Operation-level entry point.
         def add(track, decider_class, connections, proc, options={})
           heritage.record(:add, track, decider_class, proc, options)
 
@@ -112,8 +99,7 @@ module Trailblazer
 
           step = connections.any? ? Step(_proc, Circuit::Right, Circuit::Left) : Step(_proc, direction, direction)
 
-          # connections = [[Circuit::Left, :left]]
-          railway << [ step, track, direction, connections ]
+          railway << [ step, track, direction, connections ] # connections = [[Circuit::Left, :left]]
 
           Pipetree.to_activity(railway)
         end
@@ -126,6 +112,16 @@ module Trailblazer
 
         def self.step!(proc, options)
           [ Option::KW(proc), { name: proc }.merge(options) ]
+        end
+
+        # Returns task to call the step proc with (options, flow_options), omitting `direction`.
+        # When called, the task always returns a direction signal.
+        def self.Step(step, on_true, on_false)
+          ->(direction, options, flow_options) do
+            result = step.(options, flow_options)
+
+            [ result ? on_true : on_false, options, flow_options ]
+          end
         end
       end # DSL
     end
