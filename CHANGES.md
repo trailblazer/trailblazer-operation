@@ -1,6 +1,8 @@
 ## 0.1.0
 
 * Remove `Uber::Callable` requirement and treat all non-`:symbol` steps as callable objects.
+* Remove support for Ruby 1.9.3 for now. This can be re-introduced on demand.
+* Remove non-kw options for steps. All steps receive keyword args now.
 
 ## 0.0.13
 
