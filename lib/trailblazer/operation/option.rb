@@ -12,13 +12,15 @@ class Trailblazer::Operation
       end
     end
 
+    # DISCUSS: standardize tmp_options.
     def self.call!(proc, options, flow_options, tmp_options={})
       proc.(options, **options.to_hash(tmp_options))
     end
 
-    # FIXME: sort tmp_options.
-    def self.meth!(proc, options, flow_options, tmp_options={})
-      flow_options[:context].send(proc, options, **options.to_hash(tmp_options))
+    # Make the context's instance method a "lambda" and reuse #call!.
+    # TODO: should we make :context a kwarg?
+    def self.meth!(proc, options, flow_options, *args)
+      call!(flow_options[:context].method(proc), options, flow_options, *args)
     end
   end
 end
