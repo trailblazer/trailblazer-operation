@@ -38,7 +38,7 @@ class StepTest < Minitest::Spec
   it { Trailblazer::Operation::Inspect.(Create).gsub(/0x[\w]+/, "").must_equal %{[>#<Proc:@test/step_test.rb:25 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>]} }
 
   #---
-  #- :before, :after, :replace, :delete
+  #- :before, :after, :replace, :delete, :override
   class A < Trailblazer::Operation
     step :a!
     def a!(options, **); options["a"] = 1; end
@@ -58,7 +58,14 @@ class StepTest < Minitest::Spec
   end
 
   it { Trailblazer::Operation::Inspect.(C).must_equal %{[>b!,>e!,>a!]} }
-# todo: :override
+
+  class D < Trailblazer::Operation
+    step :a!
+    step :b!
+    step :b!, override: true
+  end
+
+  it { Trailblazer::Operation::Inspect.(D).must_equal %{[>a!,>b!]} }
 
   #---
   #- :name
