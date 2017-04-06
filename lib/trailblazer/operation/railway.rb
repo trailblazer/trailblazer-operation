@@ -84,7 +84,7 @@ module Trailblazer
             Step(_proc, Circuit::Right, Circuit::Left) : # if connections, this is usually #step.
             Step(_proc, direction, direction)            # or pass/fail
 
-          railway << [ step, track, direction, connections, options ]
+          alter!(railway, step, track, direction, connections, options) # append, replace, before, etc.
 
           Railway.to_activity(railway)
         end
@@ -94,6 +94,19 @@ module Trailblazer
           proc.is_a?(Array) ?
             proc :                   # macro
             [ proc, { name: proc } ] # user step
+        end
+
+        def self.alter!(railway, step, track, direction, connections, options)
+          return railway.insert(find_index(railway, options[:before]), [ step, track, direction, connections, options ]) if options[:before]
+          return railway.insert(find_index(railway, options[:after])+1, [ step, track, direction, connections, options ]) if options[:after]
+          return railway[find_index(railway, options[:replace])] = [ step, track, direction, connections, options ] if options[:replace]
+          return railway.delete_at(find_index(railway, options[:delete])) if options[:delete]
+
+          railway << [ step, track, direction, connections, options ]
+        end
+        def self.find_index(railway, name)
+          row = railway.find { |row| row.last[:name] == name }
+          railway.index(row)
         end
 
         # Step calls step.(options, **options, flow_options)
