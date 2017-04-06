@@ -19,3 +19,5 @@ module Trailblazer
     extend Skill::Call::Positional # ::call(params, options)
   end
 end
+
+require "trailblazer/operation/inspect"
