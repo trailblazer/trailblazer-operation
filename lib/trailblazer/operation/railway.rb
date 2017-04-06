@@ -18,7 +18,7 @@ module Trailblazer
         def call(options)
           activity = self["pipetree"] # TODO: injectable? WTF? how cool is that?
 
-          last, operation, flow_options = activity.(activity[:Start], options, context: new)
+          last, operation, flow_options = activity.(activity[:Start], options, context: new) # TODO: allow different context.
 
           # Result is successful if the activity ended with the "right" End event.
           Result.new(last == activity[:End, :right], options)
@@ -36,7 +36,7 @@ module Trailblazer
 
         railway.each do |(step, track, direction, connections)|
           # insert the new step before the track's End, taking over all its incoming connections.
-          activity = Circuit::Activity::Alter(activity, :before, activity[:End, track], step, direction: direction) # TODO: direction => outgoing
+          activity = Circuit::Activity::Before(activity, activity[:End, track], step, direction: direction) # TODO: direction => outgoing
 
           # connect new task to End.left (if it's a step), or End.fail_fast, etc.
           connections.each do |(direction, end_name)|
@@ -68,16 +68,17 @@ module Trailblazer
         def step(*args)   ; add(:right, Circuit::Right, [[Circuit::Left, :left]], *args) end
 
       private
-        def add(track, decider_class, connections, proc, options={})
-          heritage.record(:add, track, decider_class, proc, options)
+        def add(track, incoming_direction, connections, proc, options={})
+          heritage.record(:add, track, incoming_direction, proc, options)
 
-          self["pipetree"] = DSL.insert(self["railway"], track, decider_class, connections, proc, options)
+          self["pipetree"] = DSL.insert(self["railway"], track, incoming_direction, connections, proc, options)
         end
 
         # :private:
         def self.insert(railway, track, direction, connections, proc, options={}) # TODO: make :name required arg.
-          _proc, options = proc.is_a?(Array) ? macro!(proc, options) : step!(proc, options)
+          _proc, _options = normalize_args(proc, options)
 
+          options = _options.merge(options)
           options = options.merge(replace: options[:name]) if options[:override] # :override
 
           step = connections.any? ?
@@ -86,27 +87,20 @@ module Trailblazer
 
           railway << [ step, track, direction, connections ]
 
-          Pipetree.to_activity(railway)
+          Railway.to_activity(railway)
         end
 
-        def self.macro!(proc, options)
-          _proc, macro_options = proc
-
-          [ _proc, macro_options.merge(options) ]
+        # Decompose single array from macros.
+        def self.normalize_args(proc, options)
+          proc.is_a?(Array) ?
+            proc :                   # macro
+            [ proc, { name: proc } ] # user step
         end
 
-        def self.step!(proc, options)
-          [ Option::KW(proc), { name: proc }.merge(options) ]
-        end
-
-        # Returns task to call the step proc with (options, flow_options), omitting `direction`.
-        # When called, the task always returns a direction signal.
+        # Step calls step.(options, **options, flow_options)
+        # Output direction binary: true=>Right, false=>Left.
         def self.Step(step, on_true, on_false)
-          ->(direction, options, flow_options) do
-            result = step.(options, flow_options)
-
-            [ result ? on_true : on_false, options, flow_options ]
-          end
+          Circuit::Task::Binary(Circuit::Task::Args::KW(step), on_true, on_false)
         end
       end # DSL
 
@@ -123,7 +117,7 @@ module Trailblazer
 
 
     # Allows defining dependencies and inject/override them via runtime options, if desired.
-    class Pipetree::Step
+    class Railway::Step
       def initialize(step, dependencies={})
         @step, @dependencies = step, dependencies
       end

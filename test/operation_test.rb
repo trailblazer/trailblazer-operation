@@ -1,6 +1,8 @@
 require "test_helper"
 
 class DeclarativeApiTest < Minitest::Spec
+  # Test: step/pass/fail
+  # * do they deviate properly?
   class Create < Trailblazer::Operation
     step :decide!
     success :wasnt_ok!

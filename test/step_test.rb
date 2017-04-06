@@ -18,16 +18,19 @@ class StepTest < Minitest::Spec
     end
   end
 
+  MyMacro = ->(options, e:nil, **) { options["e"] = e }
+
   class Create < Trailblazer::Operation
     step ->(options, a:nil, **) { options["a"] = a }
     step Callable
     step Implementation.method(:c)
     step :d
+    step [ MyMacro, {} ] # TODO: test name
 
     def d(options, d:nil, **)
       options["d"] = d
     end
   end
 
-  it { Create.({}, a: 1, b: 2, c: 3, d: 4).inspect("a", "b", "c", "d").must_equal "<Result:true [1, 2, 3, 4] >" }
+  it { Create.({}, a: 1, b: 2, c: 3, d: 4, e: 5).inspect("a", "b", "c", "d", "e").must_equal "<Result:true [1, 2, 3, 4, 5] >" }
 end
