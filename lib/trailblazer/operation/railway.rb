@@ -68,7 +68,7 @@ module Trailblazer
 
       private
         def add(track, incoming_direction, connections, proc, options={})
-          heritage.record(:add, track, incoming_direction, proc, options)
+          heritage.record(:add, track, incoming_direction, connections, proc, options)
 
           self["pipetree"] = DSL.insert(self["railway"], track, incoming_direction, connections, proc, options)
         end

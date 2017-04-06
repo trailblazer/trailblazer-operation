@@ -26,7 +26,7 @@ class StepTest < Minitest::Spec
     step Callable
     step Implementation.method(:c)
     step :d
-    step [ MyMacro, {} ] # TODO: test name
+    step [ MyMacro, {} ]
 
     def d(options, d:nil, **)
       options["d"] = d
@@ -38,9 +38,8 @@ class StepTest < Minitest::Spec
   it { Trailblazer::Operation::Inspect.call(Create).gsub(/0x[\w]+/, "").must_equal %{[>#<Proc:@test/step_test.rb:25 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>]} }
 
   #---
-  #- step :whatever, name: :validate
-  #- step MyMacro, name: :validate
-  #- step [MyMacro, name: :validate], name: "Best!"
+  #- :name
+  #-   step :whatever, name: :validate
   class Index < Trailblazer::Operation
     step :validate!, name: "my validate"
     step :persist!
@@ -49,4 +48,17 @@ class StepTest < Minitest::Spec
   end
 
   it { Trailblazer::Operation::Inspect.call(Index).must_equal %{[>my validate,>persist!,>I win!,>No, I do!]} }
+
+  #---
+  #- inheritance
+  class New < Create
+  end
+
+  it { Trailblazer::Operation::Inspect.call(New).gsub(/0x[\w]+/, "").must_equal %{[>#<Proc:@test/step_test.rb:25 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>]} }
+
+  class Update < Create
+    step :after_save!
+  end
+
+  it { Trailblazer::Operation::Inspect.call(Update).gsub(/0x[\w]+/, "").must_equal %{[>#<Proc:@test/step_test.rb:25 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>,>after_save!]} }
 end
