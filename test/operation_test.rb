@@ -29,6 +29,13 @@ class DeclarativeApiTest < Minitest::Spec
 
   it { Create.({}, decide: true).inspect("a", "x", "y", "b", "c").must_equal %{<Result:true [true, true, false, nil, nil] >} }
   it { Create.({}, decide: false).inspect("a", "x", "y", "b", "c").must_equal %{<Result:false [true, nil, nil, true, false] >} }
+
+  #---
+  #- trace
+
+  it do
+
+  end
 end
 
 =begin

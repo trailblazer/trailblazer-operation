@@ -1,6 +1,5 @@
 require "trailblazer/operation/result"
 require "trailblazer/circuit"
-require "trailblazer/operation/option"
 
 module Trailblazer
   class Operation
@@ -85,12 +84,12 @@ module Trailblazer
             Step(_proc, Circuit::Right, Circuit::Left) : # if connections, this is usually #step.
             Step(_proc, direction, direction)            # or pass/fail
 
-          railway << [ step, track, direction, connections ]
+          railway << [ step, track, direction, connections, options ]
 
           Railway.to_activity(railway)
         end
 
-        # Decompose single array from macros.
+        # Decompose single array from macros or set default name for user step.
         def self.normalize_args(proc, options)
           proc.is_a?(Array) ?
             proc :                   # macro
