@@ -60,7 +60,6 @@ module Trailblazer
         end
       end
 
-
       module DSL
         def success(*args); add(:right, Circuit::Right, [], *args) end
         def failure(*args); add(:left,  Circuit::Left,  [], *args) end
@@ -70,11 +69,16 @@ module Trailblazer
         def add(track, incoming_direction, connections, proc, options={})
           heritage.record(:add, track, incoming_direction, connections, proc, options)
 
-          self["pipetree"] = DSL.insert(self["railway"], track, incoming_direction, connections, proc, options)
+          self["pipetree"] = Alter.insert(self["railway"], track, incoming_direction, connections, proc, options)
         end
+      end # DSL
 
+      # Insert a step into the circuit.
+      #:private:
+      module Alter
+      module_function
         # :private:
-        def self.insert(railway, track, direction, connections, proc, options={}) # TODO: make :name required arg.
+        def insert(railway, track, direction, connections, proc, options={})
           _proc, _options = normalize_args(proc, options)
 
           options = _options.merge(options)
@@ -90,13 +94,13 @@ module Trailblazer
         end
 
         # Decompose single array from macros or set default name for user step.
-        def self.normalize_args(proc, options)
+        def normalize_args(proc, options)
           proc.is_a?(Array) ?
             proc :                   # macro
             [ proc, { name: proc } ] # user step
         end
 
-        def self.alter!(railway, step, track, direction, connections, options)
+        def alter!(railway, step, track, direction, connections, options)
           return railway.insert(find_index(railway, options[:before]),  [ step, track, direction, connections, options ]) if options[:before]
           return railway.insert(find_index(railway, options[:after])+1, [ step, track, direction, connections, options ]) if options[:after]
           return railway[find_index(railway, options[:replace])] = [ step, track, direction, connections, options ]       if options[:replace]
@@ -104,17 +108,18 @@ module Trailblazer
 
           railway << [ step, track, direction, connections, options ]
         end
-        def self.find_index(railway, name)
+
+        def find_index(railway, name)
           row = railway.find { |row| row.last[:name] == name }
           railway.index(row)
         end
 
         # Step calls step.(options, **options, flow_options)
         # Output direction binary: true=>Right, false=>Left.
-        def self.Step(step, on_true, on_false)
+        def Step(step, on_true, on_false)
           Circuit::Task::Binary(Circuit::Task::Args::KW(step), on_true, on_false)
         end
-      end # DSL
+      end
 
       module_function
       def fail!     ; Circuit::Left  end
