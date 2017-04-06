@@ -97,10 +97,10 @@ module Trailblazer
         end
 
         def self.alter!(railway, step, track, direction, connections, options)
-          return railway.insert(find_index(railway, options[:before]), [ step, track, direction, connections, options ]) if options[:before]
+          return railway.insert(find_index(railway, options[:before]),  [ step, track, direction, connections, options ]) if options[:before]
           return railway.insert(find_index(railway, options[:after])+1, [ step, track, direction, connections, options ]) if options[:after]
-          return railway[find_index(railway, options[:replace])] = [ step, track, direction, connections, options ] if options[:replace]
-          return railway.delete_at(find_index(railway, options[:delete])) if options[:delete]
+          return railway[find_index(railway, options[:replace])] = [ step, track, direction, connections, options ]       if options[:replace]
+          return railway.delete_at(find_index(railway, options[:delete]))                                                 if options[:delete]
 
           railway << [ step, track, direction, connections, options ]
         end
