@@ -2,6 +2,7 @@ require "forwardable"
 require "declarative"
 require "trailblazer/operation/skill"
 require "trailblazer/operation/railway"
+require "trailblazer/operation/fast_track"
 
 module Trailblazer
   # The Trailblazer-style operation.
@@ -14,6 +15,7 @@ module Trailblazer
     extend Skill::Accessors        # ::[] and ::[]=
 
     include Railway               # ::call, ::step, ...
+    include Railway::FastTrack
     # we want the skill dependency-mechanism.
     extend Skill::Call             # ::call(params: {}, current_user: ..)
     extend Skill::Call::Positional # ::call(params, options)

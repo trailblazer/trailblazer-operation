@@ -2,7 +2,11 @@ require "trailblazer/operation/result"
 require "trailblazer/circuit"
 
 module Trailblazer
+  # Operations is simply a thin API to define, inherit and run circuits by passing the options object.
+  # It encourages the linear railway style (http://trb.to/gems/workflow/circuit.html#operation) but can
+  # easily be extend for more complex workflows.
   class Operation
+    # End event: All subclasses of End:::Success are interpreted as "success"?
     module Railway
       def self.included(includer)
         includer.extend ClassMethods # ::call, ::inititalize_pipetree!
@@ -15,23 +19,24 @@ module Trailblazer
         # Top-level, this method is called when you do Create.() and where
         # all the fun starts, ends, and hopefully starts again.
         def call(options)
-          activity = self["pipetree"] # TODO: injectable? WTF? how cool is that?
+          activity = self["pipetree"] # FIXME: rename to activity, deprecate ["pipetree"].inspect
 
           last, operation, flow_options = activity.(activity[:Start], options, context: new) # TODO: allow different context.
 
           # Result is successful if the activity ended with the "right" End event.
-          Result.new(last == activity[:End, :right], options)
+          Result.new(last.kind_of?(End::Success), options)
         end
 
         def initialize_railway!
           heritage.record :initialize_railway!
           self["railway"] = []
+          self["railway_extra_events"]  = {}
         end
       end
 
       # Transform railway array into an Activity.
-      def self.to_activity(railway)
-        activity = InitialActivity()
+      def self.to_activity(railway, events)
+        activity = InitialActivity(events)
 
         railway.each do |(step, track, direction, connections)|
           # insert the new step before the track's End, taking over all its incoming connections.
@@ -47,16 +52,19 @@ module Trailblazer
       end
 
       # The initial Activity with no-op wiring.
-      def self.InitialActivity()
-        Circuit::Activity({id: "A/"},
-          end: {
-            right:     Circuit::End.new(:right),
-            left:      Circuit::End.new(:left),
-            pass_fast: Circuit::End.new(:pass_fast),
-            fail_fast: Circuit::End.new(:fail_fast)
-          }
-        ) do |evt|
+      def self.InitialActivity(events={})
+        default_ends = {
+          right: End::Success.new(:right),
+          left:  Circuit::End.new(:left)
+        }
+
+        Circuit::Activity({id: "A/"}, end: default_ends.merge(events)) do |evt|
           { evt[:Start] => { Circuit::Right => evt[:End, :right], Circuit::Left => evt[:End, :left] } }
+        end
+      end
+
+      module End
+        class Success < Circuit::End
         end
       end
 
@@ -69,7 +77,7 @@ module Trailblazer
         def add(track, incoming_direction, connections, proc, options={})
           heritage.record(:add, track, incoming_direction, connections, proc, options)
 
-          self["pipetree"] = Alter.insert(self["railway"], track, incoming_direction, connections, proc, options)
+          self["pipetree"] = Alter.insert(self["railway"], self["railway_extra_events"], track, incoming_direction, connections, proc, options)
         end
       end # DSL
 
@@ -78,7 +86,7 @@ module Trailblazer
       module Alter
       module_function
         # :private:
-        def insert(railway, track, direction, connections, proc, options={})
+        def insert(railway, events, track, direction, connections, proc, options={})
           _proc, _options = normalize_args(proc, options)
 
           options = _options.merge(options)
@@ -90,7 +98,7 @@ module Trailblazer
 
           alter!(railway, step, track, direction, connections, options) # append, replace, before, etc.
 
-          Railway.to_activity(railway)
+          Railway.to_activity(railway, events)
         end
 
         # Decompose single array from macros or set default name for user step.
@@ -114,22 +122,21 @@ module Trailblazer
           railway.index(row)
         end
 
+        # every step is wrapped by this proc/decider. this is executed in the circuit as the actual task.
         # Step calls step.(options, **options, flow_options)
         # Output direction binary: true=>Right, false=>Left.
+        # Passes through all subclasses of Direction.~~~~~~~~~~~~~~~~~
         def Step(step, on_true, on_false)
-          Circuit::Task::Binary(Circuit::Task::Args::KW(step), on_true, on_false)
+          # Circuit::Task::Binary(Circuit::Task::Args::KW(step), on_true, on_false)
+          # DISCUSS: should Binary allow this, somehow?
+          ->(direction, options, flow_options) do
+            result = Circuit::Task::Args::KW(step).(direction, options, flow_options)
+
+            direction = result.is_a?(Class) && result < Circuit::Direction ? result : (result ? on_true : on_false)
+            [ direction, options, flow_options ]
+          end
         end
       end
-
-      module_function
-      def fail!     ; Circuit::Left  end
-      def fail_fast!; FailFast       end
-      def pass!     ; Circuit::Right end
-      def pass_fast!; PassFast       end
-
-      private
-      FailFast = Class.new(Circuit::Left)
-      PassFast = Class.new(Circuit::Right)
     end
 
 

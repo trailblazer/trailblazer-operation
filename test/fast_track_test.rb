@@ -1,62 +1,5 @@
 require "test_helper"
 
-class PipetreeTest < Minitest::Spec
-  def self.Validate
-    step = ->{ snippet }
-
-    [ step, name: "validate", before: "operation.new" ]
-  end
-
-  # without options
-  class Create < Trailblazer::Operation
-    step PipetreeTest::Validate()
-    step PipetreeTest::Validate(), name: "VALIDATE!"
-  end
-
-  it { Create["pipetree"].inspect.must_equal %{[>validate,>VALIDATE!,>operation.new]} }
-
-
-
-  # with options
-  class Update < Trailblazer::Operation
-    step PipetreeTest::Validate(), after: "operation.new"
-  end
-
-  it { Update["pipetree"].inspect.must_equal %{[>operation.new,>validate]} }
-
-  #---
-  # ::step
-
-  #-
-  #- with :symbol
-  class Delete < Trailblazer::Operation
-    step :call!
-
-    def call!(options)
-      # self["x"] = options["params"]
-      options["x"] = options["params"]
-    end
-  end
-
-  it { Delete.("yo")["x"].must_equal "yo" }
-
-  #- inheritance
-  class Remove < Delete
-  end
-
-  it { Remove.("yo")["x"].must_equal "yo" }
-
-
-  #---
-  # inheritance
-  class Righter < Right
-    success ->(options) { options["righter"] = true }
-  end
-
-  it { Righter.( id: 1 ).slice(">", "method_name!", "callable", "righter").must_equal [1, 1, 1, true] }
-end
-
-
 class FailPassFastOptionTest < Minitest::Spec
   # #failure fails fast.
   class Create < Trailblazer::Operation
@@ -143,18 +86,3 @@ class PassFastBangTest < Minitest::Spec
   it { Create.().inspect("x", "y", "a").must_equal %{<Result:true [true, nil, nil] >} }
 end
 
-
-class OverrideTest < Minitest::Spec
-  class Create < Trailblazer::Operation
-    step :a
-    step :b
-  end
-
-  class Update < Create
-    step :a, override: true
-  end
-
-# FIXME: also test Macro
-  it { Create["pipetree"].inspect.must_equal %{[>operation.new,>a,>b]} }
-  it { Update["pipetree"].inspect.must_equal %{[>operation.new,>a,>b]} }
-end
