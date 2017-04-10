@@ -69,15 +69,19 @@ module Trailblazer
       end
 
       module DSL
-        def success(*args); add(:right, Circuit::Right, [], *args) end
-        def failure(*args); add(:left,  Circuit::Left,  [], *args) end
-        def step(*args)   ; add(:right, Circuit::Right, [[Circuit::Left, :left]], *args) end
+        def success(*args); add( *args_for_pass(*args) ); end
+        def failure(*args); add( *args_for_fail(*args) ); end
+        def step(*args)   ; add( *args_for_step(*args) ); end
+
+        def args_for_pass(*args); [ :right, Circuit::Right, [], [Circuit::Right, Circuit::Right], *args ]; end
+        def args_for_fail(*args); [ :left, Circuit::Left,   [], [Circuit::Left, Circuit::Left],   *args ]; end
+        def args_for_step(*args); [ :right, Circuit::Right, [[Circuit::Left, :left]], [Circuit::Right, Circuit::Left], *args ]; end
 
       private
-        def add(track, incoming_direction, connections, proc, options={})
-          heritage.record(:add, track, incoming_direction, connections, proc, options)
+        def add(track, incoming_direction, connections, step_args, proc, options={})
+          heritage.record(:add, track, incoming_direction, connections, step_args, proc, options)
 
-          self["pipetree"] = Alter.insert(self["railway"], self["railway_extra_events"], track, incoming_direction, connections, proc, options)
+          self["pipetree"] = Alter.insert(self["railway"], self["railway_extra_events"], track, incoming_direction, connections, step_args, proc, options)
         end
       end # DSL
 
@@ -86,15 +90,13 @@ module Trailblazer
       module Alter
       module_function
         # :private:
-        def insert(railway, events, track, direction, connections, proc, options={})
+        def insert(railway, events, track, direction, connections, step_args, proc, options={})
           _proc, _options = normalize_args(proc, options)
 
           options = _options.merge(options)
           options = options.merge(replace: options[:name]) if options[:override] # :override
 
-          step = connections.any? ?
-            Step(_proc, Circuit::Right, Circuit::Left) : # if connections, this is usually #step.
-            Step(_proc, direction, direction)            # or pass/fail
+          step    = Step(_proc, *step_args)
 
           alter!(railway, step, track, direction, connections, options) # append, replace, before, etc.
 

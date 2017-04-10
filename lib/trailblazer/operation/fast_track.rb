@@ -22,13 +22,40 @@ module Trailblazer
           )
         end
 
-        # DISCUSS: any way to override DSL methods without that redundancy? inject/normalize? options
-        def success(*args); add(:right, Circuit::Right, [], *args) end
-        def failure(*args); add(:left,  Circuit::Left,  [], *args) end
-        def step(*args)
-          # connect task to End.left, End.fail_fast and End.pass_fast.
-          add(:right, Circuit::Right, [[Circuit::Left, :left], [FailFast, :fail_fast], [PassFast, :pass_fast]], *args)
+        # # DISCUSS: any way to override DSL methods without that redundancy? inject/normalize? options
+        def args_for_pass(step, options={})
+          direction = options[:pass_fast] ? PassFast : Circuit::Right # task will emit PassFast or Right, depending on options.
+
+          super.tap { |args| args[2] = [[PassFast, :pass_fast]]; args[3] = [direction, direction] }
         end
+
+        def args_for_fail(step, options={})
+          direction = options[:fail_fast] ? FailFast : Circuit::Left # task will emit PassFast or Right, depending on options.
+
+          # DISCUSS: should this also link to right, pass_fast etc?
+          # CONNECTED TO Left=>END.LEFT AND FailFast=>END.FAIL_FAST
+          super.tap { |args| args[2] = [[FailFast, :fail_fast]]; args[3] = [direction, direction] }
+        end
+
+
+        def args_for_step(step, options={})
+          direction_on_false = options[:fail_fast] ? FailFast : Circuit::Left
+          direction_on_true  = options[:pass_fast] ? PassFast : Circuit::Right
+
+          # DISCUSS: should this also link to right, pass_fast etc?
+          # CONNECTED TO Left=>END.LEFT AND FailFast=>END.FAIL_FAST
+          super.tap { |args| args[2] = [[Circuit::Left, :left], [FailFast, :fail_fast], [PassFast, :pass_fast]]; args[3] = [direction_on_true, direction_on_false] }
+        end
+
+        # def failure(*args); add(:left,  Circuit::Left,  [], [Circuit::Left, Circuit::Left], *args) end
+        # def step(step, options={})
+        #   # TODO: when fail_fast/pass_fast, we don't have to connect to "default" end!
+
+        #   # connect task to End.left, End.fail_fast and End.pass_fast.
+        #   direction_on_true = options[:pass_fast] ? PassFast : Circuit::Right
+
+        #   add(:right, Circuit::Right, [[Circuit::Left, :left], [FailFast, :fail_fast], [PassFast, :pass_fast]], [direction_on_true, Circuit::Left], step, options={})
+        # end
         # only step needs both additional connections.
         # failure only needs fail fast connection (and returner when :fail_fast). dito for pass
       end
