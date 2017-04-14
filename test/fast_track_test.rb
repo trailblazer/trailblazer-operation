@@ -9,6 +9,11 @@ class FailPassFastOptionTest < Minitest::Spec
     step ->(options, *) { options["y"] = true }
   end
 
+  puts Create["pipetree"].inspect
+
+  require "trailblazer/diagram/bpmn"
+  puts Trailblazer::Diagram::BPMN.to_xml(Create["pipetree"])
+
   it { Create.({}, "fail_fast" => true, "dont_fail" => true ).inspect("x", "a", "b", "y").must_equal %{<Result:true [true, nil, nil, true] >} }
   it { Create.({}, "fail_fast" => true                  ).inspect("x", "a", "b", "y").must_equal %{<Result:false [nil, true, nil, nil] >} }
   it { Create.({}, "fail_fast" => false                 ).inspect("x", "a", "b", "y").must_equal %{<Result:false [nil, true, nil, nil] >} }
