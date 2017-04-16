@@ -36,6 +36,8 @@ class StepTest < Minitest::Spec
   it { Create.({}, a: 1, b: 2, c: 3, d: 4, e: 5).inspect("a", "b", "c", "d", "e").must_equal "<Result:true [1, 2, 3, 4, 5] >" }
 
   it { Trailblazer::Operation::Inspect.(Create).gsub(/0x[\w]+/, "").must_equal %{[>#<Proc:@test/step_test.rb:25 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>]} }
+  # poor test to make sure we pass debug information to Activity.
+  it { Create["pipetree"].circuit.to_fields.last.to_a[3].last.must_equal :d }
 
   #---
   #- :before, :after, :replace, :delete, :override

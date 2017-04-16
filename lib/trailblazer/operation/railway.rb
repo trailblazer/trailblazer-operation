@@ -36,9 +36,11 @@ module Trailblazer
 
       # Transform railway array into an Activity.
       def self.to_activity(railway, events)
-        activity = InitialActivity(events)
+        step2name = railway.collect { |cfg| [cfg.first, cfg.last[:name]] }.to_h
+        activity  = InitialActivity(events, step2name)
 
-        railway.each do |(step, track, direction, connections)|
+        railway.each do |(step, track, direction, connections, options)|
+
           # insert the new step before the track's End, taking over all its incoming connections.
           activity = Circuit::Activity::Before(activity, activity[:End, track], step, direction: direction) # TODO: direction => outgoing
 
@@ -52,13 +54,13 @@ module Trailblazer
       end
 
       # The initial Activity with no-op wiring.
-      def self.InitialActivity(events={})
+      def self.InitialActivity(events, debug)
         default_ends = {
           right: End::Success.new(:right),
           left:  Circuit::End.new(:left)
         }
 
-        Circuit::Activity({id: "A/"}, end: default_ends.merge(events)) do |evt|
+        Circuit::Activity(debug, end: default_ends.merge(events)) do |evt|
           { evt[:Start] => { Circuit::Right => evt[:End, :right], Circuit::Left => evt[:End, :left] } }
         end
       end
