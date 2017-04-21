@@ -29,39 +29,58 @@ module Trailblazer
 
         def initialize_railway!
           heritage.record :initialize_railway!
-          self["railway"] = []
+          self["railway"] = Sequence.new
           self["railway_extra_events"]  = {}
         end
       end
 
-      # Transform railway array into an Activity.
-      def self.to_activity(railway, events)
-        step2name = railway.collect { |cfg| [cfg.first, cfg.last[:name]] }.to_h
-        activity  = InitialActivity(events, step2name)
+      # Data object: The actual array that lines up the railway steps.
+      # Gets converted into a Circuit/Activity via #to_activity.
+      class Sequence < ::Array
+        def alter!(step, track, direction, connections, options)
+          return insert(find_index(options[:before]),  [ step, track, direction, connections, options ]) if options[:before]
+          return insert(find_index(options[:after])+1, [ step, track, direction, connections, options ]) if options[:after]
+          return self[find_index(options[:replace])] = [ step, track, direction, connections, options ]  if options[:replace]
+          return delete_at(find_index(options[:delete]))                                                 if options[:delete]
 
-        railway.each do |(step, track, direction, connections, options)|
-
-          # insert the new step before the track's End, taking over all its incoming connections.
-          activity = Circuit::Activity::Before(activity, activity[:End, track], step, direction: direction) # TODO: direction => outgoing
-
-          # connect new task to End.left (if it's a step), or End.fail_fast, etc.
-          connections.each do |(direction, end_name)|
-            activity = Circuit::Activity::Connect(activity, step, direction, activity[:End, end_name])
-          end
+          self << [ step, track, direction, connections, options ]
         end
 
-        activity
-      end
+        # Transform railway array into an Activity.
+        def to_activity(events)
+          step2name = collect { |cfg| [cfg.first, cfg.last[:name]] }.to_h # debug argument for Activity.
+          activity  = InitialActivity(events, step2name)
 
-      # The initial Activity with no-op wiring.
-      def self.InitialActivity(events, debug)
-        default_ends = {
-          right: End::Success.new(:right),
-          left:  Circuit::End.new(:left)
-        }
+          each do |(step, track, direction, connections, options)|
 
-        Circuit::Activity(debug, end: default_ends.merge(events)) do |evt|
-          { evt[:Start] => { Circuit::Right => evt[:End, :right], Circuit::Left => evt[:End, :left] } }
+            # insert the new step before the track's End, taking over all its incoming connections.
+            activity = Circuit::Activity::Before(activity, activity[:End, track], step, direction: direction) # TODO: direction => outgoing
+
+            # connect new task to End.left (if it's a step), or End.fail_fast, etc.
+            connections.each do |(direction, end_name)|
+              activity = Circuit::Activity::Connect(activity, step, direction, activity[:End, end_name])
+            end
+          end
+
+          activity
+        end
+
+        private
+        def find_index(name)
+          row = find { |row| row.last[:name] == name }
+          index(row)
+        end
+
+        # The initial Activity with no-op wiring.
+        def InitialActivity(events, debug)
+          default_ends = {
+            right: End::Success.new(:right),
+            left:  Circuit::End.new(:left)
+          }
+
+          Circuit::Activity(debug, end: default_ends.merge(events)) do |evt|
+            { evt[:Start] => { Circuit::Right => evt[:End, :right], Circuit::Left => evt[:End, :left] } }
+          end
         end
       end
 
@@ -70,6 +89,7 @@ module Trailblazer
         end
       end
 
+      # This is code run at compile-time and can be slow.
       module DSL
         def success(*args); add( *args_for_pass(*args) ); end
         def failure(*args); add( *args_for_fail(*args) ); end
@@ -92,6 +112,9 @@ module Trailblazer
       module Alter
       module_function
         # :private:
+        # 1. Processes the step API's options (such as `:override` of `:before`).
+        # 2. Uses alter! =====> Railway
+        # Returns an Activity instance.
         def insert(railway, events, track, direction, connections, step_args, proc, options={})
           _proc, _options = normalize_args(proc, options)
 
@@ -100,9 +123,9 @@ module Trailblazer
 
           step    = Step(_proc, *step_args)
 
-          alter!(railway, step, track, direction, connections, options) # append, replace, before, etc.
+          railway.alter!(step, track, direction, connections, options) # append, replace, before, etc.
 
-          Railway.to_activity(railway, events)
+          railway.to_activity(events)
         end
 
         # Decompose single array from macros or set default name for user step.
@@ -112,30 +135,16 @@ module Trailblazer
             [ proc, { name: proc } ] # user step
         end
 
-        def alter!(railway, step, track, direction, connections, options)
-          return railway.insert(find_index(railway, options[:before]),  [ step, track, direction, connections, options ]) if options[:before]
-          return railway.insert(find_index(railway, options[:after])+1, [ step, track, direction, connections, options ]) if options[:after]
-          return railway[find_index(railway, options[:replace])] = [ step, track, direction, connections, options ]       if options[:replace]
-          return railway.delete_at(find_index(railway, options[:delete]))                                                 if options[:delete]
-
-          railway << [ step, track, direction, connections, options ]
-        end
-
-        def find_index(railway, name)
-          row = railway.find { |row| row.last[:name] == name }
-          railway.index(row)
-        end
-
         # every step is wrapped by this proc/decider. this is executed in the circuit as the actual task.
         # Step calls step.(options, **options, flow_options)
         # Output direction binary: true=>Right, false=>Left.
         # Passes through all subclasses of Direction.~~~~~~~~~~~~~~~~~
         def Step(step, on_true, on_false)
-          # Circuit::Task::Binary(Circuit::Task::Args::KW(step), on_true, on_false)
-          # DISCUSS: should Binary allow this, somehow?
           ->(direction, options, flow_options) do
+            # Execute the user step with TRB's kw args.
             result = Circuit::Task::Args::KW(step).(direction, options, flow_options)
 
+            # Return an appropriate signal which direction to go next.
             direction = result.is_a?(Class) && result < Circuit::Direction ? result : (result ? on_true : on_false)
             [ direction, options, flow_options ]
           end
