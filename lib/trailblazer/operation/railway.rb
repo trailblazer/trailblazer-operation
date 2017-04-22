@@ -46,9 +46,12 @@ module Trailblazer
           self << [ step, track, direction, connections, options ]
         end
 
-        # Transform railway array into an Activity.
+        # Transform array of steps into an Activity.
         def to_activity(events)
           step2name = collect { |cfg| [cfg.first, cfg.last[:name]] }.to_h # debug argument for Activity.
+
+          # end_events = connections.collect do |(direction, end_name)|
+
           activity  = InitialActivity(events, step2name)
 
           each do |(step, track, direction, connections, options)|
@@ -75,7 +78,7 @@ module Trailblazer
         def InitialActivity(events, debug)
           default_ends = {
             right: End::Success.new(:right),
-            left:  Circuit::End.new(:left)
+            left:  End::Failure.new(:left)
           }
 
           Circuit::Activity(debug, end: default_ends.merge(events)) do |evt|
@@ -86,6 +89,8 @@ module Trailblazer
 
       module End
         class Success < Circuit::End
+        end
+        class Failure < Circuit::End
         end
       end
 
