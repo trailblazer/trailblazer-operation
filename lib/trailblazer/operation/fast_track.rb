@@ -25,35 +25,35 @@ module Trailblazer
           self["__activity__"] = Circuit::Activity::Rewrite(self["__activity__"], {}, fast_track_events) { |*| }
         end
 
-        def args_for_pass(proc, options)
+        def args_for_pass(activity, proc, options)
           direction = options[:pass_fast] ? PassFast : Circuit::Right # task will emit PassFast or Right, depending on options.
 
           super.tap do |args|
-            args.connections    = [[PassFast, self["__activity__"][:End, :pass_fast]]]
+            args.connections    = [[PassFast, activity[:End, :pass_fast]]]
             args.args_for_Step = [direction, direction]
           end
         end
 
-        def args_for_fail(proc, options)
+        def args_for_fail(activity, proc, options)
           direction = options[:fail_fast] ? FailFast : Circuit::Left # task will emit PassFast or Right, depending on options.
 
           # DISCUSS: should this also link to right, pass_fast etc? Because this will fail now.
           # CONNECTED TO Left=>END.LEFT AND FailFast=>END.FAIL_FAST
           super.tap do |args|
-            args.connections = [[FailFast, self["__activity__"][:End, :fail_fast]]]
+            args.connections = [[FailFast, activity[:End, :fail_fast]]]
             args.args_for_Step = [direction, direction]
           end
         end
 
 
-        def args_for_step(proc, options)
+        def args_for_step(activity, proc, options)
           direction_on_false = options[:fail_fast] ? FailFast : Circuit::Left
           direction_on_true  = options[:pass_fast] ? PassFast : Circuit::Right
 
           # DISCUSS: should this also link to right, pass_fast etc?
           # CONNECTED TO Left=>END.LEFT AND FailFast=>END.FAIL_FAST
           super.tap do |args|
-            args.connections = [[Circuit::Left, self["__activity__"][:End, :left]], [FailFast, self["__activity__"][:End, :fail_fast]], [PassFast, self["__activity__"][:End, :pass_fast]]]
+            args.connections = [[Circuit::Left, activity[:End, :left]], [FailFast, activity[:End, :fail_fast]], [PassFast, activity[:End, :pass_fast]]]
            args.args_for_Step = [direction_on_true, direction_on_false]
          end
         end

@@ -17,21 +17,20 @@ module Trailblazer
 
       # This is code run at compile-time and can be slow.
       module DSL
-        def success(proc, options={}); add( args_for_pass(proc, options) ); end
-        def failure(proc, options={}); add( args_for_fail(proc, options) ); end
-        def step   (proc, options={}); add( args_for_step(proc, options) ); end
+        def success(proc, options={}); add( args_for_pass(self["__activity__"], proc, options) ); end
+        def failure(proc, options={}); add( args_for_fail(self["__activity__"], proc, options) ); end
+        def step   (proc, options={}); add( args_for_step(self["__activity__"], proc, options) ); end
 
-        StepArgs = Struct.new(:original_options, :incoming_direction, :connections, :args_for_Step, :insert_before)
-
-        def args_for_pass(*args); StepArgs.new( args, Circuit::Right, [],                                                   [Circuit::Right, Circuit::Right], self["__activity__"][:End, :right] ); end
-        def args_for_fail(*args); StepArgs.new( args, Circuit::Left,  [],                                                   [Circuit::Left, Circuit::Left], self["__activity__"][:End, :left] ); end
-        def args_for_step(*args); StepArgs.new( args, Circuit::Right, [[ Circuit::Left, self["__activity__"][:End, :left] ]], [Circuit::Right, Circuit::Left], self["__activity__"][:End, :right] ); end
+        # hooks to override. TODO: make this cooler.
+        def args_for_pass(*args); Activity.args_for_pass(*args); end
+        def args_for_fail(*args); Activity.args_for_fail(*args); end
+        def args_for_step(*args); Activity.args_for_step(*args); end
 
       private
         def add(step_args)
           heritage.record(:add, step_args)
 
-          self["pipetree"] = Alter.insert(self["__railway__"], self["__activity__"], step_args)
+          self["__activity__"] = Activity.for(self["__railway__"], self["__activity__"], step_args)
         end
       end # DSL
 
@@ -39,7 +38,7 @@ module Trailblazer
         # Top-level, this method is called when you do Create.() and where
         # all the fun starts, ends, and hopefully starts again.
         def call(options)
-          activity = self["pipetree"] # FIXME: rename to activity, deprecate ["pipetree"].inspect
+          activity = self["__activity__"] # FIXME: rename to activity, deprecate ["__activity__"].inspect
 
           last, operation, flow_options = activity.(activity[:Start], options, context: new) # TODO: allow different context.
 
@@ -117,13 +116,21 @@ module Trailblazer
 
       # Insert a step into the circuit.
       #:private:
-      module Alter
-      module_function
-        # :private:
+      module Activity
+        module_function
+        # idea: those methods could live somewhere else.
+        StepArgs = Struct.new(:original_options, :incoming_direction, :connections, :args_for_Step, :insert_before)
+
+        # Helpers to create StepArgs{} for ::for.
+        def args_for_pass(activity, *args); StepArgs.new( args, Circuit::Right, [],                                                   [Circuit::Right, Circuit::Right], activity[:End, :right] ); end
+        def args_for_fail(activity, *args); StepArgs.new( args, Circuit::Left,  [],                                                   [Circuit::Left, Circuit::Left], activity[:End, :left] ); end
+        def args_for_step(activity, *args); StepArgs.new( args, Circuit::Right, [[ Circuit::Left, activity[:End, :left] ]], [Circuit::Right, Circuit::Left], activity[:End, :right] ); end
+
+        # @api private
         # 1. Processes the step API's options (such as `:override` of `:before`).
         # 2. Uses alter! =====> Railway
         # Returns an Activity instance.
-        def insert(railway, activity, step_config)
+        def for(railway, activity, step_config)
           proc, options = step_config.original_options
 
           _proc, _options = normalize_args(proc, options)
@@ -132,11 +139,14 @@ module Trailblazer
 
           step    = Step(_proc, *step_config.args_for_Step)
 
-          railway.alter!(options, step, step_config.incoming_direction, step_config.connections, step_config.insert_before) # append, replace, before, etc.
+          # insert Step into Sequence (append, replace, before, etc.)
+          railway.alter!(options, step, step_config.incoming_direction, step_config.connections, step_config.insert_before)
 
+          # convert Sequence to new Activity.
           railway.to_activity(activity)
         end
 
+        # @api private
         # Decompose single array from macros or set default name for user step.
         def normalize_args(proc, options)
           proc.is_a?(Array) ?
