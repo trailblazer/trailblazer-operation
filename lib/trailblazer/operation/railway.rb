@@ -122,7 +122,7 @@ before_step = where[:before]
         # 1. Processes the step API's options (such as `:override` of `:before`).
         # 2. Uses alter! =====> Railway
         # Returns an Activity instance.
-        def insert(railway, events, direction, connections, step_args, where, proc, options={})
+        def insert(railway, activity, direction, connections, step_args, where, proc, options={})
           _proc, _options = normalize_args(proc, options)
 
           options = _options.merge(options)
@@ -132,7 +132,7 @@ before_step = where[:before]
 
           railway.alter!(options, step, direction, connections, where) # append, replace, before, etc.
 
-          railway.to_activity(events)
+          railway.to_activity(activity)
         end
 
         # Decompose single array from macros or set default name for user step.
