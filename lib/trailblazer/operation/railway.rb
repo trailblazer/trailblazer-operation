@@ -23,15 +23,15 @@ module Trailblazer
         def failure(*args); add( *args_for_fail(*args) ); end
         def step(*args)   ; add( *args_for_step(*args) ); end
 
-        def args_for_pass(*args); [ :right, Circuit::Right, [],                                                   [Circuit::Right, Circuit::Right], {before: self["__events__"][:end][:right]}, *args, ]; end
-        def args_for_fail(*args); [ :left,  Circuit::Left,  [],                                                   [Circuit::Left, Circuit::Left], {before: self["__events__"][:end][:left]},  *args ]; end
-        def args_for_step(*args); [ :right, Circuit::Right, [[ Circuit::Left, self["__events__"][:end][:left] ]], [Circuit::Right, Circuit::Left], {before: self["__events__"][:end][:right]}, *args ]; end
+        def args_for_pass(*args); [ :right, Circuit::Right, [],                                                   [Circuit::Right, Circuit::Right], {before: self["__activity__"][:End, :right]}, *args, ]; end
+        def args_for_fail(*args); [ :left,  Circuit::Left,  [],                                                   [Circuit::Left, Circuit::Left], {before: self["__activity__"][:End, :left]},  *args ]; end
+        def args_for_step(*args); [ :right, Circuit::Right, [[ Circuit::Left, self["__activity__"][:End, :left] ]], [Circuit::Right, Circuit::Left], {before: self["__activity__"][:End, :right]}, *args ]; end
 
       private
         def add(track, incoming_direction, connections, step_args, where, proc, options={})
           heritage.record(:add, track, incoming_direction, connections, step_args, where, proc, options)
 
-          self["pipetree"] = Alter.insert(self["railway"], self["__events__"], track, incoming_direction, connections, step_args, where, proc, options)
+          self["pipetree"] = Alter.insert(self["railway"], self["__activity__"], track, incoming_direction, connections, step_args, where, proc, options)
         end
 
         # DISCUSS: ||=, AND Events() overlap, and __events__ dependency.
@@ -57,25 +57,25 @@ module Trailblazer
           heritage.record :initialize_railway!
 
           self["railway"] = Sequence.new
+          self["__activity__"] = InitialActivity()
+        end
 
+        private
+        # The initial Activity with no-op wiring.
+        def InitialActivity
           # mutable declarative data structure to collect all events for an operation's Circuit.
-          self["__events__"]  = {
+          events  = {
             end: {
               right: End::Success.new(:right),
               left:  End::Failure.new(:left)
             }
           }
+
+          Circuit::Activity({}, events) do |evt|
+            { evt[:Start] => { Circuit::Right => evt[:End, :right], Circuit::Left => evt[:End, :left] } }
+          end
         end
-
-        # def initialize_activity!
-        #   heritage.record :initialize_activity!
-
-        #   self["__activity__"] = InitialActivity()
-        # end
-
         # attr_reader :__activity__
-
-
       end
 
       # Data object: The actual array that lines up the railway steps.
@@ -91,16 +91,12 @@ module Trailblazer
         end
 
         # Transform array of steps into an Activity.
-        def to_activity(events)
-          step2name = collect { |cfg| [cfg.first, cfg.last[:name]] }.to_h # debug argument for Activity.
-
-          activity  = InitialActivity(step2name, events)
-
+        def to_activity(activity)
           each do |(step, track, direction, connections, where, options)|
 before_step = where[:before]
 
             # insert the new step before the track's End, taking over all its incoming connections.
-            activity = Circuit::Activity::Before(activity, before_step, step, direction: direction) # TODO: direction => outgoing
+            activity = Circuit::Activity::Before(activity, before_step, step, direction: direction, debug: {step => options[:name]}) # TODO: direction => outgoing
 
             # connect new task to End.left (if it's a step), or End.fail_fast, etc.
             connections.each do |(direction, target)|
@@ -115,13 +111,6 @@ before_step = where[:before]
         def find_index(name)
           row = find { |row| row.last[:name] == name }
           index(row)
-        end
-
-        # The initial Activity with no-op wiring.
-        def InitialActivity(debug, events)
-          Circuit::Activity(debug, events) do |evt|
-            { evt[:Start] => { Circuit::Right => evt[:End, :right], Circuit::Left => evt[:End, :left] } }
-          end
         end
       end
 

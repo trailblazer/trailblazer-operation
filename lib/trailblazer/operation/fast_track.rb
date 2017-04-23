@@ -15,17 +15,21 @@ module Trailblazer
         def initialize_fast_track_events! # FIXME: make this cooler!
           heritage.record :initialize_fast_track_events!
 
-          self["__events__"][:end] = self["__events__"][:end].merge(
+          fast_track_events = {
+            end: {
               pass_fast: Class.new(End::Success).new(:pass_fast),
               fail_fast: Class.new(End::Failure).new(:fail_fast)
-          )
+            }
+          }
+
+          self["__activity__"] = Circuit::Activity::Rewrite(self["__activity__"], {}, fast_track_events) { |*| }
         end
 
         # # DISCUSS: any way to override DSL methods without that redundancy? inject/normalize? options
         def args_for_pass(step, options={})
           direction = options[:pass_fast] ? PassFast : Circuit::Right # task will emit PassFast or Right, depending on options.
 
-          super.tap { |args| args[2] = [[PassFast, self["__events__"][:end][:pass_fast]]]; args[3] = [direction, direction] }
+          super.tap { |args| args[2] = [[PassFast, self["__activity__"][:End, :pass_fast]]]; args[3] = [direction, direction] }
         end
 
         def args_for_fail(step, options={})
@@ -33,7 +37,7 @@ module Trailblazer
 
           # DISCUSS: should this also link to right, pass_fast etc? Because this will fail now.
           # CONNECTED TO Left=>END.LEFT AND FailFast=>END.FAIL_FAST
-          super.tap { |args| args[2] = [[FailFast, self["__events__"][:end][:fail_fast]]]; args[3] = [direction, direction] }
+          super.tap { |args| args[2] = [[FailFast, self["__activity__"][:End, :fail_fast]]]; args[3] = [direction, direction] }
         end
 
 
@@ -43,7 +47,7 @@ module Trailblazer
 
           # DISCUSS: should this also link to right, pass_fast etc?
           # CONNECTED TO Left=>END.LEFT AND FailFast=>END.FAIL_FAST
-          super.tap { |args| args[2] = [[Circuit::Left, self["__events__"][:end][:left]], [FailFast, self["__events__"][:end][:fail_fast]], [PassFast, self["__events__"][:end][:pass_fast]]]; args[3] = [direction_on_true, direction_on_false] }
+          super.tap { |args| args[2] = [[Circuit::Left, self["__activity__"][:End, :left]], [FailFast, self["__activity__"][:End, :fail_fast]], [PassFast, self["__activity__"][:End, :pass_fast]]]; args[3] = [direction_on_true, direction_on_false] }
         end
       end
     end
