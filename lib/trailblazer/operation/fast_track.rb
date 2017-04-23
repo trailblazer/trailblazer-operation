@@ -17,7 +17,7 @@ module Trailblazer
 
           self["__events__"][:end] = self["__events__"][:end].merge(
               pass_fast: Class.new(End::Success).new(:pass_fast),
-              fail_fast: Circuit::End.new(:fail_fast)
+              fail_fast: Class.new(End::Failure).new(:fail_fast)
           )
         end
 
