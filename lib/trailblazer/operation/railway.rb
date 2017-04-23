@@ -21,15 +21,15 @@ module Trailblazer
         def failure(*args); add( *args_for_fail(*args) ); end
         def step(*args)   ; add( *args_for_step(*args) ); end
 
-        def args_for_pass(*args); [ :right, Circuit::Right, [],                                                   [Circuit::Right, Circuit::Right], {before: self["__activity__"][:End, :right]}, *args, ]; end
-        def args_for_fail(*args); [ :left,  Circuit::Left,  [],                                                   [Circuit::Left, Circuit::Left], {before: self["__activity__"][:End, :left]},  *args ]; end
-        def args_for_step(*args); [ :right, Circuit::Right, [[ Circuit::Left, self["__activity__"][:End, :left] ]], [Circuit::Right, Circuit::Left], {before: self["__activity__"][:End, :right]}, *args ]; end
+        def args_for_pass(*args); [ Circuit::Right, [],                                                   [Circuit::Right, Circuit::Right], {before: self["__activity__"][:End, :right]}, *args, ]; end
+        def args_for_fail(*args); [ Circuit::Left,  [],                                                   [Circuit::Left, Circuit::Left], {before: self["__activity__"][:End, :left]},  *args ]; end
+        def args_for_step(*args); [ Circuit::Right, [[ Circuit::Left, self["__activity__"][:End, :left] ]], [Circuit::Right, Circuit::Left], {before: self["__activity__"][:End, :right]}, *args ]; end
 
       private
-        def add(track, incoming_direction, connections, step_args, where, proc, options={})
-          heritage.record(:add, track, incoming_direction, connections, step_args, where, proc, options)
+        def add(incoming_direction, connections, step_args, where, proc, options={})
+          heritage.record(:add, incoming_direction, connections, step_args, where, proc, options)
 
-          self["pipetree"] = Alter.insert(self["__railway__"], self["__activity__"], track, incoming_direction, connections, step_args, where, proc, options)
+          self["pipetree"] = Alter.insert(self["__railway__"], self["__activity__"], incoming_direction, connections, step_args, where, proc, options)
         end
       end # DSL
 
@@ -48,7 +48,7 @@ module Trailblazer
         def initialize_activity!
           heritage.record :initialize_activity!
 
-          self["__railway__"] = Sequence.new
+          self["__railway__"]  = Sequence.new
           self["__activity__"] = InitialActivity()
         end
 
@@ -84,7 +84,7 @@ module Trailblazer
 
         # Transform array of steps into an Activity.
         def to_activity(activity)
-          each do |(step, track, direction, connections, where, options)|
+          each do |(step, direction, connections, where, options)|
 before_step = where[:before]
 
             # insert the new step before the track's End, taking over all its incoming connections.
@@ -122,7 +122,7 @@ before_step = where[:before]
         # 1. Processes the step API's options (such as `:override` of `:before`).
         # 2. Uses alter! =====> Railway
         # Returns an Activity instance.
-        def insert(railway, events, track, direction, connections, step_args, where, proc, options={})
+        def insert(railway, events, direction, connections, step_args, where, proc, options={})
           _proc, _options = normalize_args(proc, options)
 
           options = _options.merge(options)
@@ -130,7 +130,7 @@ before_step = where[:before]
 
           step    = Step(_proc, *step_args)
 
-          railway.alter!(options, step, track, direction, connections, where) # append, replace, before, etc.
+          railway.alter!(options, step, direction, connections, where) # append, replace, before, etc.
 
           railway.to_activity(events)
         end

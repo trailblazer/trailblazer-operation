@@ -29,7 +29,7 @@ module Trailblazer
         def args_for_pass(step, options={})
           direction = options[:pass_fast] ? PassFast : Circuit::Right # task will emit PassFast or Right, depending on options.
 
-          super.tap { |args| args[2] = [[PassFast, self["__activity__"][:End, :pass_fast]]]; args[3] = [direction, direction] }
+          super.tap { |args| args[1] = [[PassFast, self["__activity__"][:End, :pass_fast]]]; args[2] = [direction, direction] }
         end
 
         def args_for_fail(step, options={})
@@ -37,7 +37,7 @@ module Trailblazer
 
           # DISCUSS: should this also link to right, pass_fast etc? Because this will fail now.
           # CONNECTED TO Left=>END.LEFT AND FailFast=>END.FAIL_FAST
-          super.tap { |args| args[2] = [[FailFast, self["__activity__"][:End, :fail_fast]]]; args[3] = [direction, direction] }
+          super.tap { |args| args[1] = [[FailFast, self["__activity__"][:End, :fail_fast]]]; args[2] = [direction, direction] }
         end
 
 
@@ -47,7 +47,7 @@ module Trailblazer
 
           # DISCUSS: should this also link to right, pass_fast etc?
           # CONNECTED TO Left=>END.LEFT AND FailFast=>END.FAIL_FAST
-          super.tap { |args| args[2] = [[Circuit::Left, self["__activity__"][:End, :left]], [FailFast, self["__activity__"][:End, :fail_fast]], [PassFast, self["__activity__"][:End, :pass_fast]]]; args[3] = [direction_on_true, direction_on_false] }
+          super.tap { |args| args[1] = [[Circuit::Left, self["__activity__"][:End, :left]], [FailFast, self["__activity__"][:End, :fail_fast]], [PassFast, self["__activity__"][:End, :pass_fast]]]; args[2] = [direction_on_true, direction_on_false] }
         end
       end
     end
