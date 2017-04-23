@@ -17,19 +17,21 @@ module Trailblazer
 
       # This is code run at compile-time and can be slow.
       module DSL
-        def success(*args); add( *args_for_pass(*args) ); end
-        def failure(*args); add( *args_for_fail(*args) ); end
-        def step(*args)   ; add( *args_for_step(*args) ); end
+        def success(proc, options={}); add( args_for_pass(proc, options) ); end
+        def failure(proc, options={}); add( args_for_fail(proc, options) ); end
+        def step   (proc, options={}); add( args_for_step(proc, options) ); end
 
-        def args_for_pass(*args); [ Circuit::Right, [],                                                   [Circuit::Right, Circuit::Right], {before: self["__activity__"][:End, :right]}, *args, ]; end
-        def args_for_fail(*args); [ Circuit::Left,  [],                                                   [Circuit::Left, Circuit::Left], {before: self["__activity__"][:End, :left]},  *args ]; end
-        def args_for_step(*args); [ Circuit::Right, [[ Circuit::Left, self["__activity__"][:End, :left] ]], [Circuit::Right, Circuit::Left], {before: self["__activity__"][:End, :right]}, *args ]; end
+        StepArgs = Struct.new(:original_options, :incoming_direction, :connections, :args_for_Step, :insert_before)
+
+        def args_for_pass(*args); StepArgs.new( args, Circuit::Right, [],                                                   [Circuit::Right, Circuit::Right], self["__activity__"][:End, :right] ); end
+        def args_for_fail(*args); StepArgs.new( args, Circuit::Left,  [],                                                   [Circuit::Left, Circuit::Left], self["__activity__"][:End, :left] ); end
+        def args_for_step(*args); StepArgs.new( args, Circuit::Right, [[ Circuit::Left, self["__activity__"][:End, :left] ]], [Circuit::Right, Circuit::Left], self["__activity__"][:End, :right] ); end
 
       private
-        def add(incoming_direction, connections, step_args, where, proc, options={})
-          heritage.record(:add, incoming_direction, connections, step_args, where, proc, options)
+        def add(step_args)
+          heritage.record(:add, step_args)
 
-          self["pipetree"] = Alter.insert(self["__railway__"], self["__activity__"], incoming_direction, connections, step_args, where, proc, options)
+          self["pipetree"] = Alter.insert(self["__railway__"], self["__activity__"], step_args)
         end
       end # DSL
 
@@ -84,11 +86,10 @@ module Trailblazer
 
         # Transform array of steps into an Activity.
         def to_activity(activity)
-          each do |(step, direction, connections, where, options)|
-before_step = where[:before]
+          each do |(step, direction, connections, insert_before, options)|
 
             # insert the new step before the track's End, taking over all its incoming connections.
-            activity = Circuit::Activity::Before(activity, before_step, step, direction: direction, debug: {step => options[:name]}) # TODO: direction => outgoing
+            activity = Circuit::Activity::Before(activity, insert_before, step, direction: direction, debug: {step => options[:name]}) # TODO: direction => outgoing
 
             # connect new task to End.left (if it's a step), or End.fail_fast, etc.
             connections.each do |(direction, target)|
@@ -122,15 +123,16 @@ before_step = where[:before]
         # 1. Processes the step API's options (such as `:override` of `:before`).
         # 2. Uses alter! =====> Railway
         # Returns an Activity instance.
-        def insert(railway, activity, direction, connections, step_args, where, proc, options={})
-          _proc, _options = normalize_args(proc, options)
+        def insert(railway, activity, step_config)
+          proc, options = step_config.original_options
 
+          _proc, _options = normalize_args(proc, options)
           options = _options.merge(options)
           options = options.merge(replace: options[:name]) if options[:override] # :override
 
-          step    = Step(_proc, *step_args)
+          step    = Step(_proc, *step_config.args_for_Step)
 
-          railway.alter!(options, step, direction, connections, where) # append, replace, before, etc.
+          railway.alter!(options, step, step_config.incoming_direction, step_config.connections, step_config.insert_before) # append, replace, before, etc.
 
           railway.to_activity(activity)
         end
