@@ -12,9 +12,7 @@ module Trailblazer
         includer.extend ClassMethods # ::call, ::inititalize_pipetree!
         includer.extend DSL
 
-        includer.initialize_railway!
-
-        # includer.initialize_activity!
+        includer.initialize_activity!
       end
 
       # This is code run at compile-time and can be slow.
@@ -31,14 +29,8 @@ module Trailblazer
         def add(track, incoming_direction, connections, step_args, where, proc, options={})
           heritage.record(:add, track, incoming_direction, connections, step_args, where, proc, options)
 
-          self["pipetree"] = Alter.insert(self["railway"], self["__activity__"], track, incoming_direction, connections, step_args, where, proc, options)
+          self["pipetree"] = Alter.insert(self["__railway__"], self["__activity__"], track, incoming_direction, connections, step_args, where, proc, options)
         end
-
-        # DISCUSS: ||=, AND Events() overlap, and __events__ dependency.
-        # def memoize_event!(type, name, event)
-        #   self["__events__"][type] ||= {}
-        #   self["__events__"][type][name] ||= event
-        # end
       end # DSL
 
       module ClassMethods
@@ -53,10 +45,10 @@ module Trailblazer
           Result.new(last.kind_of?(End::Success), options)
         end
 
-        def initialize_railway!
-          heritage.record :initialize_railway!
+        def initialize_activity!
+          heritage.record :initialize_activity!
 
-          self["railway"] = Sequence.new
+          self["__railway__"] = Sequence.new
           self["__activity__"] = InitialActivity()
         end
 
