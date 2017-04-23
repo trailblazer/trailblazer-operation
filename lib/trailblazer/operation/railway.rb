@@ -13,7 +13,33 @@ module Trailblazer
         includer.extend DSL
 
         includer.initialize_railway!
+
+        # includer.initialize_activity!
       end
+
+      # This is code run at compile-time and can be slow.
+      module DSL
+        def success(*args); add( *args_for_pass(*args) ); end
+        def failure(*args); add( *args_for_fail(*args) ); end
+        def step(*args)   ; add( *args_for_step(*args) ); end
+
+        def args_for_pass(*args); [ :right, Circuit::Right, [],                                                   [Circuit::Right, Circuit::Right], {before: self["__events__"][:end][:right]}, *args, ]; end
+        def args_for_fail(*args); [ :left,  Circuit::Left,  [],                                                   [Circuit::Left, Circuit::Left], {before: self["__events__"][:end][:left]},  *args ]; end
+        def args_for_step(*args); [ :right, Circuit::Right, [[ Circuit::Left, self["__events__"][:end][:left] ]], [Circuit::Right, Circuit::Left], {before: self["__events__"][:end][:right]}, *args ]; end
+
+      private
+        def add(track, incoming_direction, connections, step_args, where, proc, options={})
+          heritage.record(:add, track, incoming_direction, connections, step_args, where, proc, options)
+
+          self["pipetree"] = Alter.insert(self["railway"], self["__events__"], track, incoming_direction, connections, step_args, where, proc, options)
+        end
+
+        # DISCUSS: ||=, AND Events() overlap, and __events__ dependency.
+        # def memoize_event!(type, name, event)
+        #   self["__events__"][type] ||= {}
+        #   self["__events__"][type][name] ||= event
+        # end
+      end # DSL
 
       module ClassMethods
         # Top-level, this method is called when you do Create.() and where
@@ -29,39 +55,56 @@ module Trailblazer
 
         def initialize_railway!
           heritage.record :initialize_railway!
+
           self["railway"] = Sequence.new
-          self["railway_extra_events"]  = {}
+
+          # mutable declarative data structure to collect all events for an operation's Circuit.
+          self["__events__"]  = {
+            end: {
+              right: End::Success.new(:right),
+              left:  End::Failure.new(:left)
+            }
+          }
         end
+
+        # def initialize_activity!
+        #   heritage.record :initialize_activity!
+
+        #   self["__activity__"] = InitialActivity()
+        # end
+
+        # attr_reader :__activity__
+
+
       end
 
       # Data object: The actual array that lines up the railway steps.
       # Gets converted into a Circuit/Activity via #to_activity.
       class Sequence < ::Array
-        def alter!(step, track, direction, connections, options)
-          return insert(find_index(options[:before]),  [ step, track, direction, connections, options ]) if options[:before]
-          return insert(find_index(options[:after])+1, [ step, track, direction, connections, options ]) if options[:after]
-          return self[find_index(options[:replace])] = [ step, track, direction, connections, options ]  if options[:replace]
-          return delete_at(find_index(options[:delete]))                                                 if options[:delete]
+        def alter!(options, *args)
+          return insert(find_index(options[:before]),  [ *args, options ]) if options[:before]
+          return insert(find_index(options[:after])+1, [ *args, options ]) if options[:after]
+          return self[find_index(options[:replace])] = [ *args, options ]  if options[:replace]
+          return delete_at(find_index(options[:delete])) if options[:delete]
 
-          self << [ step, track, direction, connections, options ]
+          self << [ *args, options ]
         end
 
         # Transform array of steps into an Activity.
         def to_activity(events)
           step2name = collect { |cfg| [cfg.first, cfg.last[:name]] }.to_h # debug argument for Activity.
 
-          # end_events = connections.collect do |(direction, end_name)|
+          activity  = InitialActivity(step2name, events)
 
-          activity  = InitialActivity(events, step2name)
-
-          each do |(step, track, direction, connections, options)|
+          each do |(step, track, direction, connections, where, options)|
+before_step = where[:before]
 
             # insert the new step before the track's End, taking over all its incoming connections.
-            activity = Circuit::Activity::Before(activity, activity[:End, track], step, direction: direction) # TODO: direction => outgoing
+            activity = Circuit::Activity::Before(activity, before_step, step, direction: direction) # TODO: direction => outgoing
 
             # connect new task to End.left (if it's a step), or End.fail_fast, etc.
-            connections.each do |(direction, end_name)|
-              activity = Circuit::Activity::Connect(activity, step, direction, activity[:End, end_name])
+            connections.each do |(direction, target)|
+              activity = Circuit::Activity::Connect(activity, step, direction, target)
             end
           end
 
@@ -75,13 +118,8 @@ module Trailblazer
         end
 
         # The initial Activity with no-op wiring.
-        def InitialActivity(events, debug)
-          default_ends = {
-            right: End::Success.new(:right),
-            left:  End::Failure.new(:left)
-          }
-
-          Circuit::Activity(debug, end: default_ends.merge(events)) do |evt|
+        def InitialActivity(debug, events)
+          Circuit::Activity(debug, events) do |evt|
             { evt[:Start] => { Circuit::Right => evt[:End, :right], Circuit::Left => evt[:End, :left] } }
           end
         end
@@ -94,23 +132,6 @@ module Trailblazer
         end
       end
 
-      # This is code run at compile-time and can be slow.
-      module DSL
-        def success(*args); add( *args_for_pass(*args) ); end
-        def failure(*args); add( *args_for_fail(*args) ); end
-        def step(*args)   ; add( *args_for_step(*args) ); end
-
-        def args_for_pass(*args); [ :right, Circuit::Right, [], [Circuit::Right, Circuit::Right], *args ]; end
-        def args_for_fail(*args); [ :left, Circuit::Left,   [], [Circuit::Left, Circuit::Left],   *args ]; end
-        def args_for_step(*args); [ :right, Circuit::Right, [[Circuit::Left, :left]], [Circuit::Right, Circuit::Left], *args ]; end
-
-      private
-        def add(track, incoming_direction, connections, step_args, proc, options={})
-          heritage.record(:add, track, incoming_direction, connections, step_args, proc, options)
-
-          self["pipetree"] = Alter.insert(self["railway"], self["railway_extra_events"], track, incoming_direction, connections, step_args, proc, options)
-        end
-      end # DSL
 
       # Insert a step into the circuit.
       #:private:
@@ -120,7 +141,7 @@ module Trailblazer
         # 1. Processes the step API's options (such as `:override` of `:before`).
         # 2. Uses alter! =====> Railway
         # Returns an Activity instance.
-        def insert(railway, events, track, direction, connections, step_args, proc, options={})
+        def insert(railway, events, track, direction, connections, step_args, where, proc, options={})
           _proc, _options = normalize_args(proc, options)
 
           options = _options.merge(options)
@@ -128,7 +149,7 @@ module Trailblazer
 
           step    = Step(_proc, *step_args)
 
-          railway.alter!(step, track, direction, connections, options) # append, replace, before, etc.
+          railway.alter!(options, step, track, direction, connections, where) # append, replace, before, etc.
 
           railway.to_activity(events)
         end

@@ -7,18 +7,17 @@ module Trailblazer
       def self.included(includer)
         # add additional end events to the circuit.
         includer.extend(DSL)
-        includer.initialize_event!
-
+        includer.initialize_fast_track_events!
       end
 
 
       module DSL
-        def initialize_event! # FIXME: make this cooler!
-          heritage.record :initialize_event!
+        def initialize_fast_track_events! # FIXME: make this cooler!
+          heritage.record :initialize_fast_track_events!
 
-          self["railway_extra_events"] = self["railway_extra_events"].merge(
-            pass_fast: Class.new(End::Success).new(:pass_fast),
-            fail_fast: Circuit::End.new(:fail_fast)
+          self["__events__"][:end] = self["__events__"][:end].merge(
+              pass_fast: Class.new(End::Success).new(:pass_fast),
+              fail_fast: Circuit::End.new(:fail_fast)
           )
         end
 
@@ -26,7 +25,7 @@ module Trailblazer
         def args_for_pass(step, options={})
           direction = options[:pass_fast] ? PassFast : Circuit::Right # task will emit PassFast or Right, depending on options.
 
-          super.tap { |args| args[2] = [[PassFast, :pass_fast]]; args[3] = [direction, direction] }
+          super.tap { |args| args[2] = [[PassFast, self["__events__"][:end][:pass_fast]]]; args[3] = [direction, direction] }
         end
 
         def args_for_fail(step, options={})
@@ -34,7 +33,7 @@ module Trailblazer
 
           # DISCUSS: should this also link to right, pass_fast etc? Because this will fail now.
           # CONNECTED TO Left=>END.LEFT AND FailFast=>END.FAIL_FAST
-          super.tap { |args| args[2] = [[FailFast, :fail_fast]]; args[3] = [direction, direction] }
+          super.tap { |args| args[2] = [[FailFast, self["__events__"][:end][:fail_fast]]]; args[3] = [direction, direction] }
         end
 
 
@@ -44,7 +43,7 @@ module Trailblazer
 
           # DISCUSS: should this also link to right, pass_fast etc?
           # CONNECTED TO Left=>END.LEFT AND FailFast=>END.FAIL_FAST
-          super.tap { |args| args[2] = [[Circuit::Left, :left], [FailFast, :fail_fast], [PassFast, :pass_fast]]; args[3] = [direction_on_true, direction_on_false] }
+          super.tap { |args| args[2] = [[Circuit::Left, self["__events__"][:end][:left]], [FailFast, self["__events__"][:end][:fail_fast]], [PassFast, self["__events__"][:end][:pass_fast]]]; args[3] = [direction_on_true, direction_on_false] }
         end
       end
     end

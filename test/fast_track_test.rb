@@ -1,6 +1,6 @@
 require "test_helper"
 
-class FailPassFastOptionTest < Minitest::Spec
+class FastTrackTest < Minitest::Spec
   # #failure fails fast.
   class Create < Trailblazer::Operation
     step ->(options, *) { options["x"] = options["dont_fail"] }
@@ -11,8 +11,8 @@ class FailPassFastOptionTest < Minitest::Spec
 
   puts Create["pipetree"].inspect
 
-  require "trailblazer/diagram/bpmn"
-  puts Trailblazer::Diagram::BPMN.to_xml(Create["pipetree"])
+  # require "trailblazer/diagram/bpmn"
+  # puts Trailblazer::Diagram::BPMN.to_xml(Create["pipetree"])
 
   it { Create.({}, "fail_fast" => true, "dont_fail" => true ).inspect("x", "a", "b", "y").must_equal %{<Result:true [true, nil, nil, true] >} }
   it { Create.({}, "fail_fast" => true                  ).inspect("x", "a", "b", "y").must_equal %{<Result:false [nil, true, nil, nil] >} }
