@@ -21,7 +21,7 @@ module Trailblazer
         def failure(proc, options={}); add( args_for_fail(self["__activity__"], proc, options) ); end
         def step   (proc, options={}); add( args_for_step(self["__activity__"], proc, options) ); end
 
-        # hooks to override. TODO: make this cooler.
+        # hooks to override.
         def args_for_pass(*args); Activity.args_for_pass(*args); end
         def args_for_fail(*args); Activity.args_for_fail(*args); end
         def args_for_step(*args); Activity.args_for_step(*args); end
@@ -30,7 +30,7 @@ module Trailblazer
         def add(step_args)
           heritage.record(:add, step_args)
 
-          self["__activity__"] = Activity.for(self["__railway__"], self["__activity__"], step_args)
+          self["__activity__"] = Activity.for(self["__sequence__"], self["__activity__"], step_args)
         end
       end # DSL
 
@@ -49,7 +49,7 @@ module Trailblazer
         def initialize_activity!
           heritage.record :initialize_activity!
 
-          self["__railway__"]  = Sequence.new
+          self["__sequence__"]  = Sequence.new
           self["__activity__"] = InitialActivity()
         end
 
@@ -71,105 +71,10 @@ module Trailblazer
         # attr_reader :__activity__
       end
 
-      # Data object: The actual array that lines up the railway steps.
-      # This is necessary mostly to maintain a linear representation of the wild circuit and can be
-      # used to simplify inserting steps (without graph theory) and rendering (e.g. operation layouter).
-      #
-      # Gets converted into a Circuit/Activity via #to_activity.
-      class Sequence < ::Array
-        def alter!(options, *args)
-          return insert(find_index(options[:before]),  [ *args, options ]) if options[:before]
-          return insert(find_index(options[:after])+1, [ *args, options ]) if options[:after]
-          return self[find_index(options[:replace])] = [ *args, options ]  if options[:replace]
-          return delete_at(find_index(options[:delete])) if options[:delete]
-
-          self << [ *args, options ]
-        end
-
-        # Transform array of steps into an Activity.
-        def to_activity(activity)
-          each do |(step, direction, connections, insert_before, options)|
-
-            # insert the new step before the track's End, taking over all its incoming connections.
-            activity = Circuit::Activity::Before(activity, insert_before, step, direction: direction, debug: {step => options[:name]}) # TODO: direction => outgoing
-
-            # connect new task to End.left (if it's a step), or End.fail_fast, etc.
-            connections.each do |(direction, target)|
-              activity = Circuit::Activity::Connect(activity, step, direction, target)
-            end
-          end
-
-          activity
-        end
-
-        private
-        def find_index(name)
-          row = find { |row| row.last[:name] == name }
-          index(row)
-        end
-      end
-
       module End
         class Success < Circuit::End
         end
         class Failure < Circuit::End
-        end
-      end
-
-      # Insert a step into the Activity's circuit.
-      #:private:
-      module Activity
-        module_function
-        # idea: those methods could live somewhere else.
-        StepArgs = Struct.new(:original_options, :incoming_direction, :connections, :args_for_Step, :insert_before)
-
-        # Helpers to create StepArgs{} for ::for.
-        def args_for_pass(activity, *args); StepArgs.new( args, Circuit::Right, [],                                                   [Circuit::Right, Circuit::Right], activity[:End, :right] ); end
-        def args_for_fail(activity, *args); StepArgs.new( args, Circuit::Left,  [],                                                   [Circuit::Left, Circuit::Left], activity[:End, :left] ); end
-        def args_for_step(activity, *args); StepArgs.new( args, Circuit::Right, [[ Circuit::Left, activity[:End, :left] ]], [Circuit::Right, Circuit::Left], activity[:End, :right] ); end
-
-        # @api private
-        # 1. Processes the step API's options (such as `:override` of `:before`).
-        # 2. Uses `Sequence.alter!` to maintain a linear array representation of the circuit's tasks.
-        #    This is then transformed into a circuit/Activity. (We could save this step with some graph magic)
-        # 3. Returns a new Activity instance.
-        def for(sequence, activity, step_config) # recalculate circuit.
-          proc, options = step_config.original_options
-
-          _proc, _options = normalize_args(proc, options)
-          options = _options.merge(options)
-          options = options.merge(replace: options[:name]) if options[:override] # :override
-
-          step    = Step(_proc, *step_config.args_for_Step)
-
-          # insert Step into Sequence (append, replace, before, etc.)
-          sequence.alter!(options, step, step_config.incoming_direction, step_config.connections, step_config.insert_before)
-
-          # convert Sequence to new Activity.
-          sequence.to_activity(activity)
-        end
-
-        # @api private
-        # Decompose single array from macros or set default name for user step.
-        def normalize_args(proc, options)
-          proc.is_a?(Array) ?
-            proc :                   # macro
-            [ proc, { name: proc } ] # user step
-        end
-
-        # every step is wrapped by this proc/decider. this is executed in the circuit as the actual task.
-        # Step calls step.(options, **options, flow_options)
-        # Output direction binary: true=>Right, false=>Left.
-        # Passes through all subclasses of Direction.~~~~~~~~~~~~~~~~~
-        def Step(step, on_true, on_false)
-          ->(direction, options, flow_options) do
-            # Execute the user step with TRB's kw args.
-            result = Circuit::Task::Args::KW(step).(direction, options, flow_options)
-
-            # Return an appropriate signal which direction to go next.
-            direction = result.is_a?(Class) && result < Circuit::Direction ? result : (result ? on_true : on_false)
-            [ direction, options, flow_options ]
-          end
         end
       end
     end
@@ -189,3 +94,6 @@ module Trailblazer
     end
   end
 end
+
+require "trailblazer/operation/activity"
+require "trailblazer/operation/sequence"

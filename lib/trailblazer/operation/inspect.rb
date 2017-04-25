@@ -6,7 +6,7 @@ module Trailblazer
 
     # TODO: at some point, we should render the real circuit graph using circuit tools.
     def call(operation, options={ style: :line })
-      rows = operation["railway"].each_with_index.collect { |row, i| [ i, [ row[1], row[-1][:name] ] ]  }
+      rows = operation["__sequence__"].each_with_index.collect { |row, i| [ i, [ row.incoming_direction, row.options[:name] ] ]  }
 
       return inspect_line(rows) if options[:style] == :line
       return inspect_rows(rows)
@@ -16,7 +16,7 @@ module Trailblazer
       @inspect[step]
     end
 
-    Operator = { :left => "<", :right => ">", }
+    Operator = { Circuit::Left => "<", Circuit::Right => ">", }
 
     def inspect_line(names)
       string = names.collect { |i, (track, name)| "#{Operator[track]}#{name}" }.join(",")
