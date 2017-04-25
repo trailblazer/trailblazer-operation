@@ -19,10 +19,10 @@ class KWBugsTest < Minitest::Spec
 end
 
 class KWOptionsTest < Minitest::Spec
-  X = Trailblazer::Operation::Option::KW.( ->(options, **) { options["x"] = true } )
-  Y = Trailblazer::Operation::Option::KW.( ->(options, params:, **) { options["y"] = params } )
-  Z = Trailblazer::Operation::Option::KW.( ->(options, params:, z:, **) { options["kw_z"] = z } )
-  A = Trailblazer::Operation::Option::KW.( ->(options, params:, z:, **) { options["options_z"] = options["z"] } )
+  X = Trailblazer::Circuit::Task::Args::KW( ->(options, **) { options["x"] = true } )
+  Y = Trailblazer::Circuit::Task::Args::KW( ->(options, params:, **) { options["y"] = params } )
+  Z = Trailblazer::Circuit::Task::Args::KW( ->(options, params:, z:, **) { options["kw_z"] = z } )
+  A = Trailblazer::Circuit::Task::Args::KW( ->(options, params:, z:, **) { options["options_z"] = options["z"] } )
 
   class Create < Trailblazer::Operation
     step [ ->(input, options) { X.(input, options, z: "Z!") }, name: "X" ]
@@ -70,21 +70,18 @@ class Ruby200PipetreeTest < Minitest::Spec
 
   class Delete < Trailblazer::Operation
     class Params
-      extend Uber::Callable
       def self.call(*, params:, **)
         params["run"]
       end
     end
 
     class X
-      extend Uber::Callable
       def self.call(options, params:nil, **)
         options["x"] = params["run"]
       end
     end
 
     class Y
-      extend Uber::Callable
       def self.call(options)
         options["y"] = options["params"]["run"]
       end

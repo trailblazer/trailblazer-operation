@@ -4,13 +4,13 @@ class KWBugsTest < Minitest::Spec
   Merchant = Struct.new(:id)
 
   class Merchant::New < Trailblazer::Operation
-    step ->(options) {
+    step ->(options, **) {
       options["model"] = 1
        options["bla"] = true # this breaks Ruby 2.2.2.
      }
 
     step :add!
-    def add!(yo:nil, model:nil, **)
+    def add!(options, yo:nil, model:nil, **)
       raise if model.nil?
     end
   end
@@ -19,10 +19,10 @@ class KWBugsTest < Minitest::Spec
 end
 
 class KWOptionsTest < Minitest::Spec
-  X = Trailblazer::Operation::Option::KW.( ->(options, **) { options["x"] = true } )
-  Y = Trailblazer::Operation::Option::KW.( ->(options, params:nil, **) { options["y"] = params } )
-  Z = Trailblazer::Operation::Option::KW.( ->(options, params:nil, z:nil, **) { options["kw_z"] = z } )
-  A = Trailblazer::Operation::Option::KW.( ->(options, params:nil, z:nil, **) { options["options_z"] = options["z"] } )
+  X = Trailblazer::Circuit::Task::Args::KW( ->(options, **) { options["x"] = true } )
+  Y = Trailblazer::Circuit::Task::Args::KW( ->(options, params:nil, **) { options["y"] = params } )
+  Z = Trailblazer::Circuit::Task::Args::KW( ->(options, params:nil, z:nil, **) { options["kw_z"] = z } )
+  A = Trailblazer::Circuit::Task::Args::KW( ->(options, params:nil, z:nil, **) { options["options_z"] = options["z"] } )
 
   class Create < Trailblazer::Operation
     step [ ->(input, options) { X.(input, options, z: "Z!") }, name: "X" ]
@@ -39,11 +39,10 @@ class Ruby200PipetreeTest < Minitest::Spec
   class Create < Trailblazer::Operation
     step ->(*, params:nil, **) { params["run"] }    # only test kws.
     step ->(options, params:nil, **) { options["x"] = params["run"] } # read and write.
-    step ->(options) { options["y"] = options["params"]["run"] } # old API.
   end
 
-  it { Create.("run" => false).inspect("x", "y").must_equal %{<Result:false [nil, nil] >} }
-  it { Create.("run" => true).inspect("x", "y").must_equal %{<Result:true [true, true] >} }
+  it { Create.("run" => false).inspect("x").must_equal %{<Result:false [nil] >} }
+  it { Create.("run" => true).inspect("x").must_equal %{<Result:true [true] >} }
 
   #- instance methods
   class Update < Trailblazer::Operation
@@ -59,7 +58,7 @@ class Ruby200PipetreeTest < Minitest::Spec
       options["x"] = params["run"]
     end
 
-    def y!(options)
+    def y!(options, **)
       options["y"] = options["params"]["run"]
     end
   end
@@ -82,7 +81,7 @@ class Ruby200PipetreeTest < Minitest::Spec
     end
 
     class Y
-      def self.call(options)
+      def self.call(options, **)
         options["y"] = options["params"]["run"]
       end
     end

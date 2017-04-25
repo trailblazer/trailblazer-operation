@@ -1,6 +1,9 @@
 require "test_helper"
 
 class DeclarativeApiTest < Minitest::Spec
+  #---
+  #- step, pass, fail
+
   # Test: step/pass/fail
   # * do they deviate properly?
   class Create < Trailblazer::Operation
@@ -36,6 +39,13 @@ class DeclarativeApiTest < Minitest::Spec
   it do
 
   end
+
+  #---
+  #- empty class
+  class Noop < Trailblazer::Operation
+  end
+
+  it { Noop.().inspect("params").must_equal %{<Result:true [{}] >} }
 end
 
 =begin
