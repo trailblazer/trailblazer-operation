@@ -15,7 +15,7 @@ TODO:
     ```ruby
     def model(options, **)
     ```
-
+* Remove `Operation#[]` and `Operation#[]=`. Please only change state in `options`.
 * API change for `step Macro()`: the macro's return value is now called with the normal step signature `(options, kws**)` just like a normal step. There's a soft-deprecation warning.
 * Remove support for Ruby 1.9.3 for now. This can be re-introduced on demand.
 * Remove `pipetree` and `uber` dependency.
