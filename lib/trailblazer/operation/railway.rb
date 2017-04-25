@@ -72,6 +72,9 @@ module Trailblazer
       end
 
       # Data object: The actual array that lines up the railway steps.
+      # This is necessary mostly to maintain a linear representation of the wild circuit and can be
+      # used to simplify inserting steps (without graph theory) and rendering (e.g. operation layouter).
+      #
       # Gets converted into a Circuit/Activity via #to_activity.
       class Sequence < ::Array
         def alter!(options, *args)
@@ -113,8 +116,7 @@ module Trailblazer
         end
       end
 
-
-      # Insert a step into the circuit.
+      # Insert a step into the Activity's circuit.
       #:private:
       module Activity
         module_function
@@ -128,9 +130,10 @@ module Trailblazer
 
         # @api private
         # 1. Processes the step API's options (such as `:override` of `:before`).
-        # 2. Uses alter! =====> Railway
-        # Returns an Activity instance.
-        def for(railway, activity, step_config)
+        # 2. Uses `Sequence.alter!` to maintain a linear array representation of the circuit's tasks.
+        #    This is then transformed into a circuit/Activity. (We could save this step with some graph magic)
+        # 3. Returns a new Activity instance.
+        def for(sequence, activity, step_config) # recalculate circuit.
           proc, options = step_config.original_options
 
           _proc, _options = normalize_args(proc, options)
@@ -140,10 +143,10 @@ module Trailblazer
           step    = Step(_proc, *step_config.args_for_Step)
 
           # insert Step into Sequence (append, replace, before, etc.)
-          railway.alter!(options, step, step_config.incoming_direction, step_config.connections, step_config.insert_before)
+          sequence.alter!(options, step, step_config.incoming_direction, step_config.connections, step_config.insert_before)
 
           # convert Sequence to new Activity.
-          railway.to_activity(activity)
+          sequence.to_activity(activity)
         end
 
         # @api private
