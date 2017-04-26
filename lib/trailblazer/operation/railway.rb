@@ -27,20 +27,34 @@ module Trailblazer
         def args_for_step(*args); Activity.args_for_step(*args); end
 
       private
+        # @api private
+        # 1. Processes the step API's options (such as `:override` of `:before`).
+        # 2. Uses `Sequence.alter!` to maintain a linear array representation of the circuit's tasks.
+        #    This is then transformed into a circuit/Activity. (We could save this step with some graph magic)
+        # 3. Returns a new Activity instance.
         def add(step_args)
           heritage.record(:add, step_args)
 
           proc, options = process_args(*step_args.original_args)
 
-          # 1. add step to sequence
+          # actual circuit task.
+          task = Activity::Step(proc, *step_args.args_for_Step)
+
+          # insert Step into Sequence (append, replace, before, etc.)
+          sequence_row = Sequence::StepRow.new(task, options, *step_args)
+
+          # 1. insert Step into Sequence (append, replace, before, etc.)
+          self["__sequence__"].alter!(options, sequence_row)
+
           # 2. transform sequence to Activity
           # 3. save Activity in operation
-          self["__activity__"] = Activity.for(self["__sequence__"], self["__activity__"], step_args, proc, options)
+          self["__activity__"] = self["__sequence__"].to_activity(self["__activity__"])
         end
 
         private
         # DSL option processing: proc/macro, :override
         def process_args(proc, options)
+          _proc, _options = deprecate_input_for_macro!(proc, options) # FIXME: make me better removable!!!!!!!!!!!!!!!
           _proc, _options = normalize_args(proc, options) # handle step/macro args.
 
           options = _options.merge(options)
@@ -54,6 +68,20 @@ module Trailblazer
           proc.is_a?(Array) ?
             proc :                   # macro
             [ proc, { name: proc } ] # user step
+        end
+
+        def deprecate_input_for_macro!(proc, options) # TODO: REMOVE IN 2.2.
+          return proc, options unless proc.is_a?(Array)
+          proc, options = *proc
+          return proc, options unless proc.arity == 2 # FIXME: what about callable objects?
+
+          warn "[Trailblazer] Macros with API (input, options) are deprecated. Please use the signature (options, **) just like in normal steps."
+          # Execute the user step with TRB's kw args.
+          proc = ->(direction, options, flow_options) do
+            result = step.(flow_options[:context], options)
+          end
+
+          return proc, options
         end
       end # DSL
 
