@@ -72,10 +72,8 @@ module Trailblazer
       end
 
       module End
-        class Success < Circuit::End
-        end
-        class Failure < Circuit::End
-        end
+        class Success < Circuit::End; end
+        class Failure < Circuit::End; end
       end
     end
 

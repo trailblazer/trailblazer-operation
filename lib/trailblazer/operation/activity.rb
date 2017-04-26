@@ -6,8 +6,8 @@ module Trailblazer
     module Activity
       module_function
       # idea: those methods could live somewhere else.
-      StepArgs = Struct.new(:original_options, :incoming_direction, :connections, :args_for_Step, :insert_before)
-      StepRow = Struct.new(:step, :options, *Activity::StepArgs.members) # step, original_options, incoming_direction, ...
+      StepArgs = Struct.new(:original_args, :incoming_direction, :connections, :args_for_Step, :insert_before)
+      StepRow = Struct.new(:step, :options, *Activity::StepArgs.members) # step, original_args, incoming_direction, ...
 
       # Helpers to create StepArgs{} for ::for.
       def args_for_pass(activity, *args); StepArgs.new( args, Circuit::Right, [],                                                   [Circuit::Right, Circuit::Right], activity[:End, :right] ); end
@@ -20,7 +20,7 @@ module Trailblazer
       #    This is then transformed into a circuit/Activity. (We could save this step with some graph magic)
       # 3. Returns a new Activity instance.
       def for(sequence, activity, step_config) # recalculate circuit.
-        proc, options = step_config.original_options
+        proc, options = step_config.original_args
 
         _proc, _options = normalize_args(proc, options)
         options = _options.merge(options)
