@@ -10,8 +10,8 @@ module Trailblazer
       StepRow = Struct.new(:step, :options, *Activity::StepArgs.members) # step, original_args, incoming_direction, ...
 
       # Helpers to create StepArgs{} for ::for.
-      def args_for_pass(activity, *args); StepArgs.new( args, Circuit::Right, [],                                                   [Circuit::Right, Circuit::Right], activity[:End, :right] ); end
-      def args_for_fail(activity, *args); StepArgs.new( args, Circuit::Left,  [],                                                   [Circuit::Left, Circuit::Left], activity[:End, :left] ); end
+      def args_for_pass(activity, *args); StepArgs.new( args, Circuit::Right, [],                                         [Circuit::Right, Circuit::Right], activity[:End, :right] ); end
+      def args_for_fail(activity, *args); StepArgs.new( args, Circuit::Left,  [],                                         [Circuit::Left, Circuit::Left], activity[:End, :left] ); end
       def args_for_step(activity, *args); StepArgs.new( args, Circuit::Right, [[ Circuit::Left, activity[:End, :left] ]], [Circuit::Right, Circuit::Left], activity[:End, :right] ); end
 
       # @api private
@@ -19,15 +19,15 @@ module Trailblazer
       # 2. Uses `Sequence.alter!` to maintain a linear array representation of the circuit's tasks.
       #    This is then transformed into a circuit/Activity. (We could save this step with some graph magic)
       # 3. Returns a new Activity instance.
-      def for(sequence, activity, step_config) # recalculate circuit.
-        proc, options = step_config.original_args
+      def for(sequence, activity, step_config, _proc, options) # recalculate circuit.
+        # proc, options = step_config.original_args
 
-        _proc, _options = normalize_args(proc, options)
-        options = _options.merge(options)
-        options = options.merge(replace: options[:name]) if options[:override] # :override
+        # _proc, _options = normalize_args(proc, options)
+        # options = _options.merge(options)
+        # options = options.merge(replace: options[:name]) if options[:override] # :override
 
         step    = Step(_proc, *step_config.args_for_Step)
-        step = deprecate_input_for_macro!(proc, _proc, options, step)
+        step = deprecate_input_for_macro!(proc, _proc, step)
 
         # DISCUSS: the problem here is that sequence is mutated, which is not clearly visible.
         # insert Step into Sequence (append, replace, before, etc.)
@@ -38,15 +38,7 @@ module Trailblazer
         sequence.to_activity(activity)
       end
 
-      # @api private
-      # Decompose single array from macros or set default name for user step.
-      def normalize_args(proc, options)
-        proc.is_a?(Array) ?
-          proc :                   # macro
-          [ proc, { name: proc } ] # user step
-      end
-
-      def deprecate_input_for_macro!(proc, _proc, options, step) # TODO: REMOVE IN 2.2.
+      def deprecate_input_for_macro!(proc, _proc, step) # TODO: REMOVE IN 2.2.
         return step unless proc.is_a?(Array)
         return step unless _proc.arity == 2 # FIXME: what about callable objects?
         # FIXME: what about :context with Wrap?

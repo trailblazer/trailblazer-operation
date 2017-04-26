@@ -30,7 +30,30 @@ module Trailblazer
         def add(step_args)
           heritage.record(:add, step_args)
 
-          self["__activity__"] = Activity.for(self["__sequence__"], self["__activity__"], step_args)
+          proc, options = process_args(*step_args.original_args)
+
+          # 1. add step to sequence
+          # 2. transform sequence to Activity
+          # 3. save Activity in operation
+          self["__activity__"] = Activity.for(self["__sequence__"], self["__activity__"], step_args, proc, options)
+        end
+
+        private
+        # DSL option processing: proc/macro, :override
+        def process_args(proc, options)
+          _proc, _options = normalize_args(proc, options) # handle step/macro args.
+
+          options = _options.merge(options)
+          options = options.merge(replace: options[:name]) if options[:override] # :override
+
+          [ _proc, options ]
+        end
+
+        # Decompose single array from macros or set default name for user step.
+        def normalize_args(proc, options)
+          proc.is_a?(Array) ?
+            proc :                   # macro
+            [ proc, { name: proc } ] # user step
         end
       end # DSL
 
