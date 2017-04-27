@@ -13,7 +13,7 @@ class DeclarativeApiTest < Minitest::Spec
     failure :return_true!
     failure :return_false!
 
-    def decide!(options, decide:, **)
+    def decide!(options, decide:raise, **)
       options["a"] = true
       decide
     end
@@ -52,12 +52,12 @@ class DeclarativeApiTest < Minitest::Spec
   #- fail
   class Update < Trailblazer::Operation
     pass ->(options, **)         { options["a"] = false }
-    step ->(options, params, **) { options["b"] = params[:decide] }
+    step ->(options, params:raise, **) { options["b"] = params[:decide] }
     fail ->(options, **)         { options["c"] = true }
   end
 
-  it { Update.({}, decide: true).inspect("a", "b", "c").must_equal %{<Result:true [false, true, nil] >} }
-  it { Update.({}, decide: false).inspect("a", "b", "c").must_equal %{<Result:false [false, false, true] >} }
+  it { Update.(decide: true).inspect("a", "b", "c").must_equal %{<Result:true [false, true, nil] >} }
+  it { Update.(decide: false).inspect("a", "b", "c").must_equal %{<Result:false [false, false, true] >} }
 end
 
 
