@@ -105,3 +105,17 @@ class StepTest < Minitest::Spec
 
   it { Trailblazer::Operation::Inspect.(Update).gsub(/0x.+?step_test.rb/, "").must_equal %{[>#<Proc::25 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>,>after_save!]} }
 end
+
+class StepWithDeprecatedMacroTest < Minitest::Spec
+  class Create < Trailblazer::Operation
+    MyOutdatedMacro = ->(input, options) {
+put options
+      options["x"] = input.inspect }
+
+    step [ MyOutdatedMacro, name: :outdated ]
+  end
+
+  it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?step_test.rb/, "").must_equal %{[>outdated]} }
+  it { put Create }
+  it { Create.().inspect("x").must_equal %{<Result:true [1] >} }
+end

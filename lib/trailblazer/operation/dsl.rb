@@ -32,7 +32,7 @@ module Trailblazer
         proc, options = process_args(*step_args.original_args)
 
         # Wrap step code into the actual circuit task.
-        task = Activity::Step(proc, *step_args.args_for_Step)
+        task = Operation::Railway::Step(proc, *step_args.args_for_Step)
 
         # 1. insert Step into Sequence (append, replace, before, etc.)
         sequence.insert!(task, options, step_args)
