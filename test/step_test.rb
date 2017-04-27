@@ -109,13 +109,19 @@ end
 class StepWithDeprecatedMacroTest < Minitest::Spec
   class Create < Trailblazer::Operation
     MyOutdatedMacro = ->(input, options) {
-put options
-      options["x"] = input.inspect }
+      options["x"] = input.class
+    }
+
+    class AnotherOldMacro
+      def self.call(input, options)
+        options["y"] = input.class
+      end
+    end
 
     step [ MyOutdatedMacro, name: :outdated ]
+    step [ AnotherOldMacro, name: :oldie ]
   end
 
-  it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?step_test.rb/, "").must_equal %{[>outdated]} }
-  it { put Create }
-  it { Create.().inspect("x").must_equal %{<Result:true [1] >} }
+  it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?step_test.rb/, "").must_equal %{[>outdated,>oldie]} }
+  it { Create.().inspect("x", "y").must_equal %{<Result:true [StepWithDeprecatedMacroTest::Create, StepWithDeprecatedMacroTest::Create] >} }
 end

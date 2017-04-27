@@ -11,6 +11,7 @@ module Trailblazer
       def self.included(includer)
         includer.extend ClassMethods # ::call, ::inititalize_pipetree!
         includer.extend DSL
+        includer.extend DSL::DeprecatedMacro # TODO: remove in 2.2.
 
         includer.initialize_activity!
       end
@@ -68,9 +69,14 @@ module Trailblazer
             result = Circuit::Task::Args::KW(step).(direction, options, flow_options)
 
             # Return an appropriate signal which direction to go next.
-            direction = result.is_a?(Class) && result < Circuit::Direction ? result : (result ? on_true : on_false)
+            direction = binary_direction_for(result, on_true, on_false)
+
             [ direction, options, flow_options ]
           end
+        end
+
+        def self.binary_direction_for(result, on_true, on_false)
+          result.is_a?(Class) && result < Circuit::Direction ? result : (result ? on_true : on_false)
         end
       end
     end
