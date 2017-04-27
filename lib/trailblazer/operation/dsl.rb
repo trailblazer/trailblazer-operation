@@ -1,5 +1,6 @@
 module Trailblazer
   module Operation::Railway
+    # WARNING: The API here is still in a state of flux since we want to provide a simple yet flexible solution.
     # This is code run at compile-time and can be slow.
     module DSL
       def pass(proc, options={}); add_step!(:pass, proc, options); end
