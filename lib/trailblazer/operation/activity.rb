@@ -5,14 +5,6 @@ module Trailblazer
     # @api private
     module Activity
       module_function
-      # idea: those methods could live somewhere else.
-      StepArgs = Struct.new(:original_args, :incoming_direction, :connections, :args_for_Step, :insert_before)
-
-      # Helpers to create StepArgs{} for ::for.
-      def args_for_pass(activity, *args); StepArgs.new( args, Circuit::Right, [],                                         [Circuit::Right, Circuit::Right], activity[:End, :right] ); end
-      def args_for_fail(activity, *args); StepArgs.new( args, Circuit::Left,  [],                                         [Circuit::Left, Circuit::Left], activity[:End, :left] ); end
-      def args_for_step(activity, *args); StepArgs.new( args, Circuit::Right, [[ Circuit::Left, activity[:End, :left] ]], [Circuit::Right, Circuit::Left], activity[:End, :right] ); end
-
       # every step is wrapped by this proc/decider. this is executed in the circuit as the actual task.
       # Step calls step.(options, **options, flow_options)
       # Output direction binary: true=>Right, false=>Left.

@@ -7,7 +7,7 @@ module Trailblazer
     # Gets converted into a Circuit/Activity via #to_activity.
     # @api private
     class Sequence < ::Array
-      StepRow = Struct.new(:step, :options, *Activity::StepArgs.members) # step, original_args, incoming_direction, ...
+      StepRow = Struct.new(:step, :options, *DSL::StepArgs.members) # step, original_args, incoming_direction, ...
 
       def alter!(options, row)
         return insert(find_index!(options[:before]),  row) if options[:before]

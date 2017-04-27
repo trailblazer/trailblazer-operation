@@ -17,23 +17,36 @@ module Trailblazer
 
       # This is code run at compile-time and can be slow.
       module DSL
-        def success(proc, options={}); add( args_for_pass(self["__activity__"], proc, options) ); end
-        def failure(proc, options={}); add( args_for_fail(self["__activity__"], proc, options) ); end
-        def step   (proc, options={}); add( args_for_step(self["__activity__"], proc, options) ); end
+        def success(proc, options={})
+          self["__activity__"] = add(self["__activity__"], self["__sequence__"], args_for_pass(self["__activity__"], proc, options) )
+        end
 
-        # hooks to override.
-        def args_for_pass(*args); Activity.args_for_pass(*args); end
-        def args_for_fail(*args); Activity.args_for_fail(*args); end
-        def args_for_step(*args); Activity.args_for_step(*args); end
+        def failure(proc, options={})
+          self["__activity__"] = add(self["__activity__"], self["__sequence__"], args_for_fail(self["__activity__"], proc, options) )
+        end
 
-      private
+        def step(proc, options={});
+          self["__activity__"] = add(self["__activity__"], self["__sequence__"], args_for_step(self["__activity__"], proc, options) )
+        end
+
+        # TODO: ADD PASS AND FAIL
+
+        private
+        StepArgs = Struct.new(:original_args, :incoming_direction, :connections, :args_for_Step, :insert_before)
+
+        # Override these if you want to extend how tasks are built.
+        def args_for_pass(activity, *args); StepArgs.new( args, Circuit::Right, [], [Circuit::Right, Circuit::Right], activity[:End, :right] ); end
+        def args_for_fail(activity, *args); StepArgs.new( args, Circuit::Left,  [], [Circuit::Left, Circuit::Left], activity[:End, :left] ); end
+        def args_for_step(activity, *args); StepArgs.new( args, Circuit::Right, [[ Circuit::Left, activity[:End, :left] ]], [Circuit::Right, Circuit::Left], activity[:End, :right] ); end
+
         # @api private
         # 1. Processes the step API's options (such as `:override` of `:before`).
         # 2. Uses `Sequence.alter!` to maintain a linear array representation of the circuit's tasks.
         #    This is then transformed into a circuit/Activity. (We could save this step with some graph magic)
         # 3. Returns a new Activity instance.
-        def add(step_args)
-          heritage.record(:add, step_args)
+        def add(activity, sequence, step_args) # decoupled from any self deps.
+          put activity, sequence
+          heritage.record(:add, activity, sequence, step_args)
 
           proc, options = process_args(*step_args.original_args)
 
@@ -41,14 +54,15 @@ module Trailblazer
           task = Activity::Step(proc, *step_args.args_for_Step)
 
           # insert Step into Sequence (append, replace, before, etc.)
-          sequence_row = Sequence::StepRow.new(task, options, *step_args)
+          sequence_row = Sequence::StepRow.new(task, options, *step_args) # DISCUSS: move to Sequence ?
 
           # 1. insert Step into Sequence (append, replace, before, etc.)
-          self["__sequence__"].alter!(options, sequence_row)
+          sequence.alter!(options, sequence_row)
 
           # 2. transform sequence to Activity
           # 3. save Activity in operation
-          self["__activity__"] = self["__sequence__"].to_activity(self["__activity__"])
+          # self["__activity__"] = self["__sequence__"].to_activity(self["__activity__"])
+          sequence.to_activity(activity)
         end
 
         private
