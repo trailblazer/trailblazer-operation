@@ -13,3 +13,5 @@ matrix:
       gemfile: Gemfile
     - rvm: 2.4.0
       gemfile: Gemfile
+    - rvm: jruby-9.1.7.0
+      env: JRUBY_OPTS="--profile.api"
