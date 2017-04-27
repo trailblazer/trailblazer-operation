@@ -2,10 +2,11 @@ module Trailblazer
   module Operation::Railway
     # This is code run at compile-time and can be slow.
     module DSL
-      def success(proc, options={}); add_step!(:pass, proc, options); end
-      def failure(proc, options={}); add_step!(:fail, proc, options); end
-      def step   (proc, options={}); add_step!(:step, proc, options); end
-      # TODO: ADD PASS AND FAIL
+      def pass(proc, options={}); add_step!(:pass, proc, options); end
+      def fail(proc, options={}); add_step!(:fail, proc, options); end
+      def step(proc, options={}); add_step!(:step, proc, options); end
+      alias_method :success, :pass
+      alias_method :failure, :fail
 
       private
       StepArgs = Struct.new(:original_args, :incoming_direction, :connections, :args_for_Step, :insert_before)

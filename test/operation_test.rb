@@ -46,44 +46,22 @@ class DeclarativeApiTest < Minitest::Spec
   end
 
   it { Noop.().inspect("params").must_equal %{<Result:true [{}] >} }
+
+  #---
+  #- pass
+  #- fail
+  class Update < Trailblazer::Operation
+    pass ->(options, **)         { options["a"] = false }
+    step ->(options, params, **) { options["b"] = params[:decide] }
+    fail ->(options, **)         { options["c"] = true }
+  end
+
+  it { Update.({}, decide: true).inspect("a", "b", "c").must_equal %{<Result:true [false, true, nil] >} }
+  it { Update.({}, decide: false).inspect("a", "b", "c").must_equal %{<Result:false [false, false, true] >} }
 end
+
 
 =begin
-class BlaTest < Minitest::Spec
-  Circuit = Trailblazer::Circuit
-
-  it do
-
-    # pass pass_fast: true => wires directly to End.pass_fast
-    # fail fail_fast: true => wires directly to End.fail_fast
-    # step fail_fast: true => wires directly to End.fail_fast
-    # step pass_fast: true => wires directly to End.pass_fast
-
-
-    activity = Circuit::Activity({id: "A/"}, end: {
-      right: Circuit::End.new(:right), left: Circuit::End.new(:left),
-      pass_fast: Circuit::End.new(:pass_fast), fail_fast: Circuit::End.new(:fail_fast) }
-    ) { |evt|
-
-      {
-        evt[:Start] => { Circuit::Right => evt[:End, :right], Circuit::Left => evt[:End, :left] },
-      }
-    }
-
-    railway = [
-      [ :decide!, :right, Circuit::Right, [[Circuit::Left, :left]] ], # step
-      [ :was_ok!, :right, Circuit::Right, [] ], # pass
-      [ :wasnt_ok!, :left, Circuit::Left, [] ], # fail
-      [ :handle!, :left, Circuit::Left, [] ],   # fail
-    ]
-
-
-
-    activity.must_inspect "{#<Start: default {}>=>{Right=>:decide!, Left=>:wasnt_ok!}, :decide!=>{Right=>:was_ok!, Left=>:wasnt_ok!}, :was_ok!=>{Right=>#<End: right {}>}, :wasnt_ok!=>{Left=>:handle!}, :handle!=>{Left=>#<End: left {}>}}"
-  end
-end
-
-
 module MiniTest::Assertions
   def assert_inspect(text, subject)
     circuit, _ = subject.values
