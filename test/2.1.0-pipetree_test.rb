@@ -4,13 +4,13 @@ class KWBugsTest < Minitest::Spec
   Merchant = Struct.new(:id)
 
   class Merchant::New < Trailblazer::Operation
-    step ->(options) {
+    step ->(options, **) {
       options["model"] = 1
        options["bla"] = true # this breaks Ruby 2.2.2.
      }
 
     step :add!
-    def add!(yo:, model:, **)
+    def add!(options, yo:, model:, **)
       raise if model.nil?
     end
   end
@@ -25,10 +25,10 @@ class KWOptionsTest < Minitest::Spec
   A = Trailblazer::Circuit::Task::Args::KW( ->(options, params:, z:, **) { options["options_z"] = options["z"] } )
 
   class Create < Trailblazer::Operation
-    step [ ->(input, options) { X.(input, options, z: "Z!") }, name: "X" ]
-    step [ ->(input, options) { Y.(input, options, z: "Z!") }, name: "Y" ]
-    step [ ->(input, options) { Z.(input, options, z: "Z!") }, name: "Z" ]
-    step [ ->(input, options) { A.(input, options, z: "Z!") }, name: "A" ]
+    step [ ->(options, **) { X.(options, z: "Z!") }, name: "X" ]
+    step [ ->(options, **) { Y.(options, z: "Z!") }, name: "Y" ]
+    step [ ->(options, **) { Z.(options, z: "Z!") }, name: "Z" ]
+    step [ ->(options, **) { A.(options, z: "Z!") }, name: "A" ]
   end
 
   it { Create.({ params: "yo" }, "z" => 1).inspect("x", "y", "kw_z", "options_z").must_equal %{<Result:true [true, {:params=>\"yo\"}, "Z!", 1] >} }
@@ -39,7 +39,7 @@ class Ruby200PipetreeTest < Minitest::Spec
   class Create < Trailblazer::Operation
     step ->(*, params:, **) { params["run"] }    # only test kws.
     step ->(options, params:nil, **) { options["x"] = params["run"] } # read and write.
-    step ->(options) { options["y"] = options["params"]["run"] } # old API.
+    step ->(options, **) { options["y"] = options["params"]["run"] } # old API.
   end
 
   it { Create.("run" => false).inspect("x", "y").must_equal %{<Result:false [nil, nil] >} }
@@ -59,7 +59,7 @@ class Ruby200PipetreeTest < Minitest::Spec
       options["x"] = params["run"]
     end
 
-    def y!(options)
+    def y!(options, **)
       options["y"] = options["params"]["run"]
     end
   end
@@ -82,7 +82,7 @@ class Ruby200PipetreeTest < Minitest::Spec
     end
 
     class Y
-      def self.call(options)
+      def self.call(options, **)
         options["y"] = options["params"]["run"]
       end
     end
