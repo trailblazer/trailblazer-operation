@@ -17,18 +17,9 @@ module Trailblazer
 
       # This is code run at compile-time and can be slow.
       module DSL
-        def success(proc, options={})
-          self["__activity__"] = add(self["__activity__"], self["__sequence__"], args_for_pass(self["__activity__"], proc, options) )
-        end
-
-        def failure(proc, options={})
-          self["__activity__"] = add(self["__activity__"], self["__sequence__"], args_for_fail(self["__activity__"], proc, options) )
-        end
-
-        def step(proc, options={});
-          self["__activity__"] = add(self["__activity__"], self["__sequence__"], args_for_step(self["__activity__"], proc, options) )
-        end
-
+        def success(proc, options={}); add_step!(:pass, proc, options); end
+        def failure(proc, options={}); add_step!(:fail, proc, options); end
+        def step   (proc, options={}); add_step!(:step, proc, options); end
         # TODO: ADD PASS AND FAIL
 
         private
@@ -39,30 +30,30 @@ module Trailblazer
         def args_for_fail(activity, *args); StepArgs.new( args, Circuit::Left,  [], [Circuit::Left, Circuit::Left], activity[:End, :left] ); end
         def args_for_step(activity, *args); StepArgs.new( args, Circuit::Right, [[ Circuit::Left, activity[:End, :left] ]], [Circuit::Right, Circuit::Left], activity[:End, :right] ); end
 
+        def add_step!(type, proc, options)
+          heritage.record(type, proc, options)
+
+          activity, sequence = self["__activity__"], self["__sequence__"]
+
+          self["__activity__"] = add(activity, sequence, send("args_for_#{type}", activity, proc, options) )
+        end
+
         # @api private
         # 1. Processes the step API's options (such as `:override` of `:before`).
         # 2. Uses `Sequence.alter!` to maintain a linear array representation of the circuit's tasks.
         #    This is then transformed into a circuit/Activity. (We could save this step with some graph magic)
         # 3. Returns a new Activity instance.
         def add(activity, sequence, step_args) # decoupled from any self deps.
-          put activity, sequence
-          heritage.record(:add, activity, sequence, step_args)
-
           proc, options = process_args(*step_args.original_args)
 
-          # actual circuit task.
+          # Wrap step code into the actual circuit task.
           task = Activity::Step(proc, *step_args.args_for_Step)
 
-          # insert Step into Sequence (append, replace, before, etc.)
-          sequence_row = Sequence::StepRow.new(task, options, *step_args) # DISCUSS: move to Sequence ?
-
           # 1. insert Step into Sequence (append, replace, before, etc.)
-          sequence.alter!(options, sequence_row)
-
+          sequence.insert!(task, options, step_args)
           # 2. transform sequence to Activity
-          # 3. save Activity in operation
-          # self["__activity__"] = self["__sequence__"].to_activity(self["__activity__"])
           sequence.to_activity(activity)
+          # 3. save Activity in operation (on the outside)
         end
 
         private

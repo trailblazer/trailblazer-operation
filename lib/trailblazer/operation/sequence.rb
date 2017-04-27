@@ -9,13 +9,10 @@ module Trailblazer
     class Sequence < ::Array
       StepRow = Struct.new(:step, :options, *DSL::StepArgs.members) # step, original_args, incoming_direction, ...
 
-      def alter!(options, row)
-        return insert(find_index!(options[:before]),  row) if options[:before]
-        return insert(find_index!(options[:after])+1, row) if options[:after]
-        return self[find_index!(options[:replace])] = row  if options[:replace]
-        return delete_at(find_index!(options[:delete])) if options[:delete]
+      def insert!(task, options, step_args)
+        row = Sequence::StepRow.new(task, options, *step_args)
 
-        self << row
+        alter!(options, row)
       end
 
       # Transform this Sequence into a new Activity.
@@ -42,6 +39,16 @@ module Trailblazer
       end
 
       private
+
+      def alter!(options, row)
+        return insert(find_index!(options[:before]),  row) if options[:before]
+        return insert(find_index!(options[:after])+1, row) if options[:after]
+        return self[find_index!(options[:replace])] = row  if options[:replace]
+        return delete_at(find_index!(options[:delete])) if options[:delete]
+
+        self << row
+      end
+
       def find_index(name)
         row = find { |row| row.options[:name] == name }
         index(row)
