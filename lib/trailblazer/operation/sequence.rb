@@ -31,7 +31,7 @@ module Trailblazer
 
           # connect new task to End.left (if it's a step), or End.fail_fast, etc.
           step_config.connections.each do |(direction, target)|
-            activity = Circuit::Activity::Connect(activity, step, direction, target)
+            activity = Circuit::Activity::Connect(activity, step, target, direction: direction)
           end
         end
 

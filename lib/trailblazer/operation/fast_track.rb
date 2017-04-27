@@ -10,7 +10,6 @@ module Trailblazer
         includer.initialize_fast_track_events!
       end
 
-
       module DSL
         def initialize_fast_track_events! # FIXME: make this cooler!
           heritage.record :initialize_fast_track_events!
@@ -22,7 +21,7 @@ module Trailblazer
             }
           }
 
-          self["__activity__"] = Circuit::Activity::Rewrite(self["__activity__"], {}, fast_track_events) { |*| }
+          self["__activity__"] = Circuit::Activity::Rewrite(self["__activity__"], events: fast_track_events) { |*| }
         end
 
         def args_for_pass(activity, proc, options)
