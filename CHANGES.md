@@ -3,8 +3,9 @@ TODO:
 
 ## 0.1.0
 
+* Add `pass` and `fail` as four-character aliases for `success` and `failure`.
 * Remove `Uber::Callable` requirement and treat all non-`:symbol` steps as callable objects.
-* Remove non-kw options for steps. All steps receive keyword args now.
+* Remove non-kw options for steps. All steps receive keyword args now:
 
     ```ruby
     def model(options)
@@ -18,7 +19,8 @@ TODO:
 * Remove `Operation#[]` and `Operation#[]=`. Please only change state in `options`.
 * API change for `step Macro()`: the macro's return value is now called with the normal step signature `(options, kws**)` just like a normal step. There's a soft-deprecation warning.
 * Remove support for Ruby 1.9.3 for now. This can be re-introduced on demand.
-* Remove `pipetree` and `uber` dependency.
+* Remove `pipetree` in favor of [`trailblazer-circuit`](https://github.com/trailblazer/trailblazer-circuit). This allows rich workflows and state machines in an operation.
+* Remove `uber` dependency.
 
 ## 0.0.13
 
