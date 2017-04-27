@@ -61,7 +61,7 @@ module Trailblazer
       # Step calls step.(options, **options, flow_options)
       # Output direction binary: true=>Right, false=>Left.
       # Passes through all subclasses of Direction.~~~~~~~~~~~~~~~~~
-      def self.Step(step, on_true, on_false)
+      Step = ->(step, on_true, on_false) do
         ->(direction, options, flow_options) do
           # Execute the user step with TRB's kw args.
           result = Circuit::Task::Args::KW(step).(direction, options, flow_options)
@@ -75,7 +75,7 @@ module Trailblazer
 
 
     # Allows defining dependencies and inject/override them via runtime options, if desired.
-    class Railway::Step
+    class Railway::St___ep
       def initialize(step, dependencies={})
         @step, @dependencies = step, dependencies
       end
