@@ -17,7 +17,7 @@ TODO:
     def model(options, **)
     ```
 * Remove `Operation#[]` and `Operation#[]=`. Please only change state in `options`.
-* API change for `step Macro()`: the macro's return value is now called with the normal step signature `(options, kws**)` just like a normal step. There's a soft-deprecation warning.
+* API change for `step Macro()`: the macro's return value is now called with the low-level "Task API" signature `(direction, options, flow_options)`. You need to return `[direction, options, flow_options]`. There's a soft-deprecation warning.
 * Remove support for Ruby 1.9.3 for now. This can be re-introduced on demand.
 * Remove `pipetree` in favor of [`trailblazer-circuit`](https://github.com/trailblazer/trailblazer-circuit). This allows rich workflows and state machines in an operation.
 * Remove `uber` dependency.
