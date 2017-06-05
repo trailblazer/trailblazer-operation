@@ -17,7 +17,7 @@ class SkillTest < Minitest::Spec
       skill = Trailblazer::Skill.new(runtime_skills, class_level_container)
 
       # non-existent key.
-      skill[:nope].must_equal nil
+      skill[:nope].must_be_nil
 
       # from runtime.
       skill["contract"].must_equal MyContract
@@ -42,7 +42,7 @@ class SkillTest < Minitest::Spec
 
       # setting nil.
       skill[:valid] = nil
-      skill[:valid].must_equal nil
+      skill[:valid].must_be_nil
     end
   end
 end

@@ -23,6 +23,6 @@ class InheritanceTest < Minitest::Spec
   it do
     Update["a"].must_equal "A"
     Update["b"].must_equal "B"
-    Update["c"].must_equal nil
+    Update["c"].must_be_nil
   end
 end

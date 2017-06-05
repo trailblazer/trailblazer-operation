@@ -31,10 +31,24 @@ module Trailblazer
       #    This is then transformed into a circuit/Activity. (We could save this step with some graph magic)
       # 3. Returns a new Activity instance.
       def add(activity, sequence, step_args, step_builder=Operation::Railway::Step) # decoupled from any self deps.
-        proc, options = process_args(*step_args.original_args)
+        proc, user_options = *step_args.original_args
 
-        # Wrap step code into the actual circuit task.
-        task = build_task(proc, options, step_args, step_builder)
+        macro = proc.is_a?(Array)
+
+        if macro
+          proc, default_options, runner_options = *proc
+        else
+          proc, default_options = proc, { name: proc }
+        end
+
+        proc, options = process_args(proc, default_options, user_options)
+
+        if macro
+          task = build_task_for_macro(proc, options, step_args, step_builder)
+        else
+          # Wrap step code into the actual circuit task.
+          task = build_task_for_step(proc, options, step_args, step_builder)
+        end
 
         # 1. insert Step into Sequence (append, replace, before, etc.)
         sequence.insert!(task, options, step_args)
@@ -45,50 +59,37 @@ module Trailblazer
 
       private
       # DSL option processing: proc/macro, :override
-      def process_args(proc, options)
-        _proc, _options = normalize_args(proc, options) # handle step/macro args.
-
-        options = _options.merge(options)
+      def process_args(proc, default_options, user_options)
+        options = default_options.merge(user_options)
         options = options.merge(replace: options[:name]) if options[:override] # :override
 
-        [ _proc, options ]
+        [ proc, options ]
       end
 
-      def build_task(proc, options, step_args, step_builder)
+      def build_task_for_step(proc, options, step_args, step_builder)
         step_builder.(proc, *step_args.args_for_Step)
       end
 
-      # Decompose single array from macros or set default name for user step.
-      def normalize_args(proc, options)
-        proc.is_a?(Array) ?
-          proc :                   # macro
-          [ proc, { name: proc } ] # user step
+      def build_task_for_macro(proc, options, step_args, step_builder)
+        proc
       end
 
       module DeprecatedMacro # TODO: REMOVE IN 2.2.
-        def self.call(step, on_true, on_false)
+        def build_task_for_macro(proc, *)
+          if proc.is_a?(Proc)
+            return proc if proc.arity != 2
+          else
+            return proc if proc.method(:call).arity != 2
+          end
+
+          warn %{[Trailblazer] Macros with API (input, options) are deprecated. Please use the "Task API" signature (direction, options, flow_options). (#{proc})}
+
           ->(direction, options, flow_options) do
-            result    = step.(flow_options[:context], options)
-            direction = Step.binary_direction_for(result, on_true, on_false)
+            result    = proc.(flow_options[:exec_context], options) # run the macro, with the deprecated signature.
+            direction = Step.binary_direction_for(result, Circuit::Right, Circuit::Left)
 
             [ direction, options, flow_options ]
           end
-        end
-
-        def build_task(proc, options, step_args, step_builder)
-          original_proc, _ = step_args.original_args
-          return super unless original_proc.is_a?(Array)
-          original_proc = original_proc.first
-
-          if original_proc.is_a?(Proc)
-            return super if original_proc.arity != 2
-          else
-            return super if original_proc.method(:call).arity != 2
-          end
-
-
-          warn "[Trailblazer] Macros with API (input, options) are deprecated. Please use the signature (options, **) just like in normal steps. (#{proc})"
-          super(proc, options, step_args, DeprecatedMacro)
         end
       end
     end # DSL

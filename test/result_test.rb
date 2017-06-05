@@ -8,7 +8,7 @@ class ResultTest < Minitest::Spec
   # it { success["success?"].must_equal true }
   # it { success["failure?"].must_equal false }
   it { success["x"].must_equal String }
-  it { success["not-existant"].must_equal nil }
+  it { success["not-existant"].must_be_nil }
   it { success.slice("x").must_equal [String] }
 
   #---

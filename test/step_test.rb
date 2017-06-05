@@ -19,7 +19,11 @@ class StepTest < Minitest::Spec
     end
   end
 
-  MyMacro = ->(options, e:nil, **) { options["e"] = e }
+  MyMacro = ->( direction, options, flow_options ) do
+    options["e"] = options[:e]
+
+    [ direction, options, flow_options ]
+  end
 
   class Create < Trailblazer::Operation
     step ->(options, a:nil, **) { options["a"] = a }
@@ -35,7 +39,7 @@ class StepTest < Minitest::Spec
 
   it { Create.({}, a: 1, b: 2, c: 3, d: 4, e: 5).inspect("a", "b", "c", "d", "e").must_equal "<Result:true [1, 2, 3, 4, 5] >" }
 
-  it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?step_test.rb/, "").must_equal %{[>#<Proc::25 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>]} }
+  it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?step_test.rb/, "").must_equal %{[>#<Proc::29 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>]} }
   # poor test to make sure we pass debug information to Activity.
   it { Create["__activity__"].circuit.to_fields.last.to_a[3].last.must_equal :d }
 
@@ -97,13 +101,13 @@ class StepTest < Minitest::Spec
   class New < Create
   end
 
-  it { Trailblazer::Operation::Inspect.(New).gsub(/0x.+?step_test.rb/, "").must_equal %{[>#<Proc::25 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>]} }
+  it { Trailblazer::Operation::Inspect.(New).gsub(/0x.+?step_test.rb/, "").must_equal %{[>#<Proc::29 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>]} }
 
   class Update < Create
     step :after_save!
   end
 
-  it { Trailblazer::Operation::Inspect.(Update).gsub(/0x.+?step_test.rb/, "").must_equal %{[>#<Proc::25 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>,>after_save!]} }
+  it { Trailblazer::Operation::Inspect.(Update).gsub(/0x.+?step_test.rb/, "").must_equal %{[>#<Proc::29 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>,>after_save!]} }
 end
 
 #---

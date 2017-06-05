@@ -20,9 +20,9 @@ module Trailblazer
         # Top-level, this method is called when you do Create.() and where
         # all the fun starts, ends, and hopefully starts again.
         def call(options)
-          activity = self["__activity__"] # FIXME: rename to activity, deprecate ["__activity__"].inspect
+          activity = self["__activity__"] # FIXME: rename to pipetree, deprecate ["__pipetree__"].inspect
 
-          last, operation, flow_options = activity.(activity[:Start], options, context: new) # TODO: allow different context.
+          last, operation, flow_options = activity.(activity[:Start], options, exec_context: new) # TODO: allow different exec_context.
 
           # Result is successful if the activity ended with the "right" End event.
           Result.new(last.kind_of?(End::Success), options)
@@ -81,19 +81,6 @@ module Trailblazer
       end
     end
 
-
-    # Allows defining dependencies and inject/override them via runtime options, if desired.
-    class Railway::St___ep
-      def initialize(step, dependencies={})
-        @step, @dependencies = step, dependencies
-      end
-
-      def call(input, options)
-        @dependencies.each { |k, v| options[k] ||= v } # not sure i like this, but the step's API is cool.
-
-        @step.(input, options)
-      end
-    end
   end
 end
 
