@@ -17,6 +17,13 @@ module Trailblazer
       end
 
       module ClassMethods
+        # TODO: AT TJS POINT, options needs to be skill already, etc.
+        def __call__(direction, options, flow_options={}) # FIXME: direction
+          activity = self["__activity__"]
+
+          direction, options, flow_options = activity.(activity[:Start], options, flow_options.merge( exec_context: new ))
+        end
+
         # Top-level, this method is called when you do Create.() and where
         # all the fun starts, ends, and hopefully starts again.
         def call(options)
