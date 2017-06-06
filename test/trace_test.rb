@@ -7,7 +7,6 @@ class TraceTest < Minitest::Spec
   MyNested = ->(direction, options, flow_options) do
     B.__call__("start here", options,
       flow_options.merge(
-        runner: flow_options[:_runner],
         debug: B["__activity__"].circuit.instance_variable_get(:@name),
         # step_runners: ..
       )
@@ -36,13 +35,27 @@ class TraceTest < Minitest::Spec
         nil   => with_tracing,
       }
 
-    Create.__call__(
+    direction, options, flow_options = Create.__call__(
       "nil fixme start signal",
       options={},
-      runner: Trailblazer::Circuit::Activity::Wrapped::Runner, stack: stack = Trailblazer::Circuit::Trace::Stack.new,
-      step_runners: step_runners, debug: Create["__activity__"].circuit.instance_variable_get(:@name)
+
+      runner: Trailblazer::Circuit::Activity::Wrapped::Runner,
+      stack:  Trailblazer::Circuit::Trace::Stack.new,
+      step_runners: step_runners,
+      debug:  Create["__activity__"].circuit.instance_variable_get(:@name)
     )
 
-    puts Circuit::Trace::Present.tree(stack.to_a)
+    puts output = Circuit::Trace::Present.tree(flow_options[:stack].to_a)
+
+    output.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- #<Trailblazer::Circuit::Start:>
+|-- Create.task.a
+|-- #<Proc:.rb:7 (lambda)>
+|   |-- #<Trailblazer::Circuit::Start:>
+|   |-- B.task.b
+|   |-- B.task.e
+|   |-- #<Trailblazer::Operation::Railway::End::Success:>
+|   `-- #<Proc:.rb:7 (lambda)>
+|-- Create.task.c
+`-- #<Trailblazer::Operation::Railway::End::Success:>}
   end
 end
