@@ -47,14 +47,9 @@ module Trailblazer
       end
 
       private
-      # Normalizes proc/macro, :override and :name options.
-      def process_options(default_options, user_options)
-        options = default_options.merge(user_options)
-        options = options.merge(replace: options[:name]) if options[:override] # :override
-        options
-      end
 
-      # Returns the {Task} instance to be inserted into the {Circuit}
+      # Returns the {Task} instance to be inserted into the {Circuit}, its options (e.g. :name)
+      # and the runner_options.
       def build_task_for(proc, user_options, step_args, step_builder)
          macro = proc.is_a?(Array)
 
@@ -70,10 +65,12 @@ module Trailblazer
         return task, options, runner_options
       end
 
-      def build_task_for_step(proc, step_args, step_builder)
+      def build_task_for_step(proc, step_args, task_builder)
         proc, default_options = proc, { name: proc }
 
-        return step_builder.(proc, *step_args.args_for_Step), default_options, {}
+        task = task_builder.(proc, *step_args.args_for_Step)
+
+        return task, default_options, {}
       end
 
       def build_task_for_macro(proc, step_args, step_builder)
@@ -82,8 +79,17 @@ module Trailblazer
         return proc, default_options, runner_options
       end
 
+      # Normalizes :override and :name options.
+      def process_options(default_options, user_options)
+        options = default_options.merge(user_options)
+        options = options.merge(replace: options[:name]) if options[:override] # :override
+        options
+      end
+
       module DeprecatedMacro # TODO: REMOVE IN 2.2.
-        def build_task_for_macro(proc, *)
+        def build_task_for_macro(_proc, *args)
+          proc, default_options, runner_options = *_proc
+
           if proc.is_a?(Proc)
             return super if proc.arity != 2
           else
@@ -92,12 +98,14 @@ module Trailblazer
 
           warn %{[Trailblazer] Macros with API (input, options) are deprecated. Please use the "Task API" signature (direction, options, flow_options). (#{proc})}
 
-          ->(direction, options, flow_options) do
+          __proc = ->(direction, options, flow_options) do
             result    = proc.(flow_options[:exec_context], options) # run the macro, with the deprecated signature.
             direction = Step.binary_direction_for(result, Circuit::Right, Circuit::Left)
 
             [ direction, options, flow_options ]
           end
+
+          super([__proc, default_options, runner_options], *args)
         end
       end
     end # DSL
