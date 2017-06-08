@@ -22,7 +22,10 @@ module Trailblazer
 
         activity, sequence = self["__activity__"], self["__sequence__"]
 
-        self["__activity__"] = add(activity, sequence, send("args_for_#{type}", activity, proc, options) )
+        # compile the arguments specific to step/fail/pass.
+        args_for = send("args_for_#{type}", activity, proc, options)
+
+        self["__activity__"] = add(activity, sequence, args_for )
       end
 
       # @api private

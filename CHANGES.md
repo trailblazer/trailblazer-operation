@@ -3,6 +3,9 @@ TODO:
 
 ## 0.1.0
 
+    FastTrack optional
+    Wrapped optional
+
 * Add `pass` and `fail` as four-character aliases for `success` and `failure`.
 * Remove `Uber::Callable` requirement and treat all non-`:symbol` steps as callable objects.
 * Remove non-kw options for steps. All steps receive keyword args now:
