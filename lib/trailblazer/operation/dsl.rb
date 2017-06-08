@@ -76,7 +76,7 @@ module Trailblazer
       def build_task_for_macro(proc, step_args, step_builder)
         proc, default_options, runner_options = *proc
 
-        return proc, default_options, runner_options
+        return proc, default_options, runner_options || {}
       end
 
       # Normalizes :override and :name options.

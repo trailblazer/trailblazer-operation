@@ -22,9 +22,7 @@ module Trailblazer
           activity = self["__activity__"]
 
         task_wraps = Circuit::Activity::Wrapped::Wraps.new( Circuit::Activity::Wrapped::Activity, self["__task_wraps__"] )
-
-
-
+        flow_options = flow_options.merge( runner: Circuit::Activity::Wrapped::Runner )
 
         activity.(activity[:Start], options, flow_options.merge(
           exec_context: new,

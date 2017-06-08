@@ -30,7 +30,7 @@ class StepTest < Minitest::Spec
     step Callable
     step Implementation.method(:c)
     step :d
-    step [ MyMacro, {} ]
+    step [ MyMacro, {} ] # doesn't provide runner_options.
 
     def d(options, d:nil, **)
       options["d"] = d
