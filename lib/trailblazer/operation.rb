@@ -1,6 +1,7 @@
 require "forwardable"
 require "declarative"
 require "trailblazer/operation/skill"
+require "trailblazer/operation/deprecated_macro" # TODO: remove in 2.2.
 require "trailblazer/operation/railway"
 require "trailblazer/operation/fast_track"
 
