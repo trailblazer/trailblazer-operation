@@ -37,7 +37,7 @@ module Trailblazer
         proc, user_options = *step_args.original_args
 
         # DISCUSS: do we really need step_args?
-        task, options = build_task_for(proc, user_options, step_args, step_builder)
+        task, options, runner_options = build_task_for(proc, user_options, step_args, step_builder)
 
         # 1. insert Step into Sequence (append, replace, before, etc.)
         sequence.insert!(task, options, step_args)
@@ -48,13 +48,13 @@ module Trailblazer
 
       private
       # Normalizes proc/macro, :override and :name options.
-      def process_args(proc, default_options, user_options)
+      def process_options(default_options, user_options)
         options = default_options.merge(user_options)
         options = options.merge(replace: options[:name]) if options[:override] # :override
-
-        [ proc, options ]
+        options
       end
 
+      # Returns the {Task} instance to be inserted into the {Circuit}
       def build_task_for(proc, user_options, step_args, step_builder)
          macro = proc.is_a?(Array)
 
@@ -65,7 +65,7 @@ module Trailblazer
           task, default_options, runner_options = build_task_for_step(proc ,step_args, step_builder)
         end
 
-        proc, options = process_args(proc, default_options, user_options)
+        options = process_options(default_options, user_options)
 
         return task, options, runner_options
       end
