@@ -2,7 +2,6 @@ require "test_helper"
 
 class TraceTest < Minitest::Spec
   Circuit = Trailblazer::Circuit
-  Wrapped = Trailblazer::Circuit::Activity::Wrapped
 
   MyNested = ->(direction, options, flow_options) do
     B.__call__("start here", options, flow_options )
@@ -35,12 +34,12 @@ class TraceTest < Minitest::Spec
 
     output.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- #<Trailblazer::Circuit::Start:>
 |-- Create.task.a
-|-- #<Proc:.rb:7 (lambda)>
+|-- #<Proc:.rb:6 (lambda)>
 |   |-- #<Trailblazer::Circuit::Start:>
 |   |-- B.task.b
 |   |-- B.task.e
 |   |-- #<Trailblazer::Operation::Railway::End::Success:>
-|   `-- #<Proc:.rb:7 (lambda)>
+|   `-- #<Proc:.rb:6 (lambda)>
 |-- Create.task.c
 `-- #<Trailblazer::Operation::Railway::End::Success:>}
   end

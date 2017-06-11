@@ -14,7 +14,7 @@ class TaskWrapTest < Minitest::Spec
       { name: "MyMacro" },
       alteration: ->(wrap_circuit) do
         Trailblazer::Circuit::Activity::Before( wrap_circuit,
-          Trailblazer::Circuit::Activity::Wrapped::Call,
+          Trailblazer::Circuit::Wrap::Call,
           Trailblazer::Operation::Railway::Inject( contract: "MyDefaultContract" ),
           direction: Trailblazer::Circuit::Right
         )
@@ -29,5 +29,6 @@ class TaskWrapTest < Minitest::Spec
 
   # it { Create.__call__("adsf", options={}, {}).inspect("MyMacro.contract", "a.contract").must_equal %{} }
   it { Create.__call__("adsf", options={}, {})[1].inspect.must_equal %{{\"a.contract\"=>nil, :contract=>\"MyDefaultContract\", \"MyMacro.contract\"=>\"MyDefaultContract\"}} }
+  # injected from outside
   it { Create.__call__("adsf", options={ :contract=>"MyExternalContract" }, {})[1].inspect.must_equal %{{:contract=>\"MyExternalContract\", \"a.contract\"=>\"MyExternalContract\", \"MyMacro.contract\"=>\"MyExternalContract\"}} }
 end

@@ -18,18 +18,11 @@ module Trailblazer
 
       module ClassMethods
         # TODO: AT TJS POINT, options needs to be skill already, etc.
+        # @returns direction, options, flow_options
         def __call__(direction, options, flow_options={}) # FIXME: direction
           activity = self["__activity__"]
 
-        task_wraps = Circuit::Activity::Wrapped::Wraps.new( Circuit::Activity::Wrapped::Activity, self["__task_wraps__"] )
-        flow_options = flow_options.merge( runner: Circuit::Activity::Wrapped::Runner )
-
-        activity.(activity[:Start], options, flow_options.merge(
-          exec_context: new,
-          task_wraps:   task_wraps,
-          debug:        activity.circuit.instance_variable_get(:@name) ))
-
-          # direction, options, flow_options = activity.(activity[:Start], options, flow_options.merge( exec_context: new ))
+          activity.(activity[:Start], options, flow_options.merge( exec_context: new ))
         end
 
         # Top-level, this method is called when you do Create.() and where
