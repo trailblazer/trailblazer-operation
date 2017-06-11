@@ -1,6 +1,3 @@
-require "trailblazer/operation/result"
-require "trailblazer/circuit"
-
 module Trailblazer
   # Operations is simply a thin API to define, inherit and run circuits by passing the options object.
   # It encourages the linear railway style (http://trb.to/gems/workflow/circuit.html#operation) but can
