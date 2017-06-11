@@ -86,6 +86,3 @@ module Trailblazer
 
   end
 end
-
-require "trailblazer/operation/dsl"
-require "trailblazer/operation/sequence"

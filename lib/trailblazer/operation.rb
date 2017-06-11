@@ -5,6 +5,8 @@ require "trailblazer/operation/skill"
 require "trailblazer/operation/deprecated_macro" # TODO: remove in 2.2.
 require "trailblazer/operation/result"
 require "trailblazer/operation/railway"
+require "trailblazer/operation/dsl"
+require "trailblazer/operation/sequence"
 require "trailblazer/operation/fast_track"
 require "trailblazer/operation/task_wrap"
 require "trailblazer/operation/injection"
