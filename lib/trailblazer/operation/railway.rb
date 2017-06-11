@@ -2,6 +2,8 @@ module Trailblazer
   # Operations is simply a thin API to define, inherit and run circuits by passing the options object.
   # It encourages the linear railway style (http://trb.to/gems/workflow/circuit.html#operation) but can
   # easily be extend for more complex workflows.
+
+      # FIXME: rename pipetree, deprecate ["__pipetree__"].inspect
   class Operation
     # End event: All subclasses of End:::Success are interpreted as "success"?
     module Railway
@@ -16,18 +18,14 @@ module Trailblazer
       module ClassMethods
         # TODO: AT TJS POINT, options needs to be skill already, etc.
         # @returns direction, options, flow_options
-        def __call__(direction, options, flow_options={}) # FIXME: direction
-          activity = self["__activity__"]
-
-          activity.(activity[:Start], options, flow_options.merge( exec_context: new ))
+        def __call__(start_at, options, flow_options)
+          self["__activity__"].(start_at, options, flow_options.merge( exec_context: new ))
         end
 
         # Top-level, this method is called when you do Create.() and where
         # all the fun starts, ends, and hopefully starts again.
         def call(options)
-          activity = self["__activity__"] # FIXME: rename to pipetree, deprecate ["__pipetree__"].inspect
-
-          last, operation, flow_options = activity.(activity[:Start], options, exec_context: new) # TODO: allow different exec_context.
+          last, options, _ = __call__( self["__activity__"][:Start], options, {} ) # TODO: allow different exec_context.
 
           # Result is successful if the activity ended with the "right" End event.
           Result.new(last.kind_of?(End::Success), options)

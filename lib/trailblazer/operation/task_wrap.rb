@@ -16,6 +16,7 @@ module Trailblazer
         end
 
         # options is a Skill already.
+        # __call__ injects all necessary parameters so we can use task wraps per task, do tracing, etc.
         def __call__(direction, options, flow_options={}) # FIXME: direction
           activity     = self["__activity__"]
 
