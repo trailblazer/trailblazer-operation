@@ -43,4 +43,18 @@ class TraceTest < Minitest::Spec
 |-- Create.task.c
 `-- #<Trailblazer::Operation::Railway::End::Success:>}
   end
+
+  it "Operation::trace" do
+    result = Create.trace(options={})
+    result.wtf?.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- #<Trailblazer::Circuit::Start:>
+|-- Create.task.a
+|-- #<Proc:.rb:6 (lambda)>
+|   |-- #<Trailblazer::Circuit::Start:>
+|   |-- B.task.b
+|   |-- B.task.e
+|   |-- #<Trailblazer::Operation::Railway::End::Success:>
+|   `-- #<Proc:.rb:6 (lambda)>
+|-- Create.task.c
+`-- #<Trailblazer::Operation::Railway::End::Success:>}
+  end
 end

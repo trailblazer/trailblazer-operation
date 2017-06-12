@@ -17,7 +17,7 @@ module Trailblazer
 
           __proc = ->(direction, options, flow_options) do
             result    = proc.(flow_options[:exec_context], options) # run the macro, with the deprecated signature.
-            direction = Step.binary_direction_for(result, Circuit::Right, Circuit::Left)
+            direction = TaskBuilder.binary_direction_for(result, Circuit::Right, Circuit::Left)
 
             [ direction, options, flow_options ]
           end

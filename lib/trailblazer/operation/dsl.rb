@@ -33,16 +33,20 @@ module Trailblazer
       # 2. Uses `Sequence.alter!` to maintain a linear array representation of the circuit's tasks.
       #    This is then transformed into a circuit/Activity. (We could save this step with some graph magic)
       # 3. Returns a new Activity instance.
-      def add(activity, sequence, step_args, step_builder=Operation::Railway::Step) # decoupled from any self deps.
+      def add(activity, sequence, step_args, step_builder=Operation::Railway::TaskBuilder) # decoupled from any self deps.
         proc, user_options = *step_args.original_args
 
         # DISCUSS: do we really need step_args?
         task, options, runner_options = build_task_for(proc, user_options, step_args, step_builder)
 
+        puts "_______@@@@@ #{options.inspect}"
+
         # 1. insert Step into Sequence (append, replace, before, etc.)
         sequence.insert!(task, options, step_args)
         # 2. transform sequence to Activity
-        sequence.to_activity(activity)
+        sequence.to_activity(activity).tap do |aa|
+        puts "+++++++@@@@@ #{aa.circuit.instance_variable_get(:@map).size.inspect}"
+      end
         # 3. save Activity in operation (on the outside)
       end
 
@@ -84,29 +88,6 @@ module Trailblazer
         options = default_options.merge(user_options)
         options = options.merge(replace: options[:name]) if options[:override] # :override
         options
-      end
-
-      module DeprecatedMacro # TODO: REMOVE IN 2.2.
-        def build_task_for_macro(_proc, *args)
-          proc, default_options, runner_options = *_proc
-
-          if proc.is_a?(Proc)
-            return super if proc.arity != 2
-          else
-            return super if proc.method(:call).arity != 2
-          end
-
-          warn %{[Trailblazer] Macros with API (input, options) are deprecated. Please use the "Task API" signature (direction, options, flow_options). (#{proc})}
-
-          __proc = ->(direction, options, flow_options) do
-            result    = proc.(flow_options[:exec_context], options) # run the macro, with the deprecated signature.
-            direction = Step.binary_direction_for(result, Circuit::Right, Circuit::Left)
-
-            [ direction, options, flow_options ]
-          end
-
-          super([__proc, default_options, runner_options], *args)
-        end
       end
     end # DSL
   end

@@ -26,13 +26,13 @@ module Trailblazer
           self["__activity__"].(start_at, options, flow_options.merge( exec_context: new ))
         end
 
-        # Top-level operation call interace. It's called when you run Create.() and where
+        # Top-level operation call interface. It's called when you run Create.() and where
         # all the fun starts, ends, and hopefully starts again.
         def call(options)
-          last, options, _ = __call__( self["__activity__"][:Start], options, {} ) # TODO: allow different exec_context.
+          direction, options, _ = __call__( self["__activity__"][:Start], options, {} )
 
           # Result is successful if the activity ended with the "right" End event.
-          Result.new(last.kind_of?(End::Success), options)
+          Railway::Result(direction, options)
         end
 
         def initialize_activity!
@@ -59,6 +59,11 @@ module Trailblazer
         end
       end
 
+      # The result of a railway is binary.
+      def self.Result(direction, options)
+        Result.new(direction.kind_of?(End::Success), options)
+      end
+
       module End
         class Success < Circuit::End; end
         class Failure < Circuit::End; end
@@ -68,8 +73,8 @@ module Trailblazer
       # Step calls step.(options, **options, flow_options)
       # Output direction binary: true=>Right, false=>Left.
       # Passes through all subclasses of Direction.~~~~~~~~~~~~~~~~~
-      module Step
-        def self.call(step, on_true, on_false)
+      module TaskBuilder
+        def self.call(step, on_true=Circuit::Right, on_false=Circuit::Left)
           ->(direction, options, flow_options) do
             # Execute the user step with TRB's kw args.
             result = Circuit::Task::Args::KW(step).(direction, options, flow_options)

@@ -1,20 +1,20 @@
 require "test_helper"
 
 # Tests
-# ---  step ->(*) { snippet }
+# ---  step ->(*o) { snippet }
 # ---  step Callable
 # ---  step :method
 # ---  step MyMacro
 class StepTest < Minitest::Spec
   class Callable
-    def self.call(options, b:nil, **)
+    def self.call(options, b:nil, **o)
       options["b"] = b
     end
   end
 
   module Implementation
     module_function
-    def c(options, c:nil, **)
+    def c(options, c:nil, **o)
       options["c"] = c
     end
   end
@@ -26,13 +26,13 @@ class StepTest < Minitest::Spec
   end
 
   class Create < Trailblazer::Operation
-    step ->(options, a:nil, **) { options["a"] = a }
+    step ->(options, a:nil, **o) { options["a"] = a }
     step Callable
     step Implementation.method(:c)
     step :d
     step [ MyMacro, {} ] # doesn't provide runner_options.
 
-    def d(options, d:nil, **)
+    def d(options, d:nil, **o)
       options["d"] = d
     end
   end
@@ -47,7 +47,8 @@ class StepTest < Minitest::Spec
   #- :before, :after, :replace, :delete, :override
   class A < Trailblazer::Operation
     step :a!
-    def a!(options, **); options["a"] = 1; end
+    def a!(options, **o); options["a"] = 1; end
+    def a!(options, **o); options["a"] = 1; end if RUBY_VERSION == "2.0.0"
   end
 
   class B < A
@@ -65,79 +66,14 @@ class StepTest < Minitest::Spec
 
   it { Trailblazer::Operation::Inspect.(C).must_equal %{[>b!,>e!,>a!]} }
 
-  #---
-  #- override: true
   class D < Trailblazer::Operation
     step :a!
-    step :add!
-    step :add!#, override: true
-
-    def a!(options, **);   options["a"] = []; end
-    def add!(options, **); options["a"] << :b; end
+    step :b!
+    step :b!, override: true
   end
 
-  it { Trailblazer::Operation::Inspect.(D).must_equal %{[>a!,>add!,>add!]} }
-  it { D.().inspect("a").must_equal %{<Result:true [[:b, :b]] >} }
+  it { Trailblazer::Operation::Inspect.(D).must_equal %{[>a!,>b!]} }
 
-  class E < Trailblazer::Operation
-    step :a!
-    step :add!
-    step :add!, override: true
-
-    def a!(options, **);   options["a"] = []; end
-    def add!(options, **); options["a"] << :b; end
-  end
-
-  it { Trailblazer::Operation::Inspect.(E).must_equal %{[>a!,>add!]} }
-  it { E.().inspect("a").must_equal %{<Result:true [[:b]] >} }
-
-  #- with proc
-  class F < Trailblazer::Operation
-    step :a!
-    step ->(options, **) { options["a"] << :b }, name: "add"
-    step ->(options, **) { options["a"] << :b }, replace: "add", name: "add!!!"
-
-    def a!(options, **);   options["a"] = []; end
-  end
-
-  it { Trailblazer::Operation::Inspect.(F).must_equal %{[>a!,>add!!!]} }
-  it { F.().inspect("a").must_equal %{<Result:true [[:b]] >} }
-
-  #- with macro
-  class G < Trailblazer::Operation
-    MyMacro1 = ->(direction, options, flow_options) { options["a"] << :b; [ direction, options, flow_options ] }
-    MyMacro2 = ->(direction, options, flow_options) { options["a"] << :b; [ direction, options, flow_options ] }
-    # MyMacro3 = ->(direction, options, flow_options) { options["a"] << :b; [ direction, options, flow_options ] }
-
-    step :a!
-    step [ MyMacro1, {name: "add"}, {} ]
-    step [ MyMacro2, {name: "add"}, {} ], replace: "add"
-    # step [ MyMacro3, {name: "add"}, {} ], override: true
-
-    def a!(options, **);   options["a"] = []; end
-  end
-
-  it { Trailblazer::Operation::Inspect.(G).must_equal %{[>a!,>add]} }
-  it { G.().inspect("a").must_equal %{<Result:true [[:b]] >} }
-
-  #- with inheritance
-  class H < Trailblazer::Operation
-    step :a!
-    step :add!
-
-    def a!(options, **);   options["a"] = []; end
-    def add!(options, **); options["a"] << :b; end
-  end
-
-  class HH < H
-    step :add!, override: true
-  end
-
-  it { Trailblazer::Operation::Inspect.(HH).must_equal %{[>a!,>add]} }
-  it { HH.().inspect("a").must_equal %{<Result:true [[:b]] >} }
-
-  #---
-  #-
   # not existent :name
   it do
     err = assert_raises Trailblazer::Operation::Railway::Sequence::IndexError  do

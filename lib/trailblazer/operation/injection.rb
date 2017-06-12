@@ -1,6 +1,6 @@
 module Trailblazer
   module Operation::Railway
-    # This behavior used to be in [Pipetree::Step](https://github.com/trailblazer/trailblazer-operation/blob/31e122f1787b72835d52a8a127c718ab49ee51e4/lib/trailblazer/operation/pipetree.rb#L129).
+    # This behavior used to be part of [Pipetree::Step](https://github.com/trailblazer/trailblazer-operation/blob/31e122f1787b72835d52a8a127c718ab49ee51e4/lib/trailblazer/operation/pipetree.rb#L129).
     module Injection
     end
 

@@ -10,6 +10,7 @@ require "trailblazer/operation/sequence"
 require "trailblazer/operation/fast_track"
 require "trailblazer/operation/task_wrap"
 require "trailblazer/operation/injection"
+require "trailblazer/operation/trace"
 
 module Trailblazer
   # The Trailblazer-style operation.
@@ -27,6 +28,8 @@ module Trailblazer
 
     # we want the skill dependency-mechanism.
     extend Skill::Call             # ::call(params, current_user: ..)
+
+    extend Trace                   # ::trace
   end
 end
 

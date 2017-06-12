@@ -1,0 +1,40 @@
+PATH
+  remote: ../..
+  specs:
+    trailblazer-operation (0.1.0)
+      declarative
+      trailblazer-circuit
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    concurrent-ruby (1.0.2)
+    declarative (0.0.9)
+    dry-configurable (0.4.0)
+      concurrent-ruby (~> 1.0)
+    dry-container (0.6.0)
+      concurrent-ruby (~> 1.0)
+      dry-configurable (~> 0.1, >= 0.1.3)
+    hirb (0.7.3)
+    minitest (5.10.2)
+    minitest-line (0.6.3)
+      minitest (~> 5.0)
+    raise (0.0.2)
+    rake (12.0.0)
+    trailblazer-circuit (0.0.6)
+      hirb
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bundler
+  dry-container
+  minitest
+  minitest-line
+  raise
+  rake
+  trailblazer-operation!
+
+BUNDLED WITH
+   1.15.1
