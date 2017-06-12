@@ -57,7 +57,6 @@ module Trailblazer
             { evt[:Start] => { Circuit::Right => evt[:End, :right], Circuit::Left => evt[:End, :left] } }
           end
         end
-        # attr_reader :__activity__
       end
 
       module End
