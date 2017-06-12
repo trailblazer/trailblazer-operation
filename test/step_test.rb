@@ -65,14 +65,63 @@ class StepTest < Minitest::Spec
 
   it { Trailblazer::Operation::Inspect.(C).must_equal %{[>b!,>e!,>a!]} }
 
+  #---
+  #- override: true
   class D < Trailblazer::Operation
     step :a!
-    step :b!
-    step :b!, override: true
+    step :add!
+    step :add!#, override: true
+
+    def a!(options, **);   options["a"] = []; end
+    def add!(options, **); options["a"] << :b; end
   end
 
-  it { Trailblazer::Operation::Inspect.(D).must_equal %{[>a!,>b!]} }
+  it { Trailblazer::Operation::Inspect.(D).must_equal %{[>a!,>add!,>add!]} }
+  it { D.().inspect("a").must_equal %{<Result:true [[:b, :b]] >} }
 
+  class E < Trailblazer::Operation
+    step :a!
+    step :add!
+    step :add!, override: true
+
+    def a!(options, **);   options["a"] = []; end
+    def add!(options, **); options["a"] << :b; end
+  end
+
+  it { Trailblazer::Operation::Inspect.(E).must_equal %{[>a!,>add!]} }
+  it { E.().inspect("a").must_equal %{<Result:true [[:b]] >} }
+
+  #- with proc
+  class F < Trailblazer::Operation
+    step :a!
+    step ->(options, **) { options["a"] << :b }, name: "add"
+    step ->(options, **) { options["a"] << :b }, replace: "add", name: "add!!!"
+
+    def a!(options, **);   options["a"] = []; end
+  end
+
+  it { Trailblazer::Operation::Inspect.(F).must_equal %{[>a!,>add!!!]} }
+  it { F.().inspect("a").must_equal %{<Result:true [[:b]] >} }
+
+  #- with macro
+  class G < Trailblazer::Operation
+    MyMacro1 = ->(direction, options, flow_options) { options["a"] << :b; [ direction, options, flow_options ] }
+    MyMacro2 = ->(direction, options, flow_options) { options["a"] << :b; [ direction, options, flow_options ] }
+    # MyMacro3 = ->(direction, options, flow_options) { options["a"] << :b; [ direction, options, flow_options ] }
+
+    step :a!
+    step [ MyMacro1, {name: "add"}, {} ]
+    step [ MyMacro2, {name: "add"}, {} ], replace: "add"
+    # step [ MyMacro3, {name: "add"}, {} ], override: true
+
+    def a!(options, **);   options["a"] = []; end
+  end
+
+  it { Trailblazer::Operation::Inspect.(G).must_equal %{[>a!,>add]} }
+  it { G.().inspect("a").must_equal %{<Result:true [[:b]] >} }
+
+  #---
+  #-
   # not existent :name
   it do
     err = assert_raises Trailblazer::Operation::Railway::Sequence::IndexError  do
