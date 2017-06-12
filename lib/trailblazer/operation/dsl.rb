@@ -39,13 +39,10 @@ module Trailblazer
         # DISCUSS: do we really need step_args?
         task, options, runner_options = build_task_for(proc, user_options, step_args, step_builder)
 
-        puts "_______@@@@@ #{options.inspect}"
-
         # 1. insert Step into Sequence (append, replace, before, etc.)
         sequence.insert!(task, options, step_args)
         # 2. transform sequence to Activity
         sequence.to_activity(activity).tap do |aa|
-        puts "+++++++@@@@@ #{aa.circuit.instance_variable_get(:@map).size.inspect}"
       end
         # 3. save Activity in operation (on the outside)
       end
