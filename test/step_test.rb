@@ -120,6 +120,22 @@ class StepTest < Minitest::Spec
   it { Trailblazer::Operation::Inspect.(G).must_equal %{[>a!,>add]} }
   it { G.().inspect("a").must_equal %{<Result:true [[:b]] >} }
 
+  #- with inheritance
+  class H < Trailblazer::Operation
+    step :a!
+    step :add!
+
+    def a!(options, **);   options["a"] = []; end
+    def add!(options, **); options["a"] << :b; end
+  end
+
+  class HH < H
+    step :add!, override: true
+  end
+
+  it { Trailblazer::Operation::Inspect.(HH).must_equal %{[>a!,>add]} }
+  it { HH.().inspect("a").must_equal %{<Result:true [[:b]] >} }
+
   #---
   #-
   # not existent :name
