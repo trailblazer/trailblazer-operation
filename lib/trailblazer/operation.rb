@@ -29,7 +29,7 @@ module Trailblazer
     # we want the skill dependency-mechanism.
     extend Skill::Call             # ::call(params, current_user: ..)
 
-    extend Trace
+    extend Trace                   # ::trace
   end
 end
 

@@ -5,13 +5,21 @@ module Trailblazer
         skill  = Operation::Skill(operation, *args)
 
         # let Circuit::Trace::call handle all parameters, just make sure it calls Operation.__call__
-        stack, direction, options, flow_options = Circuit::Trace.(operation, operation["__activity__"][:Start], skill) { |operation, *args| operation.__call__(*args) }
+        call_block = ->(operation, *args) { operation.__call__(*args) }
+
+        stack, direction, options, flow_options = Circuit::Trace.(
+          operation,
+          operation["__activity__"][:Start],
+          skill,
+          &call_block # instructs Trace to use __call__.
+        )
 
         result = Railway::Result(direction, options)
 
         Result.new(result, stack)
       end
 
+      # `Operation::trace` is included for simple tracing of the flow.
       # @public
       #   Operation.trace(params, "current_user" => current_user).wtf
       def trace(params, options={}, *dependencies)
