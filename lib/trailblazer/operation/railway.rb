@@ -74,7 +74,7 @@ module Trailblazer
       # Step calls step.(options, **options, flow_options)
       # Output direction binary: true=>Right, false=>Left.
       # Passes through all subclasses of Direction.~~~~~~~~~~~~~~~~~
-      module Step
+      module TaskBuilder
         def self.call(step, on_true, on_false)
           ->(direction, options, flow_options) do
             # Execute the user step with TRB's kw args.

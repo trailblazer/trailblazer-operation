@@ -33,7 +33,7 @@ module Trailblazer
       # 2. Uses `Sequence.alter!` to maintain a linear array representation of the circuit's tasks.
       #    This is then transformed into a circuit/Activity. (We could save this step with some graph magic)
       # 3. Returns a new Activity instance.
-      def add(activity, sequence, step_args, step_builder=Operation::Railway::Step) # decoupled from any self deps.
+      def add(activity, sequence, step_args, step_builder=Operation::Railway::TaskBuilder) # decoupled from any self deps.
         proc, user_options = *step_args.original_args
 
         # DISCUSS: do we really need step_args?
