@@ -16,13 +16,17 @@ module Trailblazer
       end
 
       module ClassMethods
-        # TODO: AT TJS POINT, options needs to be skill already, etc.
+        # Low-level `Activity` call interface. Runs the circuit.
+        #
+        # @params start_at [Object] the task where to start circuit.
+        # @params options [Hash, Skill] options to be passed around. Note that these need to be a `Skill` hash if you want that.
+        # @params flow_options [Hash] arbitrary flow control options.
         # @returns direction, options, flow_options
         def __call__(start_at, options, flow_options)
           self["__activity__"].(start_at, options, flow_options.merge( exec_context: new ))
         end
 
-        # Top-level, this method is called when you do Create.() and where
+        # Top-level operation call interace. It's called when you run Create.() and where
         # all the fun starts, ends, and hopefully starts again.
         def call(options)
           last, options, _ = __call__( self["__activity__"][:Start], options, {} ) # TODO: allow different exec_context.

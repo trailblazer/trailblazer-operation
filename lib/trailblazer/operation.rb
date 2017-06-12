@@ -26,8 +26,7 @@ module Trailblazer
     include Railway::TaskWrap
 
     # we want the skill dependency-mechanism.
-    extend Skill::Call             # ::call(params: {}, current_user: ..)
-    extend Skill::Call::Positional # ::call(params, options)
+    extend Skill::Call             # ::call(params, current_user: ..)
   end
 end
 
