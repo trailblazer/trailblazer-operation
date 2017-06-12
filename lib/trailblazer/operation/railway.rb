@@ -75,7 +75,7 @@ module Trailblazer
       # Output direction binary: true=>Right, false=>Left.
       # Passes through all subclasses of Direction.~~~~~~~~~~~~~~~~~
       module TaskBuilder
-        def self.call(step, on_true, on_false)
+        def self.call(step, on_true=Circuit::Right, on_false=Circuit::Left)
           ->(direction, options, flow_options) do
             # Execute the user step with TRB's kw args.
             result = Circuit::Task::Args::KW(step).(direction, options, flow_options)
