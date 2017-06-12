@@ -3,4 +3,3 @@ gemspec path: "../../"
 
 gem "dry-container"
 gem "minitest-line"
-gem "trailblazer-circuit", path: "../../../circuit"

@@ -1,10 +1,4 @@
 PATH
-  remote: ../../../circuit
-  specs:
-    trailblazer-circuit (0.0.6)
-      hirb
-
-PATH
   remote: ../..
   specs:
     trailblazer-operation (0.1.0)
@@ -27,6 +21,8 @@ GEM
       minitest (~> 5.0)
     raise (0.0.2)
     rake (12.0.0)
+    trailblazer-circuit (0.0.6)
+      hirb
 
 PLATFORMS
   ruby
@@ -38,7 +34,6 @@ DEPENDENCIES
   minitest-line
   raise
   rake
-  trailblazer-circuit!
   trailblazer-operation!
 
 BUNDLED WITH
