@@ -10,12 +10,12 @@ module Trailblazer
     #
     # @api private
     class Sequence < ::Array
-      StepRow = Struct.new(:step, :options, *DSL::StepArgs.members) # step, original_args, incoming_direction, ...
+      StepRow = Struct.new(:task, :name, *DSL::StepArgs.members) # step, original_args, incoming_direction, ...
 
       # Insert the task into {Sequence} array by respecting options such as `:before`.
       # This mutates the object per design.
       def insert!(task, options, step_args)
-        row = Sequence::StepRow.new(task, options, *step_args)
+        row = Sequence::StepRow.new(task, options[:name], *step_args)
 
         alter!(options, row)
       end
@@ -25,7 +25,7 @@ module Trailblazer
       # @returns Alterations
       def to_alterations
         each_with_object([]) do |step_config, alterations|
-          step = step_config.step
+          step = step_config.task
 
           # insert the new step before the track's End, taking over all its incoming connections.
           alteration = ->(activity) do
@@ -34,7 +34,7 @@ module Trailblazer
               activity[*step_config.insert_before_id], # e.g. activity[:End, :suspend]
               step,
               direction: step_config.incoming_direction,
-              debug: { step => step_config.options[:name] }
+              debug: { step => step_config.name }
             ) # TODO: direction => outgoing
           end
           alterations << alteration
@@ -58,7 +58,7 @@ module Trailblazer
       end
 
       def find_index(name)
-        row = find { |row| row.options[:name] == name }
+        row = find { |row| row.name == name }
         index(row)
       end
 

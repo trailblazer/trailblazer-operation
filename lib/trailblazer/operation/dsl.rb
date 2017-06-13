@@ -66,7 +66,7 @@ module Trailblazer
           task, default_options, runner_options = build_task_for_macro(proc, args_for_task_builder, task_builder)
         else
           # Wrap step code into the actual circuit task.
-          task, default_options, runner_options = build_task_for_step(proc ,args_for_task_builder, task_builder)
+          task, default_options, runner_options = build_task_for_step(proc, args_for_task_builder, task_builder)
         end
 
         options = process_options(default_options, user_options)
