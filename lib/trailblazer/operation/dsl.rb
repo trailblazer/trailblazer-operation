@@ -25,12 +25,11 @@ module Trailblazer
       def add_step!(type, proc, options)
         heritage.record(type, proc, options)
 
-        # call args_for_pass()
         # compile the arguments specific to step/fail/pass.
-        args_for = send("args_for_#{type}", proc, options)
+        args_for = send("args_for_#{type}", proc, options) # call args_for_pass/args_for_fail/args_for_step.
 
         # re-compile the activity with every DSL call.
-        self["__activity__"] = add( self["__activity_alterations__"], self["__sequence__"], args_for )
+        self["__activity__"] = recompile( self["__activity_alterations__"], self["__sequence__"], args_for )
       end
 
       # @api private
@@ -38,7 +37,7 @@ module Trailblazer
       # 2. Uses `Sequence.alter!` to maintain a linear array representation of the circuit's tasks.
       #    This is then transformed into a circuit/Activity. (We could save this step with some graph magic)
       # 3. Returns a new Activity instance.
-      def add(railway_alterations, sequence, step_args, step_builder=Operation::Railway::TaskBuilder) # decoupled from any self deps.
+      def recompile(railway_alterations, sequence, step_args, step_builder=Operation::Railway::TaskBuilder) # decoupled from any self deps.
         proc, user_options = *step_args.original_args
 
         # DISCUSS: do we really need step_args?
