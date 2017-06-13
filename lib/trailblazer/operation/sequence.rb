@@ -15,28 +15,27 @@ module Trailblazer
         alter!(options, row)
       end
 
-      # Transform this Sequence into a new Activity.
-      def to_activity(activity)
-        each do |step_config|
+      def to_alterations
+        each_with_object([]) do |step_config, alterations|
           step = step_config.step
 
           # insert the new step before the track's End, taking over all its incoming connections.
-          activity = Circuit::Activity::Before(
-            activity,
-            activity[*step_config.insert_before_id], # e.g. activity[:End, :suspend]
-            step,
-            direction: step_config.incoming_direction,
-            debug: { step => step_config.options[:name] }
-          ) # TODO: direction => outgoing
+          alteration = ->(activity) do
+            Circuit::Activity::Before(
+              activity,
+              activity[*step_config.insert_before_id], # e.g. activity[:End, :suspend]
+              step,
+              direction: step_config.incoming_direction,
+              debug: { step => step_config.options[:name] }
+            ) # TODO: direction => outgoing
+          end
+          alterations << alteration
 
           # connect new task to End.left (if it's a step), or End.fail_fast, etc.
           step_config.connections.each do |(direction, target)|
-            target = activity[*target]# FIXME.
-            activity = Circuit::Activity::Connect(activity, step, target, direction: direction)
+            alterations << ->(activity) { Circuit::Activity::Connect(activity, step, activity[*target], direction: direction) }
           end
         end
-
-        activity
       end
 
       private

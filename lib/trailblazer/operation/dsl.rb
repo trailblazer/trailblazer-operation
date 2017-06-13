@@ -16,9 +16,7 @@ module Trailblazer
       StepArgs = Struct.new(:original_args, :incoming_direction, :connections, :args_for_Step, :insert_before_id)
 
       # Override these if you want to extend how tasks are built.
-      def args_for_pass(activity, *args)
-
-        StepArgs.new( args, Circuit::Right, [], [Circuit::Right, Circuit::Right], [:End, :right] ); end
+      def args_for_pass(activity, *args); StepArgs.new( args, Circuit::Right, [], [Circuit::Right, Circuit::Right], [:End, :right] ); end
       def args_for_fail(activity, *args); StepArgs.new( args, Circuit::Left,  [], [Circuit::Left, Circuit::Left], [:End, :left] ); end
       def args_for_step(activity, *args); StepArgs.new( args, Circuit::Right, [[ Circuit::Left, [:End, :left] ]], [Circuit::Right, Circuit::Left], [:End, :right] ); end
 
@@ -32,13 +30,7 @@ module Trailblazer
         # compile the arguments specific to step/fail/pass.
         args_for = send("args_for_#{type}", activity, proc, options)
 
-        # current APPROACH: ALWAYS COMPUTE INITIAL ACTIVITY, THEN WIND SEQUENCE ON TOP OF THAT.
-
-        # create the initial activity by applying all alterations.
-        # TODO: make step also use alterations, so we have a consistent API.
-        activity = self["__activity_alterations__"].(nil)
-
-        self["__activity__"] = add(activity, sequence, args_for )
+        self["__activity__"] = add(self["__activity_alterations__"], sequence, args_for )
       end
 
       # @api private
@@ -46,7 +38,7 @@ module Trailblazer
       # 2. Uses `Sequence.alter!` to maintain a linear array representation of the circuit's tasks.
       #    This is then transformed into a circuit/Activity. (We could save this step with some graph magic)
       # 3. Returns a new Activity instance.
-      def add(activity, sequence, step_args, step_builder=Operation::Railway::TaskBuilder) # decoupled from any self deps.
+      def add(railway_alterations, sequence, step_args, step_builder=Operation::Railway::TaskBuilder) # decoupled from any self deps.
         proc, user_options = *step_args.original_args
 
         # DISCUSS: do we really need step_args?
@@ -54,9 +46,14 @@ module Trailblazer
 
         # 1. insert Step into Sequence (append, replace, before, etc.)
         sequence.insert!(task, options, step_args)
+        # sequence is now an up-to-date representation of our operation's steps.
+
         # 2. transform sequence to Activity
-        sequence.to_activity(activity)
-        # 3. save Activity in operation (on the outside)
+        alterations = railway_alterations + sequence.to_alterations
+
+        # 3. apply alterations and return the built up activity
+        Alterations.new(alterations).(nil) # returns `Activity`.
+        # 4. save Activity in operation (on the outside)
       end
 
       private
