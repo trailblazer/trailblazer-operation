@@ -14,8 +14,8 @@ module Trailblazer
 
       # Insert the task into {Sequence} array by respecting options such as `:before`.
       # This mutates the object per design.
-      def insert!(task, options, step_args)
-        row = Sequence::StepRow.new(task, options[:name], *step_args)
+      def insert!(task, name, options, step_args)
+        row = Sequence::StepRow.new(task, name, *step_args)
 
         alter!(options, row)
       end
@@ -24,23 +24,23 @@ module Trailblazer
       # This uses the {Activity::Alteration} API.
       # @returns Alterations
       def to_alterations
-        each_with_object([]) do |step_config, alterations|
-          step = step_config.task
+        each_with_object([]) do |row, alterations|
+          step = row.task
 
           # insert the new step before the track's End, taking over all its incoming connections.
           alteration = ->(activity) do
             Circuit::Activity::Before(
               activity,
-              activity[*step_config.insert_before_id], # e.g. activity[:End, :suspend]
+              activity[*row.insert_before_id], # e.g. activity[:End, :suspend]
               step,
-              direction: step_config.incoming_direction,
-              debug: { step => step_config.name }
+              direction: row.incoming_direction,
+              debug: { step => row.name }
             ) # TODO: direction => outgoing
           end
           alterations << alteration
 
           # connect new task to End.left (if it's a step), or End.fail_fast, etc.
-          step_config.connections.each do |(direction, target)|
+          row.connections.each do |(direction, target)|
             alterations << ->(activity) { Circuit::Activity::Connect(activity, step, activity[*target], direction: direction) }
           end
         end

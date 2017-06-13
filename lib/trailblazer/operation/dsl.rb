@@ -44,7 +44,7 @@ module Trailblazer
         task, options, runner_options = build_task_for(proc, user_options, step_args.args_for_TaskBuilder, task_builder)
 
         # 1. insert Step into Sequence (append, replace, before, etc.)
-        sequence.insert!(task, options, step_args)
+        sequence.insert!(task, options[:name], options, step_args)
         # sequence is now an up-to-date representation of our operation's steps.
 
         # 2. transform sequence to Activity
