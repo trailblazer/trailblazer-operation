@@ -37,11 +37,11 @@ module Trailblazer
       # 2. Uses `Sequence.alter!` to maintain a linear array representation of the circuit's tasks.
       #    This is then transformed into a circuit/Activity. (We could save this step with some graph magic)
       # 3. Returns a new Activity instance.
-      def recompile_activity(railway_alterations, sequence, step_args, step_builder=Operation::Railway::TaskBuilder) # decoupled from any self deps.
+      def recompile_activity(railway_alterations, sequence, step_args, task_builder=Operation::Railway::TaskBuilder) # decoupled from any self deps.
         proc, user_options = *step_args.original_args
 
         # DISCUSS: do we really need step_args?
-        task, options, runner_options = build_task_for(proc, user_options, step_args, step_builder)
+        task, options, runner_options = build_task_for(proc, user_options, step_args.args_for_TaskBuilder, task_builder)
 
         # 1. insert Step into Sequence (append, replace, before, etc.)
         sequence.insert!(task, options, step_args)
@@ -59,14 +59,14 @@ module Trailblazer
 
       # Returns the {Task} instance to be inserted into the {Circuit}, its options (e.g. :name)
       # and the runner_options.
-      def build_task_for(proc, user_options, step_args, step_builder)
+      def build_task_for(proc, user_options, args_for_task_builder, task_builder)
          macro = proc.is_a?(Array)
 
         if macro
-          task, default_options, runner_options = build_task_for_macro(proc, step_args, step_builder)
+          task, default_options, runner_options = build_task_for_macro(proc, args_for_task_builder, task_builder)
         else
           # Wrap step code into the actual circuit task.
-          task, default_options, runner_options = build_task_for_step(proc ,step_args, step_builder)
+          task, default_options, runner_options = build_task_for_step(proc ,args_for_task_builder, task_builder)
         end
 
         options = process_options(default_options, user_options)
@@ -74,15 +74,15 @@ module Trailblazer
         return task, options, runner_options
       end
 
-      def build_task_for_step(proc, step_args, task_builder)
+      def build_task_for_step(proc, args_for_task_builder, task_builder)
         proc, default_options = proc, { name: proc }
 
-        task = task_builder.(proc, *step_args.args_for_TaskBuilder)
+        task = task_builder.(proc, *args_for_task_builder)
 
         return task, default_options, {}
       end
 
-      def build_task_for_macro(proc, step_args, step_builder)
+      def build_task_for_macro(proc, args_for_task_builder, task_builder)
         proc, default_options, runner_options = *proc
 
         return proc, default_options, runner_options || {}
