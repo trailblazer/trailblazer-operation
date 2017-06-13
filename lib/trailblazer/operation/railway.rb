@@ -40,12 +40,14 @@ module Trailblazer
 
           self["__sequence__"]  = Sequence.new
           self["__activity__"] = InitialActivity()
+
+          self["__activity_alterations__"] = DSL::Alterations.new # mutable DSL object.
+          self["__activity_alterations__"] << ->(*) { InitialActivity() }
         end
 
         private
-        # The initial Activity with no-op wiring.
+        # The initial {Activity} circuit with no-op wiring.
         def InitialActivity
-          # mutable declarative data structure to collect all events for an operation's Circuit.
           events  = {
             end: {
               right: End::Success.new(:right),

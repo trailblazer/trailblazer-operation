@@ -21,14 +21,14 @@ module Trailblazer
             }
           }
 
-          self["__activity__"] = Circuit::Activity::Rewrite(self["__activity__"], events: fast_track_events) { |*| }
+          self["__activity_alterations__"] << ->(old_activity) { Circuit::Activity::Rewrite(old_activity, events: fast_track_events) { |*| } }
         end
 
         def args_for_pass(activity, proc, options)
           direction = options[:pass_fast] ? PassFast : Circuit::Right # task will emit PassFast or Right, depending on options.
 
           super.tap do |args|
-            args.connections    = [[PassFast, activity[:End, :pass_fast]]]
+            args.connections    = [[PassFast, [:End, :pass_fast]]]
             args.args_for_Step = [direction, direction]
           end
         end
@@ -39,7 +39,7 @@ module Trailblazer
           # DISCUSS: should this also link to right, pass_fast etc? Because this will fail now.
           # CONNECTED TO Left=>END.LEFT AND FailFast=>END.FAIL_FAST
           super.tap do |args|
-            args.connections = [[FailFast, activity[:End, :fail_fast]]]
+            args.connections = [[FailFast, [:End, :fail_fast]]]
             args.args_for_Step = [direction, direction]
           end
         end
@@ -52,7 +52,7 @@ module Trailblazer
           # DISCUSS: should this also link to right, pass_fast etc?
           # CONNECTED TO Left=>END.LEFT AND FailFast=>END.FAIL_FAST
           super.tap do |args|
-            args.connections = [[Circuit::Left, activity[:End, :left]], [FailFast, activity[:End, :fail_fast]], [PassFast, activity[:End, :pass_fast]]]
+            args.connections = [[Circuit::Left, [:End, :left]], [FailFast, [:End, :fail_fast]], [PassFast, [:End, :pass_fast]]]
            args.args_for_Step = [direction_on_true, direction_on_false]
          end
         end

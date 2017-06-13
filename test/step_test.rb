@@ -129,12 +129,25 @@ class StepTest < Minitest::Spec
     def add!(options, **); options["a"] << :b; end
   end
 
-  class HH < H
-    step :add!, override: true
+  class Hh < H
+    step :_add!, replace: :add!
+
+    def _add!(options, **); options["a"] << :hh; end
   end
 
-  it { Trailblazer::Operation::Inspect.(HH).must_equal %{[>a!,>add]} }
-  it { HH.().inspect("a").must_equal %{<Result:true [[:b]] >} }
+  it { Trailblazer::Operation::Inspect.(Hh).must_equal %{[>a!,>_add!]} }
+  it { Hh.().inspect("a").must_equal %{<Result:true [[:hh]] >} }
+
+  #- inheritance unit test
+  class I < Trailblazer::Operation
+    step :a
+  end
+
+  class Ii < I
+    step :a, override: true
+  end
+
+  it { Ii["__activity__"].circuit.instance_variable_get(:@map).size.must_equal 2 }
 
   #---
   #-

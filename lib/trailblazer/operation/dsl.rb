@@ -2,6 +2,8 @@ module Trailblazer
   module Operation::Railway
     # WARNING: The API here is still in a state of flux since we want to provide a simple yet flexible solution.
     # This is code executed at compile-time and can be slow.
+    # @note `__sequence__` is a private concept, your custom DSL code should not rely on it.
+
     module DSL
       def pass(proc, options={}); add_step!(:pass, proc, options); end
       def fail(proc, options={}); add_step!(:fail, proc, options); end
@@ -10,13 +12,18 @@ module Trailblazer
       alias_method :failure, :fail
 
       private
-      StepArgs = Struct.new(:original_args, :incoming_direction, :connections, :args_for_Step, :insert_before)
+      # DSL object, mutable.
+      StepArgs = Struct.new(:original_args, :incoming_direction, :connections, :args_for_Step, :insert_before_id)
 
       # Override these if you want to extend how tasks are built.
-      def args_for_pass(activity, *args); StepArgs.new( args, Circuit::Right, [], [Circuit::Right, Circuit::Right], activity[:End, :right] ); end
-      def args_for_fail(activity, *args); StepArgs.new( args, Circuit::Left,  [], [Circuit::Left, Circuit::Left], activity[:End, :left] ); end
-      def args_for_step(activity, *args); StepArgs.new( args, Circuit::Right, [[ Circuit::Left, activity[:End, :left] ]], [Circuit::Right, Circuit::Left], activity[:End, :right] ); end
+      def args_for_pass(activity, *args)
 
+        StepArgs.new( args, Circuit::Right, [], [Circuit::Right, Circuit::Right], [:End, :right] ); end
+      def args_for_fail(activity, *args); StepArgs.new( args, Circuit::Left,  [], [Circuit::Left, Circuit::Left], [:End, :left] ); end
+      def args_for_step(activity, *args); StepArgs.new( args, Circuit::Right, [[ Circuit::Left, [:End, :left] ]], [Circuit::Right, Circuit::Left], [:End, :right] ); end
+
+      # |-- compile initial act from alterations
+      # |-- add step alterations
       def add_step!(type, proc, options)
         heritage.record(type, proc, options)
 
@@ -24,6 +31,12 @@ module Trailblazer
 
         # compile the arguments specific to step/fail/pass.
         args_for = send("args_for_#{type}", activity, proc, options)
+
+        # current APPROACH: ALWAYS COMPUTE INITIAL ACTIVITY, THEN WIND SEQUENCE ON TOP OF THAT.
+
+        # create the initial activity by applying all alterations.
+        # TODO: make step also use alterations, so we have a consistent API.
+        activity = self["__activity_alterations__"].(nil)
 
         self["__activity__"] = add(activity, sequence, args_for )
       end
@@ -42,8 +55,7 @@ module Trailblazer
         # 1. insert Step into Sequence (append, replace, before, etc.)
         sequence.insert!(task, options, step_args)
         # 2. transform sequence to Activity
-        sequence.to_activity(activity).tap do |aa|
-      end
+        sequence.to_activity(activity)
         # 3. save Activity in operation (on the outside)
       end
 
@@ -85,6 +97,12 @@ module Trailblazer
         options = default_options.merge(user_options)
         options = options.merge(replace: options[:name]) if options[:override] # :override
         options
+      end
+
+      class Alterations < Array# TODO: merge with Wrap::Alterations
+        def call(start)
+          inject(start) { |circuit, alteration| alteration.(circuit) }
+        end
       end
     end # DSL
   end
