@@ -16,19 +16,20 @@ module Trailblazer
       StepArgs = Struct.new(:original_args, :incoming_direction, :connections, :args_for_Step, :insert_before_id)
 
       # Override these if you want to extend how tasks are built.
-      def args_for_pass(activity, *args); StepArgs.new( args, Circuit::Right, [], [Circuit::Right, Circuit::Right], [:End, :right] ); end
-      def args_for_fail(activity, *args); StepArgs.new( args, Circuit::Left,  [], [Circuit::Left, Circuit::Left], [:End, :left] ); end
-      def args_for_step(activity, *args); StepArgs.new( args, Circuit::Right, [[ Circuit::Left, [:End, :left] ]], [Circuit::Right, Circuit::Left], [:End, :right] ); end
+      def args_for_pass(*args); StepArgs.new( args, Circuit::Right, [], [Circuit::Right, Circuit::Right], [:End, :right] ); end
+      def args_for_fail(*args); StepArgs.new( args, Circuit::Left,  [], [Circuit::Left, Circuit::Left], [:End, :left] ); end
+      def args_for_step(*args); StepArgs.new( args, Circuit::Right, [[ Circuit::Left, [:End, :left] ]], [Circuit::Right, Circuit::Left], [:End, :right] ); end
 
       # |-- compile initial act from alterations
       # |-- add step alterations
       def add_step!(type, proc, options)
         heritage.record(type, proc, options)
 
-        activity, sequence = self["__activity__"], self["__sequence__"]
+        sequence = self["__sequence__"]
 
+        # call args_for_pass()
         # compile the arguments specific to step/fail/pass.
-        args_for = send("args_for_#{type}", activity, proc, options)
+        args_for = send("args_for_#{type}", proc, options)
 
         self["__activity__"] = add(self["__activity_alterations__"], sequence, args_for )
       end
@@ -39,6 +40,7 @@ module Trailblazer
       #    This is then transformed into a circuit/Activity. (We could save this step with some graph magic)
       # 3. Returns a new Activity instance.
       def add(railway_alterations, sequence, step_args, step_builder=Operation::Railway::TaskBuilder) # decoupled from any self deps.
+        puts sequence.inspect
         proc, user_options = *step_args.original_args
 
         # DISCUSS: do we really need step_args?

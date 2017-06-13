@@ -24,7 +24,7 @@ module Trailblazer
           self["__activity_alterations__"] << ->(old_activity) { Circuit::Activity::Rewrite(old_activity, events: fast_track_events) { |*| } }
         end
 
-        def args_for_pass(activity, proc, options)
+        def args_for_pass(proc, options)
           direction = options[:pass_fast] ? PassFast : Circuit::Right # task will emit PassFast or Right, depending on options.
 
           super.tap do |args|
@@ -33,7 +33,7 @@ module Trailblazer
           end
         end
 
-        def args_for_fail(activity, proc, options)
+        def args_for_fail(proc, options)
           direction = options[:fail_fast] ? FailFast : Circuit::Left # task will emit PassFast or Right, depending on options.
 
           # DISCUSS: should this also link to right, pass_fast etc? Because this will fail now.
@@ -45,7 +45,7 @@ module Trailblazer
         end
 
 
-        def args_for_step(activity, proc, options)
+        def args_for_step(proc, options)
           direction_on_false = options[:fail_fast] ? FailFast : Circuit::Left
           direction_on_true  = options[:pass_fast] ? PassFast : Circuit::Right
 

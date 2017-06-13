@@ -1,20 +1,28 @@
 module Trailblazer
   module Operation::Railway
-    # Data object: The actual array that lines up the railway steps.
+    # Array that lines up the railway steps and represents the {Activity} as a linear data structure.
+    #
     # This is necessary mostly to maintain a linear representation of the wild circuit and can be
     # used to simplify inserting steps (without graph theory) and rendering (e.g. operation layouter).
     #
-    # Gets converted into a Circuit/Activity via #to_activity.
+    # Gets converted into an {Alterations} via #to_alterations. It's your job on the outside to apply
+    # those alterations to something.
+    #
     # @api private
     class Sequence < ::Array
       StepRow = Struct.new(:step, :options, *DSL::StepArgs.members) # step, original_args, incoming_direction, ...
 
+      # Insert the task into {Sequence} array by respecting options such as `:before`.
+      # This mutates the object per design.
       def insert!(task, options, step_args)
         row = Sequence::StepRow.new(task, options, *step_args)
 
         alter!(options, row)
       end
 
+      # Build a list of alterations for each step in the sequence.
+      # This uses the {Activity::Alteration} API.
+      # @returns Alterations
       def to_alterations
         each_with_object([]) do |step_config, alterations|
           step = step_config.step
