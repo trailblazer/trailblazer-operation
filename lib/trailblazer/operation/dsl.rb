@@ -13,7 +13,7 @@ module Trailblazer
 
       private
       # DSL object, mutable.
-      StepArgs = Struct.new(:original_args, :incoming_direction, :connections, :args_for_Step, :insert_before_id)
+      StepArgs = Struct.new(:original_args, :incoming_direction, :connections, :args_for_TaskBuilder, :insert_before_id)
 
       # Override these if you want to extend how tasks are built.
       def args_for_pass(*args); StepArgs.new( args, Circuit::Right, [], [Circuit::Right, Circuit::Right], [:End, :right] ); end
@@ -29,7 +29,7 @@ module Trailblazer
         args_for = send("args_for_#{type}", proc, options) # call args_for_pass/args_for_fail/args_for_step.
 
         # re-compile the activity with every DSL call.
-        self["__activity__"] = recompile( self["__activity_alterations__"], self["__sequence__"], args_for )
+        self["__activity__"] = recompile_activity( self["__activity_alterations__"], self["__sequence__"], args_for )
       end
 
       # @api private
@@ -37,7 +37,7 @@ module Trailblazer
       # 2. Uses `Sequence.alter!` to maintain a linear array representation of the circuit's tasks.
       #    This is then transformed into a circuit/Activity. (We could save this step with some graph magic)
       # 3. Returns a new Activity instance.
-      def recompile(railway_alterations, sequence, step_args, step_builder=Operation::Railway::TaskBuilder) # decoupled from any self deps.
+      def recompile_activity(railway_alterations, sequence, step_args, step_builder=Operation::Railway::TaskBuilder) # decoupled from any self deps.
         proc, user_options = *step_args.original_args
 
         # DISCUSS: do we really need step_args?
@@ -77,7 +77,7 @@ module Trailblazer
       def build_task_for_step(proc, step_args, task_builder)
         proc, default_options = proc, { name: proc }
 
-        task = task_builder.(proc, *step_args.args_for_Step)
+        task = task_builder.(proc, *step_args.args_for_TaskBuilder)
 
         return task, default_options, {}
       end
