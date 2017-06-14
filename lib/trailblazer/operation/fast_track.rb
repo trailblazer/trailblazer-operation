@@ -29,7 +29,7 @@ module Trailblazer
 
           super.tap do |args|
             args.connections    = [[PassFast, [:End, :pass_fast]]]
-            args.args_for_TaskBuilder = [direction, direction]
+            args.args_for_task_builder = [direction, direction]
           end
         end
 
@@ -40,7 +40,7 @@ module Trailblazer
           # CONNECTED TO Left=>END.LEFT AND FailFast=>END.FAIL_FAST
           super.tap do |args|
             args.connections = [[FailFast, [:End, :fail_fast]]]
-            args.args_for_TaskBuilder = [direction, direction]
+            args.args_for_task_builder = [direction, direction]
           end
         end
 
@@ -53,7 +53,7 @@ module Trailblazer
           # CONNECTED TO Left=>END.LEFT AND FailFast=>END.FAIL_FAST
           super.tap do |args|
             args.connections = [[Circuit::Left, [:End, :left]], [FailFast, [:End, :fail_fast]], [PassFast, [:End, :pass_fast]]]
-           args.args_for_TaskBuilder = [direction_on_true, direction_on_false]
+           args.args_for_task_builder = [direction_on_true, direction_on_false]
          end
         end
       end

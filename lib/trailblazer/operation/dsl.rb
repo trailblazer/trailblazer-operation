@@ -13,7 +13,7 @@ module Trailblazer
 
       private
       # DSL object, mutable.
-      StepArgs = Struct.new(:original_args, :incoming_direction, :connections, :args_for_TaskBuilder, :insert_before_id)
+      StepArgs = Struct.new(:original_args, :incoming_direction, :connections, :args_for_task_builder, :insert_before_id)
 
       # Override these if you want to extend how tasks are built.
       def args_for_pass(*args); StepArgs.new( args, Circuit::Right, [], [Circuit::Right, Circuit::Right], [:End, :right] ); end
@@ -41,7 +41,7 @@ module Trailblazer
         proc, user_options = *step_args.original_args
 
         # DISCUSS: do we really need step_args?
-        task, options, runner_options = build_task_for(proc, user_options, step_args.args_for_TaskBuilder, task_builder)
+        task, options, runner_options = build_task_for(proc, user_options, step_args.args_for_task_builder, task_builder)
 
         # 1. insert Step into Sequence (append, replace, before, etc.)
         sequence.insert!(task, options[:name], options, step_args)
