@@ -10,12 +10,12 @@ module Trailblazer
     #
     # @api private
     class Sequence < ::Array
-      StepRow = Struct.new(:task, :name, *DSL::StepArgs.members) # step, original_args, incoming_direction, ...
+      Row = Struct.new(:task, :name, :insert_before_id, :connections, :incoming_direction)
 
       # Insert the task into {Sequence} array by respecting options such as `:before`.
       # This mutates the object per design.
       def insert!(task, name, options, step_args)
-        row = Sequence::StepRow.new(task, name, *step_args)
+        row = Sequence::Row.new(task, name, step_args.insert_before_id, step_args.connections, step_args.incoming_direction)
 
         alter!(options, row)
       end
