@@ -15,7 +15,7 @@ class TaskWrapTest < Minitest::Spec
       alteration: ->(wrap_circuit) do
         Trailblazer::Circuit::Activity::Before( wrap_circuit,
           Trailblazer::Circuit::Wrap::Call,
-          Trailblazer::Operation::Railway::Inject( contract: "MyDefaultContract" ),
+          Trailblazer::Operation::TaskWrap::Injection::ReverseMergeDefaults( contract: "MyDefaultContract" ),
           direction: Trailblazer::Circuit::Right
         )
       end

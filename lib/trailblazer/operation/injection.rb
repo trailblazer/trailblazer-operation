@@ -1,17 +1,35 @@
 module Trailblazer
-  module Operation::Railway
-    # This behavior used to be part of [Pipetree::Step](https://github.com/trailblazer/trailblazer-operation/blob/31e122f1787b72835d52a8a127c718ab49ee51e4/lib/trailblazer/operation/pipetree.rb#L129).
+  module Operation::TaskWrap
+    # The behavior in this module used to be part of {https://github.com/trailblazer/trailblazer-operation/blob/31e122f1787b72835d52a8a127c718ab49ee51e4/lib/trailblazer/operation/pipetree.rb#L129 Pipetree::Step}.
     module Injection
+      # Returns an Alteration proc that, when applied, inserts the {ReverseMergeDefaults} task
+      # before the {Wrap::Call} task. This is meant for macros and steps that accept a dependency
+      # injection but need a default parameter to be set if not injected.
+      # @returns Alteration
+      def self.SetDefaults(default_dependencies)
+        ->(wrap_circuit) do
+          Circuit::Activity::Before(
+            wrap_circuit,
+            Circuit::Wrap::Call,
+            ReverseMergeDefaults( default_dependencies ),
+            direction: Circuit::Right
+          )
+        end
+      end
+
+      # @api private
+      # @returns Task
+      # @param Hash list of key/value that should be set if not already assigned/set before (or injected from the outside).
+      def self.ReverseMergeDefaults(default_dependencies)
+        ->(direction, options, flow_options, *args) do
+          default_dependencies.each { |k, v| options[k] ||= v }
+
+          [ direction, options, flow_options, *args ]
+        end
+      end
     end
 
     # TODO: writes hard to options.
     # TODO: add Context and Uninject.
-    def self.Inject(dependencies)
-      task = ->(direction, options, flow_options, *args) do
-        dependencies.each { |k, v| options[k] ||= v }
-
-        [direction, options, flow_options, *args]
-      end
-    end
   end
 end
