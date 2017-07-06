@@ -26,13 +26,8 @@ module Trailblazer
           self["__activity__"].(start_at, options, flow_options.merge( exec_context: new ))
         end
 
-        # Top-level operation call interface. It's called when you run Create.() and where
-        # all the fun starts, ends, and hopefully starts again.
-        def call(options)
-          direction, options, _ = __call__( self["__activity__"][:Start], options, {} )
-
-          # Result is successful if the activity ended with the "right" End event.
-          Railway::Result(direction, options)
+        def call(options) # @expects options{Skill/Hash}
+          __call__( self["__activity__"][:Start], options, {} )
         end
 
         def initialize_activity!
