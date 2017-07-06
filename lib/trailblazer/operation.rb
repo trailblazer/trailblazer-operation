@@ -1,6 +1,7 @@
 require "forwardable"
 require "declarative"
 require "trailblazer/circuit"
+require "trailblazer/operation/public_call" # Remove in 3.0.
 require "trailblazer/operation/skill"
 require "trailblazer/operation/deprecated_macro" # TODO: remove in 2.2.
 require "trailblazer/operation/result"
@@ -27,7 +28,8 @@ module Trailblazer
     include Railway::TaskWrap
 
     # we want the skill dependency-mechanism.
-    extend Skill::Call             # ::call(params, current_user: ..)
+    extend Skill::Call             # ::call(params: .., current_user: ..)
+    extend PublicCall              # ::call(params, { current_user: .. })
 
     extend Trace                   # ::trace
   end
