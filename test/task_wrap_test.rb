@@ -28,7 +28,15 @@ class TaskWrapTest < Minitest::Spec
   end
 
   # it { Create.__call__("adsf", options={}, {}).inspect("MyMacro.contract", "a.contract").must_equal %{} }
-  it { Create.__call__("adsf", options={}, {})[1].inspect.must_equal %{{\"a.contract\"=>nil, :contract=>\"MyDefaultContract\", \"MyMacro.contract\"=>\"MyDefaultContract\"}} }
+  it do
+    direction, options, _ = Create.__call__( "adsf", {}, {} )
+    Trailblazer::Hash.inspect(options, "a.contract", :contract, "MyMacro.contract").
+      must_equal %{{"a.contract"=>nil, :contract=>"MyDefaultContract", "MyMacro.contract"=>"MyDefaultContract"}}
+  end
   # injected from outside
-  it { Create.__call__("adsf", options={ :contract=>"MyExternalContract" }, {})[1].inspect.must_equal %{{:contract=>\"MyExternalContract\", \"a.contract\"=>\"MyExternalContract\", \"MyMacro.contract\"=>\"MyExternalContract\"}} }
+  it do
+    direction, options, _ = Create.__call__( "adsf", { :contract=>"MyExternalContract" }, {} )
+    Trailblazer::Hash.inspect(options, "a.contract", :contract, "MyMacro.contract").
+      must_equal %{{"a.contract"=>"MyExternalContract", :contract=>"MyExternalContract", "MyMacro.contract"=>"MyExternalContract"}}
+  end
 end

@@ -1,4 +1,10 @@
 module Trailblazer
+  module Hash
+    def self.inspect(hash, *keys)
+      keys.collect { |key| [key, hash[key]] }.to_h.inspect
+    end
+  end
+
   # Operation-specific circuit rendering. This is optimized for a linear railway circuit.
   #:private:
   module Operation::Inspect

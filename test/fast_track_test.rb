@@ -20,9 +20,11 @@ class FastTrackTest < Minitest::Spec
 
   # #success passes fast.
   class Retrieve < Trailblazer::Operation
-    success ->(options, *) { options["x"] = options["dont_fail"] }, pass_fast: true
-    failure ->(options, *) { options["b"] = true }
-    step ->(options, *) { options["y"] = true }
+    pass ->(options, **) {
+puts "@@@@@ #{options["dont_fail"].inspect}"
+      options["x"] = options["dont_fail"] }, pass_fast: true
+    fail ->(options, **) { options["b"] = true }
+    step ->(options, **) { options["y"] = true }
   end
 
   it { Retrieve.({}, "dont_fail" => true  ).inspect("x", "b", "y").must_equal %{<Result:true [true, nil, nil] >} }

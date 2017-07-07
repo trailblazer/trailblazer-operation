@@ -10,6 +10,14 @@ class SkillTest < Minitest::Spec
     skill[:params].must_equal "Hello!"
 
     skill.to_hash.must_equal( {params: "Hello!"} )
+
+    options.inspect.must_equal %{{:params=>"Hello!"}}
+  end
+  # FIXME: do we actually want key?
+  it "what" do
+    skills = Trailblazer::Skill.new({ "a" => false, "b" => nil })
+    (!!skills.key?("a")).must_equal true
+    (!!skills.key?("b")).must_equal true
   end
 
   describe "Skill" do

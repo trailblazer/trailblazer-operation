@@ -19,7 +19,7 @@ module Trailblazer
     end
 
     def key?(name) # FIXME: to nest skills in skills, which is totally fine.
-      self[name]
+      @resolver.key?(name)
     end
 
     # THIS METHOD IS CONSIDERED PRIVATE AND MIGHT BE REMOVED.
@@ -74,6 +74,10 @@ module Trailblazer
 
       def [](name)
         @containers.find { |container| container.key?(name) && (return container[name]) }
+      end
+
+      def key?(name)
+        @containers.find { |container| container.key?(name) }
       end
     end
 
