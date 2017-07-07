@@ -29,7 +29,9 @@ module Trailblazer
           self["__activity__"].(start_at, options, flow_options.merge( exec_context: new ))
         end
 
-        def call(options) # @expects options{Skill/Hash}
+        # This method gets overridden by PublicCall#call which will provide the Skills object.
+        # @param options [Skill,Hash] all dependencies and runtime-data for this call
+        def call(options)
           __call__( self["__activity__"][:Start], options, {} )
         end
 

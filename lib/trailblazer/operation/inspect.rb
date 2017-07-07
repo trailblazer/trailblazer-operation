@@ -1,7 +1,7 @@
 module Trailblazer
   module Hash
     def self.inspect(hash, *keys)
-      keys.collect { |key| [key, hash[key]] }.to_h.inspect
+      ::Hash[ keys.collect { |key| [key, hash[key]] } ].inspect
     end
   end
 
