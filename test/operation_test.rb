@@ -58,6 +58,17 @@ class DeclarativeApiTest < Minitest::Spec
 
   it { Update.(decide: true).inspect("a", "b", "c").must_equal %{<Result:true [false, true, nil] >} }
   it { Update.(decide: false).inspect("a", "b", "c").must_equal %{<Result:false [false, false, true] >} }
+
+
+  #---
+  #- Operation[] and Operation[]=
+  class Index < Trailblazer::Operation
+    self["model.class"] = Module
+
+    step ->(options, **) { options["a"] = options["model.class"] }
+  end
+
+  it { Index.({}).inspect("a", "model.class").must_equal %{<Result:true [Module, Module] >} }
 end
 
 

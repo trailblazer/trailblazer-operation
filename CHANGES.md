@@ -3,6 +3,8 @@ TODO:
 
 ## 0.1.0
 
+call vs __call__: it's now designed to be run in a composition where the skills stuff is done only once, and the reslt object is not necessary
+
     FastTrack optional
     Wrapped optional
 

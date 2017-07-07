@@ -18,11 +18,15 @@ module Trailblazer
       @mutable_options[name] = value
     end
 
+    def key?(name) # FIXME: to nest skills in skills, which is totally fine.
+      self[name]
+    end
+
     # THIS METHOD IS CONSIDERED PRIVATE AND MIGHT BE REMOVED.
     # Options from ::call (e.g. "user.current"), containers, etc.
-    # NO mutual data from the caller operation. no class state.
+    # NO mutable data from the caller operation. no class state.
     def to_runtime_data
-      @resolver.instance_variable_get(:@containers).slice(1..-2)
+      @resolver.instance_variable_get(:@containers).slice(0..-1) # FIXME. wtf are we doing here?
     end
 
     # THIS METHOD IS CONSIDERED PRIVATE AND MIGHT BE REMOVED.
@@ -40,9 +44,20 @@ module Trailblazer
         arr = to_runtime_data << to_mutable_data << tmp_options
 
         arr.each { |hsh|
-          hsh.each { |k, v| h[k.to_sym] = v }
+          if hsh.is_a?(Trailblazer::Skill)
+            h.merge!(hsh.to_hash)
+          else
+            hsh.each { |k, v| h[k.to_sym] = v }
+          end
         }
       end
+    end
+
+    # TODO: use with to_hash.
+    def self.KeywordHash(hash)
+      h = {}
+      hash.each { |k, v| h[k.to_sym] = v }
+      h
     end
 
     # Look through a list of containers until you find the skill.

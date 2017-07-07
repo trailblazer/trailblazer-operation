@@ -23,6 +23,9 @@ module Trailblazer
         # @params flow_options [Hash] arbitrary flow control options.
         # @returns direction, options, flow_options
         def __call__(start_at, options, flow_options)
+          # add the local operation's class dependencies to the skills.
+          options = Trailblazer::Skill.new(options, self.skills)
+
           self["__activity__"].(start_at, options, flow_options.merge( exec_context: new ))
         end
 

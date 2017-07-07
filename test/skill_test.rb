@@ -2,6 +2,16 @@ require "test_helper"
 require "trailblazer/skill"
 
 class SkillTest < Minitest::Spec
+  it "wraps one" do
+    options = { params: "Hello!" }
+
+    skill = Trailblazer::Skill.new(options)
+
+    skill[:params].must_equal "Hello!"
+
+    skill.to_hash.must_equal( {params: "Hello!"} )
+  end
+
   describe "Skill" do
     it do
       class_level_container = {
