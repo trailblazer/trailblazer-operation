@@ -2,15 +2,13 @@ module Trailblazer
   class Operation
     module Trace
       def self.call(operation, *args)
-        skill  = Operation::Skill(operation, *args)
-
         # let Circuit::Trace::call handle all parameters, just make sure it calls Operation.__call__
         call_block = ->(operation, *args) { operation.__call__(*args) }
 
         stack, direction, options, flow_options = Circuit::Trace.(
           operation,
           operation["__activity__"][:Start],
-          skill,
+          *args,
           &call_block # instructs Trace to use __call__.
         )
 

@@ -31,7 +31,7 @@ module Trailblazer
     # extend Skill::Call             # ::call(params: .., current_user: ..)
     extend PublicCall              # ::call(params, { current_user: .. })
 
-    # extend Trace                   # ::trace
+    extend Trace                   # ::trace
   end
 end
 
