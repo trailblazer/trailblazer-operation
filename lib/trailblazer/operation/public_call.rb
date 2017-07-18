@@ -14,8 +14,9 @@ class Trailblazer::Operation
     def call(params={}, options={}, *containers)
       options = options.merge("params" => params) # options will be passed to all steps/activities.
 
-      # generate the skill hash that embraces runtime options plus potential containers.
-      skills = Trailblazer::Skill.new(options, *containers, {})
+      # generate the skill hash that embraces runtime options plus potential containers, the so called Runtime options.
+      # This wrapping is supposed to happen once in the entire system.
+      skills = Trailblazer::Skill.new(options, *containers, {}) # Runtime options, immutable. # TODO: make this a Context with Skill over containers.
 
       direction, options, flow_options = super(skills) # DISCUSS: this could be ::call_with_skills.
 

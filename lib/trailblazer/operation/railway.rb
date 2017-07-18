@@ -19,14 +19,16 @@ module Trailblazer
         # Low-level `Activity` call interface. Runs the circuit.
         #
         # @param start_at [Object] the task where to start circuit.
-        # @param options [Hash, Skill] options to be passed to the first task
+        # @param options [Hash, Skill] options to be passed to the first task. These are usually the "runtime options".
         # @param flow_options [Hash] arbitrary flow control options.
         # @return direction, options, flow_options
         def __call__(start_at, options, flow_options)
           # add the local operation's class dependencies to the skills.
-          options = Trailblazer::Skill.new(options, self.skills)
+          immutable_options = Trailblazer::Skill.new(options, self.skills)
 
-          self["__activity__"].(start_at, options, flow_options.merge( exec_context: new ))
+          ctx = Trailblazer::Context(immutable_options)
+
+          self["__activity__"].(start_at, ctx, flow_options.merge( exec_context: new ))
         end
 
         # This method gets overridden by PublicCall#call which will provide the Skills object.

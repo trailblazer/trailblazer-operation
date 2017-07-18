@@ -5,7 +5,7 @@
 # The runtime-data takes precedence over the class data.
 module Trailblazer
   class Skill
-    def initialize(*containers)
+    def initialize(*containers) # usually [ params=>{}, {} ]
       @mutable_options = {}
       @resolver        = Resolver.new(@mutable_options, *containers)
     end
@@ -47,7 +47,9 @@ module Trailblazer
           if hsh.is_a?(Trailblazer::Skill)
             h.merge!(hsh.to_hash)
           else
-            hsh.each { |k, v| h[k.to_sym] = v }
+            hsh.
+              to_hash.  # DISCUSS: this can be Context#to_hash
+              each { |k, v| h[k.to_sym] = v }
           end
         }
       end
