@@ -1,5 +1,3 @@
-require "trailblazer/skill"
-
 # Dependency ("skill") management for Operation.
 class Trailblazer::Operation
   module Skill
