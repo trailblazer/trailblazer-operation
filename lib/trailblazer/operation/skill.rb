@@ -1,4 +1,4 @@
-# Dependency ("skill") management for Operation.
+# Dependencies can be defined on the operation. class level
 class Trailblazer::Operation
   module Skill
     # The class-level skill container: Operation::[], ::[]=.

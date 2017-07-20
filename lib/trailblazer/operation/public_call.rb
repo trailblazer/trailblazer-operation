@@ -16,9 +16,12 @@ class Trailblazer::Operation
 
       # generate the skill hash that embraces runtime options plus potential containers, the so called Runtime options.
       # This wrapping is supposed to happen once in the entire system.
-      skills = Trailblazer::Context::ContainerChain.new(options, *containers) # Runtime options, immutable.
 
-      direction, options, flow_options = super(skills) # DISCUSS: this could be ::call_with_skills.
+      hash_transformer = ->(containers) { options.to_hash } # FIXME: don't transform any containers into kw args.
+
+      immutable_options = Trailblazer::Context::ContainerChain.new([options, *containers], to_hash: hash_transformer) # Runtime options, immutable.
+
+      direction, options, flow_options = super(immutable_options) # DISCUSS: this could be ::call_with_skills.
 
       # Result is successful if the activity ended with the "right" End event.
       Railway::Result(direction, options)
