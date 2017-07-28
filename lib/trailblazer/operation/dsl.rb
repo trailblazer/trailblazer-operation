@@ -41,10 +41,11 @@ module Trailblazer
         proc, user_options = *step_args.original_args
 
         # DISCUSS: do we really need step_args?
+          # this is where we retrieve config. now insert! needs to get configured properly
         task, options, runner_options = build_task_for(proc, user_options, step_args.args_for_task_builder, task_builder)
 
         # 1. insert Step into Sequence (append, replace, before, etc.)
-        sequence.insert!(task, options[:name], options, step_args)
+        sequence.insert!(task, options[:name], options, **step_args.to_h)
         # sequence is now an up-to-date representation of our operation's steps.
 
         # 2. transform sequence to Activity

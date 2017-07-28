@@ -14,8 +14,8 @@ module Trailblazer
 
       # Insert the task into {Sequence} array by respecting options such as `:before`.
       # This mutates the object per design.
-      def insert!(task, name, options, step_args)
-        row = Sequence::Row.new(task, name, step_args.insert_before_id, step_args.connections, step_args.incoming_direction)
+      def insert!(task, name, options, insert_before_id:raise, connections:raise, incoming_direction:raise, **)
+        row = Sequence::Row.new(task, name, insert_before_id, connections, incoming_direction)
 
         alter!(options, row)
       end
