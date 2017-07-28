@@ -10,6 +10,7 @@ module Trailblazer
     #
     # @api private
     class Sequence < ::Array
+      # Configuration for alter!, represents one sequence/circuit alteration. Usually per `step`.
       Row = Struct.new(:task, :name, :insert_before_id, :connections, :incoming_direction)
 
       # Insert the task into {Sequence} array by respecting options such as `:before`.
@@ -25,23 +26,23 @@ module Trailblazer
       # @returns Alterations
       def to_alterations
         each_with_object([]) do |row, alterations|
-          step = row.task
+          task = row.task
 
-          # insert the new step before the track's End, taking over all its incoming connections.
+          # insert the new task before the track's End, taking over all its incoming connections.
           alteration = ->(activity) do
             Circuit::Activity::Before(
               activity,
               activity[*row.insert_before_id], # e.g. activity[:End, :suspend]
-              step,
+              task,
               direction: row.incoming_direction,
-              debug: { step => row.name }
+              debug: { task => row.name }
             ) # TODO: direction => outgoing
           end
           alterations << alteration
 
-          # connect new task to End.left (if it's a step), or End.fail_fast, etc.
+          # connect new task to End.left (if it's a task), or End.fail_fast, etc.
           row.connections.each do |(direction, target)|
-            alterations << ->(activity) { Circuit::Activity::Connect(activity, step, activity[*target], direction: direction) }
+            alterations << ->(activity) { Circuit::Activity::Connect(activity, task, activity[*target], direction: direction) }
           end
         end
       end
@@ -52,7 +53,7 @@ module Trailblazer
         return insert(find_index!(options[:before]),  row) if options[:before]
         return insert(find_index!(options[:after])+1, row) if options[:after]
         return self[find_index!(options[:replace])] = row  if options[:replace]
-        return delete_at(find_index!(options[:delete])) if options[:delete]
+        return delete_at(find_index!(options[:delete]))    if options[:delete]
 
         self << row
       end

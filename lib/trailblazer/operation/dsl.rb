@@ -37,6 +37,8 @@ module Trailblazer
       # 2. Uses `Sequence.alter!` to maintain a linear array representation of the circuit's tasks.
       #    This is then transformed into a circuit/Activity. (We could save this step with some graph magic)
       # 3. Returns a new Activity instance.
+      #
+      # This is called per "step"/task insertion.
       def recompile_activity(railway_alterations, sequence, step_args, task_builder=TaskBuilder) # decoupled from any self deps.
         proc, user_options = *step_args.original_args
 
