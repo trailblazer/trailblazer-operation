@@ -46,6 +46,8 @@ module Trailblazer
       end
 
       module DSL
+        # TODO: this override is hard to follow, we should have a pipeline circuit in DSL to add behavior.
+        # @private
         def build_task_for(*args)
           super.tap do |task, options, alteration: nil, **| # Railway::DSL::build_task_for
             task_wrap = Circuit::Wrap::Activity # default.

@@ -59,6 +59,9 @@ module Trailblazer
 
       # Returns the {Task} instance to be inserted into the {Circuit}, its options (e.g. :name)
       # and the runner_options.
+      #
+      # Steps can use a task builder to wrap the user step into a task.
+      # Macros return their low-level circuit task directly.
       def build_task_for(proc, user_options, args_for_task_builder, task_builder)
          macro = proc.is_a?(Array)
 
@@ -83,9 +86,9 @@ module Trailblazer
       end
 
       def build_task_for_macro(proc, args_for_task_builder, task_builder)
-        proc, default_options, runner_options = *proc
+        task, default_options, runner_options = *proc
 
-        return proc, default_options, runner_options || {}
+        return task, default_options, runner_options || {}
       end
 
       # Normalizes :override and :name options.
