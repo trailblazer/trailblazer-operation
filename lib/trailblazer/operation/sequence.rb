@@ -5,13 +5,13 @@ module Trailblazer
     # This is necessary mostly to maintain a linear representation of the wild circuit and can be
     # used to simplify inserting steps (without graph theory) and rendering (e.g. operation layouter).
     #
-    # Gets converted into an {Alterations} via #to_alterations. It's your job on the outside to apply
+    # Gets converted into {Alterations} via #to_alterations. It's your job on the outside to apply
     # those alterations to something.
     #
     # @api private
     class Sequence < ::Array
       # Configuration for alter!, represents one sequence/circuit alteration. Usually per `step`.
-      Row = Struct.new(:task, :name, :insert_before_id, :connections, :incoming_direction)
+      Row = Struct.new(:task, :name, :insert_before_id, :connections, :incoming_direction, :predecessors)
 
       # Insert the task into {Sequence} array by respecting options such as `:before`.
       # This mutates the object per design.
@@ -19,6 +19,10 @@ module Trailblazer
         row = Sequence::Row.new(task, name, insert_before_id, connections, incoming_direction)
 
         alter!(options, row)
+      end
+
+      def self.find_linear_inputs(activity, task)
+
       end
 
       # Build a list of alterations for each step in the sequence.

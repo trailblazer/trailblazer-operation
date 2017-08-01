@@ -28,7 +28,8 @@ module Trailblazer
           direction = options[:pass_fast] ? PassFast : Circuit::Right # task will emit PassFast or Right, depending on options.
 
           super.tap do |args|
-            args.connections    = [[PassFast, [:End, :pass_fast]]]
+            # always connect task to End:pass_fast so the emitted PassFast signal from Railway#pass_fast! is wired.
+            args.connections    = [ [PassFast, [:End, :pass_fast]] ]
             args.args_for_task_builder = [direction, direction]
           end
         end

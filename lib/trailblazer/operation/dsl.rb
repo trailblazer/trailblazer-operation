@@ -4,6 +4,10 @@ module Trailblazer
     # This is code executed at compile-time and can be slow.
     # @note `__sequence__` is a private concept, your custom DSL code should not rely on it.
 
+
+    # DRAFT
+    #  direction: "(output) signal"
+
     module DSL
       def pass(proc, options={}); add_step!(:pass, proc, options); end
       def fail(proc, options={}); add_step!(:fail, proc, options); end
@@ -14,7 +18,8 @@ module Trailblazer
       private
       # DSL object, mutable.
       StepArgs = Struct.new(:original_args, :incoming_direction, :connections, :args_for_task_builder, :insert_before_id)
-
+# macro says: [ nested[:End, :default],                  target ]
+#              concrete output signal (macro knows it) => [:End, :right], [:End, ]
       # Override these if you want to extend how tasks are built.
       def args_for_pass(*args); StepArgs.new( args, Circuit::Right, [], [Circuit::Right, Circuit::Right], [:End, :right] ); end
       def args_for_fail(*args); StepArgs.new( args, Circuit::Left,  [], [Circuit::Left, Circuit::Left], [:End, :left] ); end
@@ -46,8 +51,18 @@ module Trailblazer
           # this is where we retrieve config. now insert! needs to get configured properly
         task, options, runner_options = build_task_for(proc, user_options, step_args.args_for_task_builder, task_builder)
 
+        step_cfg = step_args.to_h
+
+        # now, map the connections to the existing step_args.connections
+        step_cfg[:connections] = runner_options[:connections] unless runner_options[:connections].nil?
+        # FIXME: rename runner_options to config or something.
+        puts "@@@@@ #{step_cfg[:connections].inspect}"
+
+        # step_cfg[:predecessors] = find predecessors for
+
+
         # 1. insert Step into Sequence (append, replace, before, etc.)
-        sequence.insert!(task, options[:name], options, **step_args.to_h)
+        sequence.insert!(task, options[:name], options, **step_cfg)
         # sequence is now an up-to-date representation of our operation's steps.
 
         # 2. transform sequence to Activity
