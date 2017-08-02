@@ -12,12 +12,6 @@ module Trailblazer
     end
 
     class Node < Edge
-      def attach!(node:raise, edge:raise)
-        node = Node(*node)
-
-        connect!(node: node, edge: edge)
-      end
-
       def connect!(node: raise, edge:raise)
         edge = Edge(*edge)
 

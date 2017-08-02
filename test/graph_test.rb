@@ -23,8 +23,8 @@ class GraphTest < Minitest::Spec
 
     # right: End::Success.new(:right)
     # right_end  = start.connect!(Graph::Node( End::Success.new(:right), type: :end ), Graph::Edge(Circuit::Right, type: :right) )
-    right_end  = start.attach!(node: [ right_end_evt, type: :end, id: [:End, :right] ], edge: [ Circuit::Right, type: :right ] )
-    left_end   = start.attach!(node: [ left_end_evt,  type: :end, id: [:End, :left]  ], edge: [ Circuit::Left,  type: :left ] )
+    right_end  = start.connect!(node: start.Node( right_end_evt, type: :end, id: [:End, :right] ), edge: [ Circuit::Right, type: :right ] )
+    left_end   = start.connect!(node: start.Node( left_end_evt,  type: :end, id: [:End, :left]  ), edge: [ Circuit::Left,  type: :left ] )
 
     a, edge = start.insert_before!(
       right_end,
