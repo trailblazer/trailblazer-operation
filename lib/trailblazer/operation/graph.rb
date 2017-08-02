@@ -20,10 +20,8 @@ module Trailblazer
       end
 
       def insert_before!(old_node, node:raise, outgoing:raise, incoming:, **)
-        new_node = Node(*node)
-
-        incoming_tuples = old_node.predecessors
-
+        new_node            = Node(*node)
+        incoming_tuples     = old_node.predecessors
         rewired_connections = incoming_tuples.find_all { |(node, edge)| incoming.(edge) }
 
         # rewire old_task's predecessors to new_task.
