@@ -12,8 +12,13 @@ module Trailblazer
     end
 
     class Node < Edge
-      def connect!(node:raise, edge:raise)
+      def attach!(node:raise, edge:raise)
         node = Node(*node)
+
+        connect!(node: node, edge: edge)
+      end
+
+      def connect!(node: raise, edge:raise)
         edge = Edge(*edge)
 
         self[:graph][self][edge] = node
@@ -33,6 +38,8 @@ module Trailblazer
         # connect new_task --> old_task.
         new_to_old_edge = Edge(*outgoing)
         self[:graph][new_node] = { new_to_old_edge => old_node }
+
+        return new_node, new_to_old_edge
       end
 
       def Edge(wrapped, options)
