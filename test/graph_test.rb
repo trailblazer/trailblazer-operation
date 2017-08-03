@@ -31,7 +31,7 @@ class GraphTest < Minitest::Spec
     # right: End::Success.new(:right)
     # right_end  = start.connect!(Graph::Node( End::Success.new(:right), type: :end ), Graph::Edge(Circuit::Right, type: :right) )
     right_end  = start.connect!(node: start.Node( right_end_evt, type: :end, id: [:End, :right] ), edge: [ Circuit::Right, type: :right ] )
-    left_end   = start.connect!(node: [ left_end_evt, type: :event, id: [:End, :left] ], edge: [ Circuit::Left,  type: :left ] )
+    left_end   = start.attach!(node: [ left_end_evt, type: :event, id: [:End, :left] ], edge: [ Circuit::Left,  type: :left ] )
 
     a, edge = start.insert_before!(
       right_end,
@@ -85,8 +85,8 @@ class GraphTest < Minitest::Spec
   #- insert with id
   it do
     start      = Graph::Node( start_evt = Circuit::Start.new(:default), type: :event, id: [:Start, :default] )
-    right_end  = start.connect!(node: [ right_end_evt, type: :event, id: [:End, :right] ], edge: [ Circuit::Right, type: :right ] )
-    left_end   = start.connect!(node: [ left_end_evt, type: :event, id: [:End, :left] ], edge: [ Circuit::Left,  type: :left ] )
+    right_end  = start.attach!(node: [ right_end_evt, type: :event, id: [:End, :right] ], edge: [ Circuit::Right, type: :right ] )
+    left_end   = start.attach!(node: [ left_end_evt, type: :event, id: [:End, :left] ], edge: [ Circuit::Left,  type: :left ] )
 
     d, edge = start.insert_before!(
       [:End, :right],
@@ -99,5 +99,23 @@ class GraphTest < Minitest::Spec
       start_evt => { Circuit::Right => D, Circuit::Left => left_end_evt },
       D         => { Circuit::Right => right_end_evt }
     })
+
+    #- #find with block TODO: test explicitly.
+    events = start.find_all { |node| node[:type] == :event }
+    events.must_equal [start, left_end, right_end]
+
+    # TODO: test find_all/successors leafs explicitly.
+    leafs = start.find_all { |node| node.successors.size == 0 }
+    leafs.must_equal [ left_end, right_end ]
+
+
+    start.connect!( node: [:End, :right], edge: [ Circuit, {} ] )
+
+    start.to_h.must_equal({
+      start_evt => { Circuit::Right => D, Circuit::Left => left_end_evt, Circuit => right_end_evt },
+      D         => { Circuit::Right => right_end_evt }
+    })
   end
 end
+# TODO: test attach! properly.
+# TODO: test/fix double entries in find_all

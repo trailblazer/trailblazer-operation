@@ -12,8 +12,15 @@ module Trailblazer
     end
 
     class Node < Edge
-      def connect!(node:raise, edge:raise)
+      # Builds a node from the provided `:node` argument array.
+      def attach!(node:raise, edge:raise)
         node = node.kind_of?(Node) ? node : Node(*node)
+
+        connect!(node: node, edge: edge)
+      end
+
+      def connect!(node:raise, edge:raise)
+        node = node.kind_of?(Node) ? node : (find_all { |_node| _node[:id] == node }[0] || raise( "#{node} not found"))
         edge = Edge(*edge)
 
         self[:graph][self][edge] = node
@@ -21,7 +28,7 @@ module Trailblazer
       end
 
       def insert_before!(old_node, node:raise, outgoing:nil, incoming:, **)
-        old_node = find(old_node) unless old_node.kind_of?(Node)
+        old_node = find_all(old_node)[0] unless old_node.kind_of?(Node)
 
         new_node            = Node(*node)
         incoming_tuples     = old_node.predecessors
@@ -42,10 +49,12 @@ module Trailblazer
         return new_node, new_to_old_edge
       end
 
-      def find(id)
+      def find_all(id=nil, &block)
         nodes = self[:graph].keys + self[:graph].values.collect(&:values).flatten
 
-        nodes.find { |node| node[:id] == id }
+        block ||= ->(node) { node[:id] == id }
+
+        nodes.find_all(&block)
       end
 
       def Edge(wrapped, options)
@@ -61,6 +70,10 @@ module Trailblazer
         self[:graph].each_with_object([]) do |(node, connections), ary|
           connections.each { |edge, target| target == self && ary << [node, edge] }
         end
+      end
+
+      def successors
+        ( self[:graph][self] || {} ).values
       end
 
       def to_h

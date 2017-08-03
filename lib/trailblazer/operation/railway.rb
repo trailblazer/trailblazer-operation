@@ -35,7 +35,8 @@ module Trailblazer
         # @param options [Skill,Hash] all dependencies and runtime-data for this call
         # @return see #__call__
         def call(options)
-          __call__( self["__activity__"][:Start], options, {} )
+          # __call__( self["__activity__"][:Start], options, {} )
+          __call__( @start, options, {} )
         end
 
         def initialize_activity!
@@ -48,14 +49,14 @@ module Trailblazer
         private
         # The initial {Activity} circuit with no-op wiring.
         def InitialActivity
-          start = Circuit::Start.new(:default)
+          start = @start=  Circuit::Start.new(:default) # FIXME: the start event, argh
           end_for_success = End::Success.new(:success)
           end_for_failure = End::Failure.new(:failure)
 
           start = Graph::Node( start, type: :event, id: [:Start, :default] )
 
-          start.connect!( node: [ end_for_success, type: :event, id: [:End, :success] ], edge: [ Circuit::Right, type: :railway ] )
-          start.connect!( node: [ end_for_failure, type: :event, id: [:End, :failure] ], edge: [ Circuit::Left,  type: :railway ] )
+          start.attach!( node: [ end_for_success, type: :event, id: [:End, :success] ], edge: [ Circuit::Right, type: :railway ] )
+          start.attach!( node: [ end_for_failure, type: :event, id: [:End, :failure] ], edge: [ Circuit::Left,  type: :railway ] )
 
           start
         end

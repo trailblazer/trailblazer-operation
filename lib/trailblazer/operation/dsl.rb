@@ -29,18 +29,20 @@ module Trailblazer
         StepArgs.new( [Circuit::Right, Circuit::Right], wirings_for_pass(*args) )
       end
 
+      # DISCUSS: can we avoid using :outgoing and use connect! for all? problem is that [:End, :success] gets disconnected after the insert.
+
       def wirings_for_pass(*args)
         [
-            [:insert_before!, [:End, :success], incoming: ->(edge) { edge[:type] == :railway }, node: nil ],
-          [:connect!, node: [:End, :success], edge: [Circuit::Right, type: :railway] ],
+          [:insert_before!, [:End, :success], incoming: ->(edge) { edge[:type] == :railway }, node: nil, outgoing: [Circuit::Right, type: :railway] ],
+          # [:connect!, node: [:End, :success], edge: [Circuit::Right, type: :railway] ],
         ]
       end
 
       def args_for_fail(*args)
         StepArgs.new( [Circuit::Left, Circuit::Left],
           [
-            [:insert_before!, [:End, :failure], incoming: ->(edge) { edge.type == :railway }, node: nil ],
-            [:connect!, node: [:End, :failure], edge: [Circuit::Left, type: :railway] ],
+            [:insert_before!, [:End, :failure], incoming: ->(edge) { edge[:type] == :railway }, node: nil, outgoing: [Circuit::Left, type: :railway] ],
+            # [:connect!, node: [:End, :failure], edge: [Circuit::Left, type: :railway] ],
           ]
         )
       end
@@ -107,16 +109,19 @@ module Trailblazer
       # This is called per "step"/task insertion.
       def recompile_activity(graph, sequence)
 
+
         sequence.each do |row|
           task    = row.task
           options = { id: row.name }
 
           row.wirings.each do |wiring|
             # DISCUSS: this could also be a lambda, but sucks for development.
-            wiring.last[:node] = [ task, options ] if wiring.last.key?(:node)
+            wiring.last[:node] = [ task, options ] if wiring.last[:node].nil? # FIXME: this is only needed for connect!
 
+ # puts wiring.inspect
 
             graph.send *wiring
+# puts graph.find_all { |n| puts n.inspect; puts }
 
           end
         end
@@ -124,8 +129,17 @@ module Trailblazer
 # require "pp"
 #         pp graph
 
-        # step_cfg[:predecessors] = find predecessors for
+        # Find leafs of graph.
+        end_events = graph.find_all { |node| node.successors.size == 0 }
 
+
+ puts
+        puts
+        require "pp"
+        pp graph
+
+
+        return Circuit.new(graph.to_h, end_events, { id: self.class.to_s,  })
 
 
 

@@ -22,7 +22,7 @@ module Trailblazer
 
           options, flow_options = TaskWrap.arguments_for_call(self, direction, options, flow_options)
 
-          super(activity[:Start], options, flow_options) # Railway::__call__
+          super(direction, options, flow_options) # Railway::__call__
         end
       end
 
@@ -37,7 +37,8 @@ module Trailblazer
         flow_options = flow_options.merge(
           runner:      Circuit::Wrap::Runner,
           wrap_static: wrap_static,
-          debug:       activity.circuit.instance_variable_get(:@name)
+          # debug:       activity.circuit.instance_variable_get(:@name)
+          debug:       activity.instance_variable_get(:@name)
         )
         # reverse_merge:
         flow_options = { wrap_runtime: wrap_runtime }.merge(flow_options)
