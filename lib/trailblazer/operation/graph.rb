@@ -13,18 +13,21 @@ module Trailblazer
 
     class Node < Edge
       # Builds a node from the provided `:node` argument array.
-      def attach!(node:raise, edge:raise)
-        node = node.kind_of?(Node) ? node : Node(*node)
+      def attach!(target:raise, edge:raise)
+        target = target.kind_of?(Node) ? target : Node(*target)
 
-        connect!(node: node, edge: edge)
+        connect!(target: target, edge: edge)
       end
 
-      def connect!(node:raise, edge:raise)
-        node = node.kind_of?(Node) ? node : (find_all { |_node| _node[:id] == node }[0] || raise( "#{node} not found"))
-        edge = Edge(*edge)
+      def connect!(target:raise, edge:raise, source:self)
+        target = target.kind_of?(Node) ? target : (find_all { |_target| _target[:id] == target }[0] || raise( "#{target} not found"))
+        source = source.kind_of?(Node) ? source : (find_all { |_source| _source[:id] == source }[0] || raise( "#{source} not found"))
 
-        self[:graph][self][edge] = node
-        node
+
+        edge = source.Edge(*edge)
+
+        self[:graph][source][edge] = target
+        target
       end
 
       def insert_before!(old_node, node:raise, outgoing:nil, incoming:, **)
