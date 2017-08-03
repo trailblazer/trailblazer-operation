@@ -126,29 +126,14 @@ module Trailblazer
           end
         end
 
-# require "pp"
+
 #         pp graph
 
-        # Find leafs of graph.
-        end_events = graph.find_all { |node| node.successors.size == 0 }
 
+        end_events = graph.find_all { |node| node.successors.size == 0 } # Find leafs of graph.
+          .collect { |n| n[:_wrapped] } # unwrap the actual End event instance from the Node.
 
- puts
-        puts
-        require "pp"
-        pp graph
-
-
-        return Circuit.new(graph.to_h, end_events, { id: self.class.to_s,  })
-
-
-
-        # 2. transform sequence to Activity
-        alterations = railway_alterations + sequence.to_alterations
-
-        # 3. apply alterations and return the built up activity
-        Alterations.new(alterations).(nil) # returns `Activity`.
-        # 4. save Activity in operation (on the outside)
+        Circuit.new(graph.to_h, end_events, { id: self.class.to_s,  })
       end
 
       private
