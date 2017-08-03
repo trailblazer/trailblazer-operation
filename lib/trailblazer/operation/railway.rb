@@ -55,8 +55,8 @@ module Trailblazer
 
           start = Graph::Node( start, type: :event, id: [:Start, :default] )
 
-          start.attach!( node: [ end_for_success, type: :event, id: [:End, :success] ], edge: [ Circuit::Right, type: :railway ] )
-          start.attach!( node: [ end_for_failure, type: :event, id: [:End, :failure] ], edge: [ Circuit::Left,  type: :railway ] )
+          start.attach!( target: [ end_for_success, type: :event, id: [:End, :success] ], edge: [ Circuit::Right, type: :railway ] )
+          start.attach!( target: [ end_for_failure, type: :event, id: [:End, :failure] ], edge: [ Circuit::Left,  type: :railway ] )
 
           start
         end

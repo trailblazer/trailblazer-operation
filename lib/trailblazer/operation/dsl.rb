@@ -50,7 +50,7 @@ module Trailblazer
       # `step` uses the same wirings as `pass`, but also connects the node to the left track.
       def args_for_step(*args)
         StepArgs.new( [Circuit::Right, Circuit::Left],
-          wirings_for_pass << [:connect!, node: [:End, :failure], edge: [Circuit::Left, type: :railway] ]
+          wirings_for_pass << [:connect!, source: "fixme!!!" , edge: [Circuit::Left, type: :railway], target: [:End, :failure] ]
         )
       end
 
@@ -116,7 +116,8 @@ module Trailblazer
 
           row.wirings.each do |wiring|
             # DISCUSS: this could also be a lambda, but sucks for development.
-            wiring.last[:node] = [ task, options ] if wiring.last[:node].nil? # FIXME: this is only needed for connect!
+            wiring.last[:node] = [ task, options ] if wiring.last.key?(:node) && wiring.last[:node].nil? # FIXME: this is only needed for insert_before!
+            wiring.last[:source] = options[:id] if wiring.last[:source]=="fixme!!!" # FIXME: this is only needed for connect!
 
  # puts wiring.inspect
 
