@@ -12,14 +12,15 @@ module Trailblazer
     end
 
     class Node < Edge
-      def connect!(node: raise, edge:raise)
+      def connect!(node:raise, edge:raise)
+        node = node.kind_of?(Node) ? node : Node(*node)
         edge = Edge(*edge)
 
         self[:graph][self][edge] = node
         node
       end
 
-      def insert_before!(old_node, node:raise, outgoing:raise, incoming:, **)
+      def insert_before!(old_node, node:raise, outgoing:nil, incoming:, **)
         new_node            = Node(*node)
         incoming_tuples     = old_node.predecessors
         rewired_connections = incoming_tuples.find_all { |(node, edge)| incoming.(edge) }
@@ -28,8 +29,10 @@ module Trailblazer
         rewired_connections.each { |(node, edge)| self[:graph][node][edge] = new_node }
 
         # connect new_task --> old_task.
-        new_to_old_edge = Edge(*outgoing)
-        self[:graph][new_node] = { new_to_old_edge => old_node }
+        if outgoing
+          new_to_old_edge = Edge(*outgoing)
+          self[:graph][new_node] = { new_to_old_edge => old_node }
+        end
 
         return new_node, new_to_old_edge
       end
