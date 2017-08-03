@@ -8,6 +8,7 @@ require "trailblazer/operation/result"
 require "trailblazer/operation/railway"
 require "trailblazer/operation/dsl"
 require "trailblazer/operation/graph"
+require "trailblazer/operation/sequence"
 require "trailblazer/operation/fast_track"
 require "trailblazer/operation/task_wrap"
 require "trailblazer/operation/injection"
@@ -24,7 +25,7 @@ module Trailblazer
     extend Skill::Accessors        # ::[] and ::[]=
 
     include Railway                # ::call, ::step, ...
-    include Railway::FastTrack
+    # include Railway::FastTrack
     include Railway::TaskWrap
 
     # we want the skill dependency-mechanism.

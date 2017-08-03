@@ -20,24 +20,24 @@ module Trailblazer
       # ConnectArgs = [ source: [:bla, :id], node: [ task, id: options[:name], type: :event ], edge: [ FailFast, type: :railway ] ]
 
 
-      StepArgs = Struct.new(:original_args, :args_for_task_builder, :wirings)
+      StepArgs = Struct.new(:args_for_task_builder, :wirings)
 
 # macro says: [ nested[:End, :default],                  target ]
 #              concrete output signal (macro knows it) => [:End, :right], [:End, ]
       # Override these if you want to extend how tasks are built.
       def args_for_pass(*args)
-        StepArgs.new( args, [Circuit::Right, Circuit::Right], wirings_for_pass(*args) )
+        StepArgs.new( [Circuit::Right, Circuit::Right], wirings_for_pass(*args) )
       end
 
       def wirings_for_pass(*args)
         [
-          [:insert_before!, [:End, :success], incoming: ->(edge) { edge.type == :railway }, node: nil ],
+            [:insert_before!, [:End, :success], incoming: ->(edge) { edge[:type] == :railway }, node: nil ],
           [:connect!, node: [:End, :success], edge: [Circuit::Right, type: :railway] ],
         ]
       end
 
       def args_for_fail(*args)
-        StepArgs.new( args, [Circuit::Left, Circuit::Left],
+        StepArgs.new( [Circuit::Left, Circuit::Left],
           [
             [:insert_before!, [:End, :failure], incoming: ->(edge) { edge.type == :railway }, node: nil ],
             [:connect!, node: [:End, :failure], edge: [Circuit::Left, type: :railway] ],
@@ -47,21 +47,55 @@ module Trailblazer
 
       # `step` uses the same wirings as `pass`, but also connects the node to the left track.
       def args_for_step(*args)
-        StepArgs.new( args, [Circuit::Right, Circuit::Left],
+        StepArgs.new( [Circuit::Right, Circuit::Left],
           wirings_for_pass << [:connect!, node: [:End, :failure], edge: [Circuit::Left,  type: :railway] ]
         )
       end
 
       # |-- compile initial act from alterations
       # |-- add step alterations
-      def add_step!(type, proc, options)
-        heritage.record(type, proc, options)
+      def add_step!(type, proc, user_options, task_builder=Operation::Railway::TaskBuilder)
+        heritage.record(type, proc, user_options)
 
         # compile the default arguments specific to step/fail/pass.
-        default_args_for = send("args_for_#{type}", proc, options) # call args_for_pass/args_for_fail/args_for_step.
+        step_args = send("args_for_#{type}", proc, user_options) # call args_for_pass/args_for_fail/args_for_step.
+
+
+
+
+        # # compile the step's options like :name.
+        # proc, user_options = *step_args.original_args
+
+        # DISCUSS: do we really need step_args?
+          # this is where we retrieve config. now insert! needs to get configured properly
+        task, options, runner_options = build_task_for(proc, user_options, step_args.args_for_task_builder, task_builder)
+
+        # step_cfg = step_args.to_h
+
+        # # now, map the connections to the existing step_args.connections
+        # step_cfg[:connections] = runner_options[:connections] unless runner_options[:connections].nil?
+        # # FIXME: rename runner_options to config or something.
+        # puts "@@@@@ #{step_cfg[:connections].inspect}"
+        wirings = step_args.wirings
+
+        sequence = self["__sequence__"]
+
+
+
+
+
+        # 1. insert Step into Sequence (by respecting append, replace, before, etc.)
+        sequence.insert!(task, options, wirings)
+        # sequence is now an up-to-date representation of our operation's steps.
+
+
+
+        # TODO: how do we handle basic wirings?
+        graph = InitialActivity()
+
 
         # re-compile the activity with every DSL call.
-        self["__activity__"] = recompile_activity( self["__activity__"], self["__sequence__"], default_args_for )
+        self["__activity__"] = recompile_activity(graph, sequence)
       end
 
       # @api private
@@ -71,26 +105,29 @@ module Trailblazer
       # 3. Returns a new Activity instance.
       #
       # This is called per "step"/task insertion.
-      def recompile_activity(railway_alterations, sequence, step_args, task_builder=TaskBuilder) # decoupled from any self deps.
-        proc, user_options = *step_args.original_args
+      def recompile_activity(graph, sequence)
 
-        # DISCUSS: do we really need step_args?
-          # this is where we retrieve config. now insert! needs to get configured properly
-        task, options, runner_options = build_task_for(proc, user_options, step_args.args_for_task_builder, task_builder)
+        sequence.each do |row|
+          task    = row.task
+          options = { id: row.name }
 
-        step_cfg = step_args.to_h
+          row.wirings.each do |wiring|
+            # DISCUSS: this could also be a lambda, but sucks for development.
+            wiring.last[:node] = [ task, options ] if wiring.last.key?(:node)
 
-        # now, map the connections to the existing step_args.connections
-        step_cfg[:connections] = runner_options[:connections] unless runner_options[:connections].nil?
-        # FIXME: rename runner_options to config or something.
-        puts "@@@@@ #{step_cfg[:connections].inspect}"
+
+            graph.send *wiring
+
+          end
+        end
+
+# require "pp"
+#         pp graph
 
         # step_cfg[:predecessors] = find predecessors for
 
 
-        # 1. insert Step into Sequence (append, replace, before, etc.)
-        sequence.insert!(task, options[:name], options, **step_cfg)
-        # sequence is now an up-to-date representation of our operation's steps.
+
 
         # 2. transform sequence to Activity
         alterations = railway_alterations + sequence.to_alterations
@@ -141,12 +178,6 @@ module Trailblazer
         options = default_options.merge(user_options)
         options = options.merge(replace: options[:name]) if options[:override] # :override
         options
-      end
-
-      class Alterations < Array# TODO: merge with Wrap::Alterations
-        def call(start)
-          inject(start) { |circuit, alteration| alteration.(circuit) }
-        end
       end
     end # DSL
   end

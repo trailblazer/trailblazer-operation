@@ -42,10 +42,7 @@ module Trailblazer
           heritage.record :initialize_activity!
 
           self["__sequence__"]  = Sequence.new
-          self["__activity__"] = InitialActivity()
-
-          self["__activity_alterations__"] = DSL::Alterations.new # mutable DSL object.
-          self["__activity_alterations__"] << ->(*) { InitialActivity() }
+          # self["__activity__"] = InitialActivity()
         end
 
         private
