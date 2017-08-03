@@ -50,7 +50,7 @@ module Trailblazer
       # `step` uses the same wirings as `pass`, but also connects the node to the left track.
       def args_for_step(*args)
         StepArgs.new( [Circuit::Right, Circuit::Left],
-          wirings_for_pass << [:connect!, node: [:End, :failure], edge: [Circuit::Left,  type: :railway] ]
+          wirings_for_pass << [:connect!, node: [:End, :failure], edge: [Circuit::Left, type: :railway] ]
         )
       end
 
@@ -125,10 +125,6 @@ module Trailblazer
 
           end
         end
-
-
-#         pp graph
-
 
         end_events = graph.find_all { |node| node.successors.size == 0 } # Find leafs of graph.
           .collect { |n| n[:_wrapped] } # unwrap the actual End event instance from the Node.

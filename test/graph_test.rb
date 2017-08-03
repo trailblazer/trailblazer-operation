@@ -116,6 +116,29 @@ class GraphTest < Minitest::Spec
       D         => { Circuit::Right => right_end_evt }
     })
   end
+
+
+
+
+  it do
+    start = Graph::Node( start_evt = Circuit::Start.new(:default), type: :event, id: [:Start, :default] )
+
+    right_end  = start.connect!(node: start.Node( right_end_evt, type: :end, id: [:End, :right] ), edge: [ Circuit::Right, type: :railway ] )
+    left_end   = start.attach!(node: [ left_end_evt, type: :event, id: [:End, :left] ], edge: [ Circuit::Left,  type: :left ] )
+
+    a, edge = start.insert_before!(
+      [:End, :right],
+      node:     [ A, id: [:A] ],
+      outgoing: [ Circuit::Right, type: :railway ],
+      incoming: ->(edge) { edge[:type] == :railway }
+    )
+    start.connect!(node: [:End, :left], edge: [ Circuit::Left, type: :railway ] )
+
+    start.to_h.must_equal({
+      start_evt => { Circuit::Right => A, Circuit::Left => left_end_evt },
+      A         => { Circuit::Right => right_end_evt, Circuit::Left => left_end_evt }
+    })
+  end
 end
 # TODO: test attach! properly.
 # TODO: test/fix double entries in find_all
