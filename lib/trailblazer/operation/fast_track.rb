@@ -14,14 +14,11 @@ module Trailblazer
         def initialize_fast_track_events! # FIXME: make this cooler!
           heritage.record :initialize_fast_track_events!
 
-          fast_track_events = {
-            end: {
-              pass_fast: Class.new(End::Success).new(:pass_fast),
-              fail_fast: Class.new(End::Failure).new(:fail_fast)
-            }
-          }
+          end_for_pass_fast = Class.new(End::Success).new(:pass_fast)
+          end_for_fail_fast = Class.new(End::Failure).new(:fail_fast)
 
-          self["__activity_alterations__"] << ->(old_activity) { Circuit::Activity::Rewrite(old_activity, events: fast_track_events) { |*| } }
+          self["__activity__"].connect!( node: [ end_for_pass_fast, id: [:End, :pass_fast] ], edge: [ PassFast, type: :railway ] )
+          self["__activity__"].connect!( node: [ end_for_fail_fast, id: [:End, :fail_fast] ], edge: [ FailFast, type: :railway ] )
         end
 
         def args_for_pass(proc, options)

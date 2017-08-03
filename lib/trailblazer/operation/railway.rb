@@ -51,16 +51,16 @@ module Trailblazer
         private
         # The initial {Activity} circuit with no-op wiring.
         def InitialActivity
-          events  = {
-            end: {
-              right: End::Success.new(:right),
-              left:  End::Failure.new(:left)
-            }
-          }
+          start = Circuit::Start.new(:default)
+          end_for_success = End::Success.new(:success)
+          end_for_failure = End::Failure.new(:failure)
 
-          Circuit::Activity({}, events) do |evt|
-            { evt[:Start] => { Circuit::Right => evt[:End, :right], Circuit::Left => evt[:End, :left] } }
-          end
+          start = Graph::Node( start, type: :event, id: [:Start, :default] )
+
+          start.connect!( node: [ end_for_success, type: :event, id: [:End, :success] ], edge: [ Circuit::Right, type: :railway ] )
+          start.connect!( node: [ end_for_failure, type: :event, id: [:End, :failure] ], edge: [ Circuit::Left,  type: :railway ] )
+
+          start
         end
       end
 

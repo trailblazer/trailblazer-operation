@@ -16,25 +16,52 @@ module Trailblazer
       alias_method :failure, :fail
 
       private
-      # DSL object, mutable.
-      StepArgs = Struct.new(:original_args, :incoming_direction, :connections, :args_for_task_builder, :insert_before_id)
+      # InsertBeforeArgs = [ end_node, node: [ task, id: options[:name] ], outgoing: Circuit::Right, incoming: ->(edge) { edge.type == :railway } ]
+      # ConnectArgs = [ source: [:bla, :id], node: [ task, id: options[:name], type: :event ], edge: [ FailFast, type: :railway ] ]
+
+
+      StepArgs = Struct.new(:original_args, :args_for_task_builder, :wirings)
+
 # macro says: [ nested[:End, :default],                  target ]
 #              concrete output signal (macro knows it) => [:End, :right], [:End, ]
       # Override these if you want to extend how tasks are built.
-      def args_for_pass(*args); StepArgs.new( args, Circuit::Right, [], [Circuit::Right, Circuit::Right], [:End, :right] ); end
-      def args_for_fail(*args); StepArgs.new( args, Circuit::Left,  [], [Circuit::Left, Circuit::Left], [:End, :left] ); end
-      def args_for_step(*args); StepArgs.new( args, Circuit::Right, [[ Circuit::Left, [:End, :left] ]], [Circuit::Right, Circuit::Left], [:End, :right] ); end
+      def args_for_pass(*args)
+        StepArgs.new( args, [Circuit::Right, Circuit::Right], wirings_for_pass(*args) )
+      end
+
+      def wirings_for_pass(*args)
+        [
+          [:insert_before!, [:End, :success], incoming: ->(edge) { edge.type == :railway }, node: nil ],
+          [:connect!, node: [:End, :success], edge: [Circuit::Right, type: :railway] ],
+        ]
+      end
+
+      def args_for_fail(*args)
+        StepArgs.new( args, [Circuit::Left, Circuit::Left],
+          [
+            [:insert_before!, [:End, :failure], incoming: ->(edge) { edge.type == :railway }, node: nil ],
+            [:connect!, node: [:End, :failure], edge: [Circuit::Left, type: :railway] ],
+          ]
+        )
+      end
+
+      # `step` uses the same wirings as `pass`, but also connects the node to the left track.
+      def args_for_step(*args)
+        StepArgs.new( args, [Circuit::Right, Circuit::Left],
+          wirings_for_pass << [:connect!, node: [:End, :failure], edge: [Circuit::Left,  type: :railway] ]
+        )
+      end
 
       # |-- compile initial act from alterations
       # |-- add step alterations
       def add_step!(type, proc, options)
         heritage.record(type, proc, options)
 
-        # compile the arguments specific to step/fail/pass.
-        args_for = send("args_for_#{type}", proc, options) # call args_for_pass/args_for_fail/args_for_step.
+        # compile the default arguments specific to step/fail/pass.
+        default_args_for = send("args_for_#{type}", proc, options) # call args_for_pass/args_for_fail/args_for_step.
 
         # re-compile the activity with every DSL call.
-        self["__activity__"] = recompile_activity( self["__activity_alterations__"], self["__sequence__"], args_for )
+        self["__activity__"] = recompile_activity( self["__activity__"], self["__sequence__"], default_args_for )
       end
 
       # @api private
