@@ -12,6 +12,9 @@ class GraphTest < Minitest::Spec
     Left = Class.new
   end
 
+  class D
+  end
+
   Graph = Trailblazer::Operation::Graph
   Circuit = Trailblazer::Circuit
 
@@ -65,14 +68,36 @@ class GraphTest < Minitest::Spec
     c, edge = start.insert_before!(
       left_end,
       node:     [ C, id: [:C] ],
-      incoming: ->(edge) { edge[:type] == :right }
+      incoming: ->(edge) { edge[:type] == :left }
     )
 
     start.to_h.must_equal({
-      start_evt => { Circuit::Right => B, Circuit::Left => left_end_evt },
+      start_evt => { Circuit::Right => B, Circuit::Left => C },
       A         => { A::Right => right_end_evt },
-      B         => { Circuit::Right => A, Circuit::Left => left_end_evt },
+      B         => { Circuit::Right => A, Circuit::Left => C },
+      C         => {},
     })
+    # DISCUSS: now left_end is unconnected and invisible.
+
     # start["some.id"]
+  end
+
+  #- insert with id
+  it do
+    start      = Graph::Node( start_evt = Circuit::Start.new(:default), type: :event, id: [:Start, :default] )
+    right_end  = start.connect!(node: [ right_end_evt, type: :event, id: [:End, :right] ], edge: [ Circuit::Right, type: :right ] )
+    left_end   = start.connect!(node: [ left_end_evt, type: :event, id: [:End, :left] ], edge: [ Circuit::Left,  type: :left ] )
+
+    d, edge = start.insert_before!(
+      [:End, :right],
+      node:     [ D, id: [:D] ],
+      incoming: ->(edge) { edge[:type] == :right },
+      outgoing: [ Circuit::Right, type: :right ]
+    )
+
+    start.to_h.must_equal({
+      start_evt => { Circuit::Right => D, Circuit::Left => left_end_evt },
+      D         => { Circuit::Right => right_end_evt }
+    })
   end
 end
