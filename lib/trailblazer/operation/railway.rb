@@ -28,6 +28,8 @@ module Trailblazer
 
           ctx = Trailblazer::Context(immutable_options)
 
+          puts self["__activity__"].inspect
+
           self["__activity__"].(start_at, ctx, flow_options.merge( exec_context: new ))
         end
 
@@ -53,7 +55,7 @@ module Trailblazer
           end_for_success = End::Success.new(:success)
           end_for_failure = End::Failure.new(:failure)
 
-          start = Graph::Node( start, type: :event, id: [:Start, :default] )
+          start = @___start_fixme = Graph::Node( start, type: :event, id: [:Start, :default] )
 
           start.attach!( target: [ end_for_success, type: :event, id: [:End, :success] ], edge: [ Circuit::Right, type: :railway ] )
           start.attach!( target: [ end_for_failure, type: :event, id: [:End, :failure] ], edge: [ Circuit::Left,  type: :railway ] )
