@@ -39,10 +39,10 @@ module Trailblazer
           __call__( @start, options, {} )
         end
 
-        def initialize_activity!
+        def initialize_activity! # TODO: rename to circuit, or make it Activity?
           heritage.record :initialize_activity!
 
-          self["__sequence__"] = Sequence.new
+          self["__sequence__"] = Sequence.new # the `Sequence` instance is the only mutable/persisted object in this class.
           self["__activity__"] = recompile_activity!( self["__sequence__"] ) # almost empty NOOP circuit.
         end
 

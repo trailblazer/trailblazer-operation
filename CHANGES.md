@@ -1,6 +1,12 @@
 TODO:
 * api to add your own task.
 
+lots of work on the DSL specific parts.
+    Graph and Sequence to make it easier to wire anything.
+    macros can now add/modify the wiring, e.g. their end to the our end or the next task.
+    [ use circuit for actual step_args/initialize process, too? ]
+    You can now add an unlimited number of "your own" end events, which can then be interpreted on the outside (e.g. Endpoint)
+
 ## 0.1.0
 
 call vs __call__: it's now designed to be run in a composition where the skills stuff is done only once, and the reslt object is not necessary

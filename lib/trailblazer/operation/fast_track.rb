@@ -17,12 +17,16 @@ module Trailblazer
           end_for_pass_fast = Class.new(End::Success).new(:pass_fast)
           end_for_fail_fast = Class.new(End::Failure).new(:fail_fast)
 
-          self["__activity__"].connect!( node: [ end_for_pass_fast, id: [:End, :pass_fast] ], edge: [ PassFast, type: :railway ] )
-          self["__activity__"].connect!( node: [ end_for_fail_fast, id: [:End, :fail_fast] ], edge: [ FailFast, type: :railway ] )
+          @start.connect!( target: [ end_for_pass_fast, id: [:End, :pass_fast] ], edge: [ PassFast, type: :railway ] )
+          @start.connect!( target: [ end_for_fail_fast, id: [:End, :fail_fast] ], edge: [ FailFast, type: :railway ] )
         end
 
         def args_for_pass(proc, options)
           direction = options[:pass_fast] ? PassFast : Circuit::Right # task will emit PassFast or Right, depending on options.
+
+        # [
+        #   [:insert_before!, [:End, :success], incoming: ->(edge) { edge[:type] == :railway }, node: nil, outgoing: [Circuit::Right, type: :railway] ],
+        # ]
 
           super.tap do |args|
             # always connect task to End:pass_fast so the emitted PassFast signal from Railway#pass_fast! is wired.
@@ -41,7 +45,6 @@ module Trailblazer
             args.args_for_task_builder = [direction, direction]
           end
         end
-
 
         def args_for_step(proc, options)
           direction_on_false = options[:fail_fast] ? FailFast : Circuit::Left

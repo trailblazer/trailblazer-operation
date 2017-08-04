@@ -16,9 +16,6 @@ module Trailblazer
       alias_method :failure, :fail
 
       private
-      # InsertBeforeArgs = [ end_node, node: [ task, id: options[:name] ], outgoing: Circuit::Right, incoming: ->(edge) { edge.type == :railway } ]
-      # ConnectArgs = [ source: [:bla, :id], node: [ task, id: options[:name], type: :event ], edge: [ FailFast, type: :railway ] ]
-
 
       StepArgs = Struct.new(:args_for_task_builder, :wirings)
 

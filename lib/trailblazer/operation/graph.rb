@@ -93,6 +93,5 @@ module Trailblazer
     def self.Node(wrapped, data={})
       Node.new( { _wrapped: wrapped, graph: {} }.merge(data) ) { |node, data| data[:graph][node] = {} }
     end
-
-  end
+  end # Graph
 end
