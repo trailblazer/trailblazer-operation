@@ -92,12 +92,15 @@ module Trailblazer
 
 
 
+
+        self["__activity__"] = recompile_activity!(sequence)
+      end
+
         # TODO: how do we handle basic wirings?
-        graph = InitialActivity()
-
-
-        # re-compile the activity with every DSL call.
-        self["__activity__"] = recompile_activity(graph, sequence)
+        # DISCUSS:
+        # called with every DSL call and at init. re-compile the activity with every DSL call.
+      def recompile_activity!(sequence, graph=InitialActivity())
+        recompile_activity_for(graph, sequence)
       end
 
       # @api private
@@ -107,9 +110,7 @@ module Trailblazer
       # 3. Returns a new Activity instance.
       #
       # This is called per "step"/task insertion.
-      def recompile_activity(graph, sequence)
-
-
+      def recompile_activity_for(graph, sequence)
         sequence.each do |row|
           task    = row.task
           options = { id: row.name }

@@ -42,8 +42,8 @@ module Trailblazer
         def initialize_activity!
           heritage.record :initialize_activity!
 
-          self["__sequence__"]  = Sequence.new
-          # self["__activity__"] = InitialActivity()
+          self["__sequence__"] = Sequence.new
+          self["__activity__"] = recompile_activity!( self["__sequence__"] ) # almost empty NOOP circuit.
         end
 
         private
