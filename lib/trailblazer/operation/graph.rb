@@ -30,7 +30,7 @@ module Trailblazer
         target
       end
 
-      def insert_before!(old_node, node:raise, outgoing:nil, incoming:, **)
+      def insert_before!(old_node, node:raise, outgoing:nil, incoming:raise)
         old_node = find_all(old_node)[0] unless old_node.kind_of?(Node)
 
         new_node            = Node(*node)
