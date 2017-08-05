@@ -4,6 +4,9 @@ module Trailblazer
   # * This class is designed to maintain a graph while building up a circuit step-wise.
   # * It can be imperformant as this all happens at compile-time.
   module Operation::Graph
+    # Task => { id: "Nested{Task}", type: :subprocess, boundary_events: { Circuit::Left =>  }  }
+
+
     class Edge
       def initialize(data)
         yield self, data if block_given?

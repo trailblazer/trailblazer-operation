@@ -11,30 +11,30 @@ module Trailblazer
     # @api private
     class Sequence < ::Array
       # Configuration for alter!, represents one sequence/circuit alteration. Usually per `step`.
-      Row = Struct.new(:task, :name, :wirings)
+      Task = Struct.new(:task, :name, :wirings)
 
       # Insert the task into {Sequence} array by respecting options such as `:before`.
       # This mutates the object per design.
       def insert!(task, options, wirings)
-        row = Sequence::Row.new(task, options[:name], wirings)
+        task = Sequence::Task.new(task, options[:name], wirings)
 
-        insert_for!(options, row)
+        insert_for!(options, task)
       end
 
       private
 
-      def insert_for!(options, row)
-        return insert(find_index!(options[:before]),  row) if options[:before]
-        return insert(find_index!(options[:after])+1, row) if options[:after]
-        return self[find_index!(options[:replace])] = row  if options[:replace]
+      def insert_for!(options, task)
+        return insert(find_index!(options[:before]),  task) if options[:before]
+        return insert(find_index!(options[:after])+1, task) if options[:after]
+        return self[find_index!(options[:replace])] = task  if options[:replace]
         return delete_at(find_index!(options[:delete]))    if options[:delete]
 
-        self << row
+        self << task
       end
 
       def find_index(name)
-        row = find { |row| row.name == name }
-        index(row)
+        task = find { |task| task.name == name }
+        index(task)
       end
 
       def find_index!(name)

@@ -8,6 +8,10 @@ module Trailblazer
     # DRAFT
     #  direction: "(output) signal"
 
+
+    # row.wirings.first[1] #=> [:End, :success]
+
+
     module DSL
       def pass(proc, options={}); add_step!(:pass, proc, options); end
       def fail(proc, options={}); add_step!(:fail, proc, options); end
@@ -117,7 +121,7 @@ module Trailblazer
             wiring.last[:node] = [ task, options ] if wiring.last.key?(:node) && wiring.last[:node].nil? # FIXME: this is only needed for insert_before!
             wiring.last[:source] = options[:id] if wiring.last[:source]=="fixme!!!" # FIXME: this is only needed for connect!
 
- puts wiring.inspect
+ # puts wiring.inspect
  # [:insert_before!, [:End, :success], {:incoming=>#<Proc:0x00000002e2f408@/home/sutnic81/projects/operation/lib/trailblazer/operation/dsl.rb:33 (lambda)>, :node=>[<Railway::Task{#<Proc:0x00000002e2f840@test/fast_track_test.rb:23 (lambda)>}>, {:id=>#<Proc:0x00000002e2f840@test/fast_track_test.rb:23 (lambda)>}], :outgoing=>[Trailblazer::Operation::Railway::PassFast, {:type=>:railway}], :target=>[:End, :pass_fast]}]
 
 

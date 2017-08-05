@@ -6,13 +6,16 @@ module Trailblazer
   end
 
   # Operation-specific circuit rendering. This is optimized for a linear railway circuit.
-  #:private:
+  #
+  # @private
+  # This is absolutely not to be copied or used for introspection as the API will definitely change
+  # here. Instead of going through the sequence, we have to traverse the actual circuit graph instead.
   module Operation::Inspect
     module_function
 
     # TODO: at some point, we should render the real circuit graph using circuit tools.
     def call(operation, options={ style: :line })
-      rows = operation["__sequence__"].each_with_index.collect { |row, i| [ i, [ row.incoming_direction, row.name ] ]  }
+      rows = operation["__sequence__"].each_with_index.collect { |row, i| [ i, [ row.wirings.first[1], row.name ] ]  }
 
       return inspect_line(rows) if options[:style] == :line
       return inspect_rows(rows)
@@ -22,16 +25,16 @@ module Trailblazer
       @inspect[step]
     end
 
-    Operator = { Circuit::Left => "<", Circuit::Right => ">", }
+    Operator = { [:End, :failure] => "<", [:End, :success] => ">", }
 
     def inspect_line(names)
-      string = names.collect { |i, (track, name)| "#{Operator[track]}#{name}" }.join(",")
+      string = names.collect { |i, (end_of_edge, name)| "#{Operator[end_of_edge]}#{name}" }.join(",")
       "[#{string}]"
     end
 
     def inspect_rows(names)
-      string = names.collect do |i, (track, name)|
-        operator = Operator[track]
+      string = names.collect do |i, (end_of_edge, name)|
+        operator = Operator[end_of_edge]
 
         op = "#{operator}#{name}"
         padding = 38
