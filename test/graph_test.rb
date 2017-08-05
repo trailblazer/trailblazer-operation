@@ -20,11 +20,10 @@ class GraphTest < Minitest::Spec
 
   let(:right_end_evt) { Trailblazer::Operation::Railway::End::Success.new(:right) }
   let(:left_end_evt)  { Trailblazer::Operation::Railway::End::Failure.new(:left) }
+  let(:start_evt)     { Circuit::Start.new(:default) }
+  let(:start)         { Graph::Node( start_evt, type: :event, id: [:Start, :default] ) }
 
   it do
-    start = Graph::Node( start_evt = Circuit::Start.new(:default), type: :event, id: [:Start, :default] )
-    # start.inspect.must_equal %{data:{type::start,name:Start.default}}
-
     start[:id].must_equal [:Start, :default]
     start[:_wrapped].must_equal start_evt
 
@@ -41,9 +40,9 @@ class GraphTest < Minitest::Spec
     )
 
     a.must_be_instance_of Graph::Node
-    edge.must_be_instance_of Graph::Edge
+    edge.must_be_nil
 
-    start.to_h.must_equal({
+    start.to_h( include_leafs: false).must_equal({
       start_evt => { Circuit::Right => A, Circuit::Left => left_end_evt },
       A         => { A::Right => right_end_evt },
     })
@@ -57,7 +56,7 @@ class GraphTest < Minitest::Spec
 
     b.connect!(target: left_end, edge: [ Circuit::Left, type: :left ])
 
-    start.to_h.must_equal({
+    start.to_h( include_leafs: false).must_equal({
       start_evt => { Circuit::Right => B, Circuit::Left => left_end_evt },
       A         => { A::Right => right_end_evt },
       B         => { Circuit::Right => A, Circuit::Left => left_end_evt },
@@ -71,11 +70,11 @@ class GraphTest < Minitest::Spec
       incoming: ->(edge) { edge[:type] == :left }
     )
 
-    start.to_h.must_equal({
+    start.to_h( include_leafs: false ).must_equal({
       start_evt => { Circuit::Right => B, Circuit::Left => C },
       A         => { A::Right => right_end_evt },
       B         => { Circuit::Right => A, Circuit::Left => C },
-      C         => {},
+      # C         => {},
     })
     # DISCUSS: now left_end is unconnected and invisible.
 
@@ -84,7 +83,6 @@ class GraphTest < Minitest::Spec
 
   #- insert with id
   it do
-    start      = Graph::Node( start_evt = Circuit::Start.new(:default), type: :event, id: [:Start, :default] )
     right_end  = start.attach!(target: [ right_end_evt, type: :event, id: [:End, :right] ], edge: [ Circuit::Right, type: :right ] )
     left_end   = start.attach!(target: [ left_end_evt, type: :event, id: [:End, :left] ], edge: [ Circuit::Left,  type: :left ] )
 
@@ -95,23 +93,23 @@ class GraphTest < Minitest::Spec
       outgoing: [ Circuit::Right, type: :right ]
     )
 
-    start.to_h.must_equal({
+    start.to_h( include_leafs: false).must_equal({
       start_evt => { Circuit::Right => D, Circuit::Left => left_end_evt },
       D         => { Circuit::Right => right_end_evt }
     })
 
     #- #find with block TODO: test explicitly.
     events = start.find_all { |node| node[:type] == :event }
-    events.must_equal [start, left_end, right_end]
+    events.must_equal [start, right_end, left_end]
 
     # TODO: test find_all/successors leafs explicitly.
     leafs = start.find_all { |node| node.successors.size == 0 }
-    leafs.must_equal [ left_end, right_end ]
+    leafs.must_equal [ right_end, left_end ]
 
 
     start.connect!( target: [:End, :right], edge: [ Circuit, {} ] )
 
-    start.to_h.must_equal({
+    start.to_h( include_leafs: false).must_equal({
       start_evt => { Circuit::Right => D, Circuit::Left => left_end_evt, Circuit => right_end_evt },
       D         => { Circuit::Right => right_end_evt }
     })
@@ -121,8 +119,6 @@ class GraphTest < Minitest::Spec
 
 
   it do
-    start = Graph::Node( start_evt = Circuit::Start.new(:default), type: :event, id: [:Start, :default] )
-
     right_end  = start.connect!(target: start.Node( right_end_evt, type: :end, id: [:End, :right] ), edge: [ Circuit::Right, type: :railway ] )
     left_end   = start.attach!(target: [ left_end_evt, type: :event, id: [:End, :left] ], edge: [ Circuit::Left,  type: :left ] )
 
@@ -134,10 +130,41 @@ class GraphTest < Minitest::Spec
     )
     target = start.connect!( source: :A, edge: [ Circuit::Left, type: :railway ], target: [:End, :left] )
 
-    start.to_h.must_equal({
+    start.to_h( include_leafs: false).must_equal({
       start_evt => { Circuit::Right => A, Circuit::Left => left_end_evt },
       A         => { Circuit::Right => right_end_evt, Circuit::Left => left_end_evt }
     })
+  end
+
+  #- detach a node via #insert_before! without :outgoing
+  #- then, connect! that orphaned node.
+  it do
+    right_end = start.attach!(target: [ right_end_evt, type: :event, id: [:End, :right] ], edge: [ Circuit::Right, type: :railway ] )
+    right_end_evt = right_end[:_wrapped]
+
+    a, edge = start.insert_before!(
+      [:End, :right],
+      node:     [ A, id: :A ],
+      # outgoing: [ Circuit::Right, type: :railway ],
+      incoming: ->(edge) { edge[:type] == :railway }
+    )
+
+    start.to_h.must_equal(
+      {
+        start_evt     => { Circuit::Right => A },
+        A             => {}, # A not connected
+        right_end_evt => {},
+      }
+    )
+
+    start.connect!( source: :A, edge: [ Circuit::Left, {} ], target: [:End, :right] )
+
+    start.to_h(include_leafs: false).must_equal(
+      {
+        start_evt     => { Circuit::Right => A },
+        A             => { Circuit::Left => right_end_evt }, # A is now connected!
+      }
+    )
   end
 end
 # TODO: test attach! properly.
