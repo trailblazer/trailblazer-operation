@@ -27,8 +27,12 @@ module Trailblazer
               args.args_for_task_builder = [PassFast, PassFast] # always go to End.pass_fast, no matter if truthy or falsey.
 
               insert_before_cfg = args.wirings[0]
-              insert_before_cfg[2][:outgoing] = [PassFast, type: :railway]
-              insert_before_cfg[2][:target] = [:End, :pass_fast]
+              insert_before_cfg[2].delete(:outgoing) # FIXME: sucks
+
+              # insert_before_cfg[2][:outgoing] = [PassFast, type: :railway]
+
+
+              args.wirings << [ :connect!, source: "fixme!!!", edge: [ PassFast, type: :railway ], target: [:End, :pass_fast] ]
             else
               args.wirings << [ :connect!, source: "fixme!!!", edge: [ PassFast, type: :railway ], target: [:End, :pass_fast] ]
             end
