@@ -52,7 +52,11 @@ module Trailblazer
         rewired_connections = incoming_tuples.find_all { |(node, edge)| incoming.(edge) }
 
         # rewire old_task's predecessors to new_task.
-        rewired_connections.each { |(node, edge)| connect_for!(node, edge, new_node) }
+        if rewired_connections.size == 0 # this happens when we're inserting "before" an orphaned node.
+          self[:graph][new_node] = {} # FIXME: redundant in #connect_for!
+        else
+          rewired_connections.each { |(node, edge)| connect_for!(node, edge, new_node) }
+        end
 
         # connect new_task --> old_task.
         if outgoing

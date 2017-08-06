@@ -137,7 +137,7 @@ class GraphTest < Minitest::Spec
   end
 
   #- detach a node via #insert_before! without :outgoing
-  #- then, connect! that orphaned node.
+  #- then, connect! that "leaf" node.
   it do
     right_end = start.attach!(target: [ right_end_evt, type: :event, id: [:End, :right] ], edge: [ Circuit::Right, type: :railway ] )
     right_end_evt = right_end[:_wrapped]
@@ -152,8 +152,8 @@ class GraphTest < Minitest::Spec
     start.to_h.must_equal(
       {
         start_evt     => { Circuit::Right => A },
-        A             => {}, # A not connected
-        right_end_evt => {},
+        A             => {}, # A not connected, it's a leaf.
+        right_end_evt => {}, # End.right is orphaned.
       }
     )
 
@@ -166,6 +166,39 @@ class GraphTest < Minitest::Spec
       }
     )
   end
+
+  #- detach a node via #insert_before! without :outgoing
+  #- then, insert_before! another node "before" the orphaned, and omit :outgoing.
+  it do
+    right_end = start.attach!(target: [ right_end_evt, type: :event, id: [:End, :right] ], edge: [ Circuit::Right, type: :railway ] )
+    right_end_evt = right_end[:_wrapped]
+
+    a, edge = start.insert_before!(
+      [:End, :right],
+      node:     [ A, id: :A ],
+      # outgoing: [ Circuit::Right, type: :railway ],
+      incoming: ->(edge) { edge[:type] == :railway }
+    )
+
+    start.to_h.must_equal(
+      {
+        start_evt     => { Circuit::Right => A },
+        A             => {}, # A not connected, it's a leaf.
+        right_end_evt => {}, # End.right is orphaned, and doesn't have incoming edges.
+      }
+    )
+
+    start.insert_before!( [:End, :right], node: [ B, {id: :B} ], incoming: ->(edge) { edge[:type] == :railway } )
+
+    start.to_h.must_equal(
+      {
+        start_evt     => { Circuit::Right => A },
+        A             => {}, # A is not connected!
+        B =>{},
+        right_end_evt => {},
+      }
+    )
+  end
 end
 # TODO: test attach! properly.
-# TODO: test/fix double entries in find_all
+# TODO: test double entries in find_all
