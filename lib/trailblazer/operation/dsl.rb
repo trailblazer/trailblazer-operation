@@ -13,9 +13,13 @@ module Trailblazer
 
 
     module DSL
-      def pass(proc, options={}); add_step!(:pass, proc, options, outputs: { Circuit::Right => { role: :success }, Circuit::Left => { role: :success }} ); end
-      def fail(proc, options={}); add_step!(:fail, proc, options, outputs: { Circuit::Right => { role: :failure }, Circuit::Left => { role: :failure }} ); end
-      def step(proc, options={}); add_step!(:step, proc, options, outputs: { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }} ); end
+      # An unaware step task usually has two outputs, one end event for success and one for failure.
+      # Note that macros have to define their outputs when inserted and don't need a default config.
+      DEFAULT_TASK_OUTPUTS = { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }}
+
+      def pass(proc, options={}); add_step!(:pass, proc, options, task_outputs: DEFAULT_TASK_OUTPUTS ); end
+      def fail(proc, options={}); add_step!(:fail, proc, options, task_outputs: DEFAULT_TASK_OUTPUTS ); end
+      def step(proc, options={}); add_step!(:step, proc, options, task_outputs: DEFAULT_TASK_OUTPUTS ); end
       alias_method :success, :pass
       alias_method :failure, :fail
 
@@ -23,13 +27,25 @@ module Trailblazer
 
       StepArgs = Struct.new(:args_for_task_builder, :wirings)
 
-# macro says: [ nested[:End, :default],                  target ]
-#              concrete output signal (macro knows it) => [:End, :right], [:End, ]
-      # Override these if you want to extend how tasks are built.
-      def args_for_pass(*args)
-        StepArgs.new( [Circuit::Right, Circuit::Right], wirings_for_pass(*args) )
+      def output_mappings_for_pass(*args)
+        {
+          :success => [ [:End, :success] ],
+          :failure => [ [:End, :success] ]
+        }
+      end
 
-        # TaskWiring.new(  )
+      def output_mappings_for_fail(*args)
+        {
+          :success => [ [:End, :failure] ],
+          :failure => [ [:End, :failure] ]
+        }
+      end
+
+      def output_mappings_for_step(*args)
+        {
+          :success => [ [:End, :success] ],
+          :failure => [ [:End, :failure] ]
+        }
       end
 
       # DISCUSS: can we avoid using :outgoing and use connect! for all? problem is that [:End, :success] gets disconnected after the insert.
@@ -59,22 +75,22 @@ module Trailblazer
 
       # |-- compile initial act from alterations
       # |-- add step alterations
-      def add_step!(type, proc, user_options, task_builder=Operation::Railway::TaskBuilder, outputs:raise)
+      def add_step!(type, proc, user_options, task_builder=Operation::Railway::TaskBuilder, task_outputs:raise)
         heritage.record(type, proc, user_options)
 
 
-        step_proc, options_from_macro, runner_options, wiring_options = *proc
-        # now, wiring_options might be nil because a task doesn't have them, yet.
+        step_proc, options_from_macro, runner_options, outputs_map = *proc
+        # now, outputs_map might be nil because a task doesn't have them, yet.
 
 
         # build the task.
         task = if options_from_macro.nil?
           options_from_macro = {} # DISCUSS.
-          wiring_options     = { :outputs => outputs }
+          outputs_map     = task_outputs
 
           build_task_for_step(step_proc, [Circuit::Right, Circuit::Left], task_builder)   # ALWAYS let task builder return two ends. FIXME: remove task builder's configuration and make it dumb.
         else
-          wiring_options     = { :outputs => outputs } if wiring_options.nil? # FIXME: macros must always return their endings.
+          outputs_map     = task_outputs if outputs_map.nil? # FIXME: macros must always return their endings.
           step_proc # a macro always returns a Task already.
         end
 
@@ -82,60 +98,35 @@ module Trailblazer
         options = process_options(options_from_macro, user_options)
 
 
-        outputs_options = wiring_options[:outputs] # { Left => { role: :failure }}
+        wirings = []
+        id      = options[:name] # DISCUSS all this
+        debug   = { id: id }
 
-        # generically wire outputs to the graph.
+        step_specific_targets = send("output_mappings_for_#{type}") # { :success => [ [:End, :success] ] }
+        insert_before_id      = step_specific_targets.values.first.first #=> [:End, :success] # FIXME: this is very implicit and not really transparent.
+
+        #---
+        # insert_before! section
+        wirings << [:insert_before!, insert_before_id, incoming: ->(edge) { edge[:type] == :railway }, node: [ task, { id: id } ] ]
+
+        #---
+        # connect! section
+        # this is what the task has
+        outputs_map # { Left => { role: :failure }}
+        # this is what the operation has
 
 
+        outputs_map.collect do |signal, options|
+          target = step_specific_targets[ options[:role] ].first # DISCUSS: do we need more than one, here?
+
+          wirings <<  [:connect!, source: id, edge: [signal, type: :railway], target: target ] # e.g. "Left --> End.failure"
+        end
 
 
-        # Macro()
-        #=> [ task, options, outputs: { Left => { role: :failure }} ]
-
-        # map ^ target/edge to graph: (this is specific to step/pass/failure)
-        # map ^ outputs to graph: (this is specific to step/pass/failure)
-
-
-        # 1. outputs from
-
-
-        # macro
-        #   task, , debug = *returned_from_macro   "i have a Left and Right output signal"
-                                                      # "and PassFast and FailFast"
-
-        # step:
-            # "i know how to wire those, Left goes to End.failure, Right goes to End.success"
-            # step/pass_fast
-            # "and PassFast goes to End.pass_fast"
-
-        # wiring = Wiring.(task, wirings_ary, debug)
-        # sequence.insert!( wiring.(graph) )
+        wirings = Operation::DSL::TaskWiring.new(wirings, debug)
 
 
 
-
-
-        # # compile the step's options like :name.
-        # DISCUSS: do we really need step_args?
-          # this is where we retrieve config. now insert! needs to get configured properly
-        step_args = send("args_for_#{type}", proc, user_options) # call args_for_pass/args_for_fail/args_for_step.
-
-        task, options, runner_options = build_task_for(proc, user_options, step_args.args_for_task_builder, task_builder)
-
-
-        # compile the default arguments specific to step/fail/pass.
-
-
-
-
-
-        # step_cfg = step_args.to_h
-
-        # # now, map the connections to the existing step_args.connections
-        # step_cfg[:connections] = runner_options[:connections] unless runner_options[:connections].nil?
-        # # FIXME: rename runner_options to config or something.
-        # puts "@@@@@ #{step_cfg[:connections].inspect}"
-        wirings = step_args.wirings
 
         sequence = self["__sequence__"]
 
@@ -172,19 +163,7 @@ module Trailblazer
           task    = row.task
           options = { id: row.name }
 
-          row.wirings.each do |wiring|
-            # DISCUSS: this could also be a lambda, but sucks for development.
-            wiring.last[:node] = [ task, options ] if wiring.last.key?(:node) && wiring.last[:node].nil? # FIXME: this is only needed for insert_before!
-            wiring.last[:source] = options[:id] if wiring.last[:source]=="fixme!!!" # FIXME: this is only needed for connect!
-
- # puts wiring.inspect
- # [:insert_before!, [:End, :success], {:incoming=>#<Proc:0x00000002e2f408@/home/sutnic81/projects/operation/lib/trailblazer/operation/dsl.rb:33 (lambda)>, :node=>[<Railway::Task{#<Proc:0x00000002e2f840@test/fast_track_test.rb:23 (lambda)>}>, {:id=>#<Proc:0x00000002e2f840@test/fast_track_test.rb:23 (lambda)>}], :outgoing=>[Trailblazer::Operation::Railway::PassFast, {:type=>:railway}], :target=>[:End, :pass_fast]}]
-
-
-            graph.send *wiring
-# puts graph.find_all { |n| puts n.inspect; puts }
-
-          end
+          row.wirings.(graph)
         end
 
         end_events = graph.find_all { |node| node.successors.size == 0 } # Find leafs of graph.
@@ -220,7 +199,7 @@ module Trailblazer
 
         task = task_builder.(proc, *args_for_task_builder)
 
-        return task, default_options, {}
+        # return task, default_options, {}
       end
 
       def build_task_for_macro(proc, args_for_task_builder, task_builder)
