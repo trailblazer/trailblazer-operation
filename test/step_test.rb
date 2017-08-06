@@ -41,7 +41,9 @@ class StepTest < Minitest::Spec
 
   it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?step_test.rb/, "").must_equal %{[>#<Proc::29 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>]} }
   # poor test to make sure we pass debug information to Activity.
-  it { Create["__activity__"].circuit.to_fields.last.to_a[3].last.must_equal :d }
+
+  it { puts Create["__activity__"].to_fields.last.inspect }
+  it { Create["__activity__"].to_fields.last.to_a[3].last.must_equal :d }
 
   #---
   #- :before, :after, :replace, :delete, :override
