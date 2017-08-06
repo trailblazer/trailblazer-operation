@@ -21,78 +21,35 @@ module Trailblazer
           end
         end
 
-        def args_for_pass(proc, options)
-          super.tap do |args|
-            if options[:pass_fast]
-              args.args_for_task_builder = [PassFast, PassFast] # always go to End.pass_fast, no matter if truthy or falsey.
 
-              insert_before_cfg = args.wirings[0]
-              insert_before_cfg[2].delete(:outgoing) # FIXME: sucks
+        def output_mappings_for_pass(task, options)
+          target = [:End, :pass_fast]
 
-              # insert_before_cfg[2][:outgoing] = [PassFast, type: :railway]
+          return super.merge(success: target, failure: target) if options[:pass_fast]
+          super
 
-
-              args.wirings << [ :connect!, source: "fixme!!!", edge: [ PassFast, type: :railway ], target: [:End, :pass_fast] ]
-            else
-              args.wirings << [ :connect!, source: "fixme!!!", edge: [ PassFast, type: :railway ], target: [:End, :pass_fast] ]
-            end
-          end
+          # {
+          #   :success => [:End, :success],
+          #   :failure => [:End, :success]
+          # }
         end
 
-        def args_for_fail(proc, options)
-          super.tap do |args|
-            if options[:fail_fast]
-              args.args_for_task_builder = [FailFast, FailFast] # always go to End.pass_fast, no matter if truthy or falsey.
+        def output_mappings_for_fail(task, options)
+          target = [:End, :fail_fast]
 
-              insert_before_cfg = args.wirings[0]
-              insert_before_cfg[2][:outgoing] = [FailFast, type: :railway]
-            else
-              args.wirings << [ :connect!, source: "fixme!!!", edge: [ FailFast, type: :railway ], target: [ :End, :pass_fast ] ]
-            end
-          end
+          return super.merge(failure: target, success: target) if options[:fail_fast]
+          super
         end
 
-        def args_for_step(proc, options)
-          direction_on_false = options[:fail_fast] ? FailFast : Circuit::Left
-          direction_on_true  = options[:pass_fast] ? PassFast : Circuit::Right
+        def output_mappings_for_step(task, options)
+          step_options = {
+            success: output_mappings_for_pass(task, options)[:success],
+            failure: output_mappings_for_fail(task, options)[:failure]
+          }
 
-          super.tap do |args|
-            args.args_for_task_builder = [direction_on_true, direction_on_false]
-
-            # if options[:pass_fast]
-
-            #   insert_before_cfg = args.wirings[0]
-            #   insert_before_cfg[2][:outgoing] = [PassFast, type: :railway]
-            # else
-              args.wirings << [ :connect!, source: "fixme!!!", edge: [ PassFast, type: :railway ], target: [ :End, :pass_fast ] ]
-              args.wirings << [ :connect!, source: "fixme!!!", edge: [ FailFast, type: :railway ], target: [ :End, :fail_fast ] ]
-            # end
-
-            # if options[:fail_fast]
-            #   args.args_for_task_builder = [FailFast, FailFast] # always go to End.pass_fast, no matter if truthy or falsey.
-
-            #   insert_before_cfg = args.wirings[0]
-            #   insert_before_cfg[2][:outgoing] = [FailFast, type: :railway]
-            # else
-            #   args.wirings << [ :connect!, source: "fixme!!!", edge: [ FailFast, type: :railway ], target: [ :End, :pass_fast ] ]
-            # end
-
-
-            # FIXME: edges we don't want, when pass_fast set!
-          end
+          super.merge(step_options)
         end
 
-        # def args_for_step(proc, options)
-        #   direction_on_false = options[:fail_fast] ? FailFast : Circuit::Left
-        #   direction_on_true  = options[:pass_fast] ? PassFast : Circuit::Right
-
-        #   # DISCUSS: should this also link to right, pass_fast etc?
-        #   # CONNECTED TO Left=>END.LEFT AND FailFast=>END.FAIL_FAST
-        #   super.tap do |args|
-        #     args.connections = [[Circuit::Left, [:End, :left]], [FailFast, [:End, :fail_fast]], [PassFast, [:End, :pass_fast]]]
-        #    args.args_for_task_builder = [direction_on_true, direction_on_false]
-        #  end
-        # end
       end
     end
 

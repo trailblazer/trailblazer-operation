@@ -8,10 +8,6 @@ module Trailblazer
     # DRAFT
     #  direction: "(output) signal"
 
-
-    # row.wirings.first[1] #=> [:End, :success]
-
-
     module DSL
       # An unaware step task usually has two outputs, one end event for success and one for failure.
       # Note that macros have to define their outputs when inserted and don't need a default config.
@@ -27,22 +23,22 @@ module Trailblazer
 
       def output_mappings_for_pass(task, options)
         {
-          :success => [ [:End, :success] ],
-          :failure => [ [:End, :success] ]
+          :success => [:End, :success],
+          :failure => [:End, :success]
         }
       end
 
       def output_mappings_for_fail(task, options)
         {
-          :success => [ [:End, :failure] ],
-          :failure => [ [:End, :failure] ]
+          :success => [:End, :failure],
+          :failure => [:End, :failure]
         }
       end
 
       def output_mappings_for_step(task, options)
         {
-          :success => [ [:End, :success] ],
-          :failure => [ [:End, :failure] ]
+          :success => [:End, :success],
+          :failure => [:End, :failure]
         }
       end
 
@@ -102,7 +98,7 @@ module Trailblazer
 
 
         outputs_map.collect do |signal, options|
-          target = step_specific_targets[ options[:role] ].first # DISCUSS: do we need more than one, here?
+          target = step_specific_targets[ options[:role] ]
 
           wirings <<  [:connect!, source: id, edge: [signal, type: :railway], target: target ] # e.g. "Left --> End.failure"
         end
@@ -118,13 +114,10 @@ module Trailblazer
 
 
 
-
+        puts "~~~"
         # 1. insert Step into Sequence (by respecting append, replace, before, etc.)
         sequence.insert!(task, options, wirings)
         # sequence is now an up-to-date representation of our operation's steps.
-
-
-
 
         self["__activity__"] = recompile_activity!(sequence)
       end

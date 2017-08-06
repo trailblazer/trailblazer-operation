@@ -42,7 +42,7 @@ class FastTrackTest < Minitest::Spec
   class Delete < Trailblazer::Operation
     step ->(options, *) { options["x"] = true }
     step ->(options, *) { options["a"] = options["dont_fail"] }, pass_fast: true # only on true.
-    failure ->(options, *) { options["b"] = true }
+    fail ->(options, *) { options["b"] = true }
     step ->(options, *) { options["y"] = true }
   end
 
