@@ -7,7 +7,6 @@ module Trailblazer
       def self.included(includer)
         # add additional end events to the circuit.
         includer.extend(DSL)
-        # includer.initialize_fast_track_events!
       end
 
       module DSL
@@ -37,14 +36,20 @@ module Trailblazer
         def output_mappings_for_fail(task, options)
           target = [:End, :fail_fast]
 
-          return super.merge(failure: target, success: target) if options[:fail_fast]
-          super
+          step_options = {}
+          step_options = step_options.merge( fail_fast: target ) # always add edge to fail_fast?
+
+          step_options = step_options.merge( failure: target, success: target ) if options[:fail_fast]
+
+          super.merge(step_options)
         end
 
         def output_mappings_for_step(task, options)
           step_options = {
             success: output_mappings_for_pass(task, options)[:success],
-            failure: output_mappings_for_fail(task, options)[:failure]
+            failure: output_mappings_for_fail(task, options)[:failure],
+            pass_fast: [:End, :pass_fast],
+            fail_fast: [:End, :fail_fast], # always add edge to fail_fast?
           }
 
           super.merge(step_options)

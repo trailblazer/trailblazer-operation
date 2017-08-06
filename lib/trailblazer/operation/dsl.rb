@@ -100,6 +100,7 @@ module Trailblazer
         outputs_map.collect do |signal, options|
           target = step_specific_targets[ options[:role] ]
 
+          # TODO: add more options to edge like role: :success or role: pass_fast.
           wirings <<  [:connect!, source: id, edge: [signal, type: :railway], target: target ] # e.g. "Left --> End.failure"
         end
 
