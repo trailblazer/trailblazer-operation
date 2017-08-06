@@ -4,7 +4,7 @@ module Trailblazer
   # * This class is designed to maintain a graph while building up a circuit step-wise.
   # * It can be imperformant as this all happens at compile-time.
   module Operation::Graph
-    # Task => { id: "Nested{Task}", type: :subprocess, boundary_events: { Circuit::Left =>  }  }
+    # Task => { name: "Nested{Task}", type: :subprocess, boundary_events: { Circuit::Left => {} }  }
 
 
     class Edge
@@ -36,7 +36,6 @@ module Trailblazer
       def connect!(target:raise, edge:raise, source:self)
         target = target.kind_of?(Node) ? target : (find_all { |_target| _target[:id] == target }[0] || raise( "#{target} not found"))
         source = source.kind_of?(Node) ? source : (find_all { |_source| _source[:id] == source }[0] || raise( "#{source} not found"))
-
 
         edge = source.Edge(*edge)
 
