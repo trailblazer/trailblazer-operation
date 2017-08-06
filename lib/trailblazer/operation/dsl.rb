@@ -25,25 +25,37 @@ module Trailblazer
 
       private
 
-      def output_mappings_for_pass(*args)
+      def output_mappings_for_pass(task, options)
         {
           :success => [ [:End, :success] ],
           :failure => [ [:End, :success] ]
         }
       end
 
-      def output_mappings_for_fail(*args)
+      def output_mappings_for_fail(task, options)
         {
           :success => [ [:End, :failure] ],
           :failure => [ [:End, :failure] ]
         }
       end
 
-      def output_mappings_for_step(*args)
+      def output_mappings_for_step(task, options)
         {
           :success => [ [:End, :success] ],
           :failure => [ [:End, :failure] ]
         }
+      end
+
+      def insert_before_id_for_pass(task, options)
+        [:End, :success]
+      end
+
+      def insert_before_id_for_fail(task, options)
+        [:End, :failure]
+      end
+
+      def insert_before_id_for_step(task, options)
+        [:End, :success]
       end
 
       # |-- compile initial act from alterations
@@ -76,8 +88,8 @@ module Trailblazer
         id      = options[:name] # DISCUSS all this
         debug   = { id: id }
 
-        step_specific_targets = send("output_mappings_for_#{type}") # { :success => [ [:End, :success] ] }
-        insert_before_id      = step_specific_targets.values.first.first #=> [:End, :success] # FIXME: this is very implicit and not really transparent.
+        step_specific_targets = send("output_mappings_for_#{type}",  task, options) #=> { :success => [ [:End, :success] ] }
+        insert_before_id      = send("insert_before_id_for_#{type}", task, options) #=> [:End, :success]
 
         #---
         # insert_before! section
