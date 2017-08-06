@@ -26,7 +26,7 @@ module Trailblazer
     extend Skill::Accessors        # ::[] and ::[]=
 
     include Railway                # ::call, ::step, ...
-    # include Railway::FastTrack
+    include Railway::FastTrack
     include Railway::TaskWrap
 
     # we want the skill dependency-mechanism.

@@ -25,8 +25,6 @@ module Trailblazer
 
       private
 
-      StepArgs = Struct.new(:args_for_task_builder, :wirings)
-
       def output_mappings_for_pass(*args)
         {
           :success => [ [:End, :success] ],
@@ -46,31 +44,6 @@ module Trailblazer
           :success => [ [:End, :success] ],
           :failure => [ [:End, :failure] ]
         }
-      end
-
-      # DISCUSS: can we avoid using :outgoing and use connect! for all? problem is that [:End, :success] gets disconnected after the insert.
-
-      def wirings_for_pass(*args)
-        [
-          [:insert_before!, [:End, :success], incoming: ->(edge) { edge[:type] == :railway }, node: nil, outgoing: [Circuit::Right, type: :railway] ],
-          # [:connect!,       node: [:End, :success], edge: [Circuit::Right, type: :railway] ],
-        ]
-      end
-
-      def args_for_fail(*args)
-        StepArgs.new( [Circuit::Left, Circuit::Left],
-          [
-            [:insert_before!, [:End, :failure], incoming: ->(edge) { edge[:type] == :railway }, node: nil, outgoing: [Circuit::Left, type: :railway] ],
-            # [:connect!, node: [:End, :failure], edge: [Circuit::Left, type: :railway] ],
-          ]
-        )
-      end
-
-      # `step` uses the same wirings as `pass`, but also connects the node to the left track.
-      def args_for_step(*args)
-        StepArgs.new( [Circuit::Right, Circuit::Left],
-          wirings_for_pass << [:connect!, source: "fixme!!!" , edge: [Circuit::Left, type: :railway], target: [:End, :failure] ]
-        )
       end
 
       # |-- compile initial act from alterations
@@ -114,7 +87,6 @@ module Trailblazer
         # connect! section
         # this is what the task has
         outputs_map # { Left => { role: :failure }}
-        # this is what the operation has
 
 
         outputs_map.collect do |signal, options|
