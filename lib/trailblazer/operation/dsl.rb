@@ -84,7 +84,7 @@ module Trailblazer
 
 
         # build the task.
-        task = if options_from_macro.nil?
+        task, options = if options_from_macro.nil?
           options_from_macro = {} # DISCUSS.
           outputs_map     = task_outputs
 
@@ -95,8 +95,9 @@ module Trailblazer
         end
 
         # normalize options generically, such as :name, :override, etc.
-        options = process_options(options_from_macro, user_options)
+        options = process_options(options_from_macro, user_options, name: proc)
 
+        # raise options[:name].inspect
 
         wirings = []
         id      = options[:name] # DISCUSS all this
@@ -174,43 +175,14 @@ module Trailblazer
 
       private
 
-      # Returns the {Task} instance to be inserted into the {Circuit}, its options (e.g. :name)
-      # and the runner_options.
-      #
-      # Steps can use a task builder to wrap the user step into a task.
-      # Macros return their low-level circuit task directly.
-      def build_task_for(proc, user_options, args_for_task_builder, task_builder)
-         macro = proc.is_a?(Array)
-
-        if macro
-          task, default_options, runner_options = build_task_for_macro(proc, args_for_task_builder, task_builder)
-        else
-          # Wrap step code into the actual circuit task.
-          task, default_options, runner_options = build_task_for_step(proc, args_for_task_builder, task_builder)
-        end
-
-        options = process_options(default_options, user_options)
-
-        return task, options, runner_options
-      end
-
       def build_task_for_step(proc, args_for_task_builder, task_builder)
-        proc, default_options = proc, { name: proc }
-
         task = task_builder.(proc, *args_for_task_builder)
-
-        # return task, default_options, {}
-      end
-
-      def build_task_for_macro(proc, args_for_task_builder, task_builder)
-        task, default_options, runner_options = *proc
-
-        return task, default_options, runner_options || {}
       end
 
       # Normalizes :override and :name options.
-      def process_options(default_options, user_options)
-        options = default_options.merge(user_options)
+      def process_options(macro_options, user_options, default_options)
+        options = macro_options.merge(user_options)
+        options = default_options.merge(options)
         options = options.merge(replace: options[:name]) if options[:override] # :override
         options
       end
