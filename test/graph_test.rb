@@ -199,6 +199,26 @@ class GraphTest < Minitest::Spec
       }
     )
   end
+
+  #- raises exception when same ID is inserted multiple times
+  it do
+    right_end = start.attach!(target: [ right_end_evt, type: :event, id: [:End, :right] ], edge: [ Circuit::Right, type: :railway ] )
+    # right_end = start.attach!(target: [ right_end_evt, type: :event, id: [:End, :right] ], edge: [ Circuit::Right, type: :railway ] )
+
+    a, edge = start.insert_before!(
+      [:End, :right],
+      node:     [ A, id: :A ],
+      outgoing: [ Circuit::Right, type: :railway ],
+      incoming: ->(edge) { edge[:type] == :railway }
+    )
+
+    a, edge = start.insert_before!(
+      [:End, :right],
+      node:     [ A, id: :A ],
+      outgoing: [ Circuit::Right, type: :railway ],
+      incoming: ->(edge) { edge[:type] == :railway }
+    )
+  end
 end
 # TODO: test attach! properly.
 # TODO: test double entries in find_all

@@ -16,6 +16,16 @@ module Trailblazer
       end
 
       module ClassMethods
+        def initialize_activity! # TODO: rename to circuit, or make it Activity?
+          heritage.record :initialize_activity!
+
+          self["__sequence__"] = Sequence.new # the `Sequence` instance is the only mutable/persisted object in this class.
+
+
+          # FIXME: we only need to do this to support empty NOOPs.
+          @start, self["__graph__"], self["__activity__"] = recompile_activity!( self["__sequence__"] ) # almost empty NOOP circuit.
+        end
+
         # Low-level `Activity` call interface. Runs the circuit.
         #
         # @param start_at [Object] the task where to start circuit.
@@ -28,8 +38,6 @@ module Trailblazer
 
           ctx = Trailblazer::Context(immutable_options)
 
-          puts self["__activity__"].inspect
-
           self["__activity__"].(start_at, ctx, flow_options.merge( exec_context: new ))
         end
 
@@ -41,17 +49,11 @@ module Trailblazer
           __call__( @start, options, {} )
         end
 
-        def initialize_activity! # TODO: rename to circuit, or make it Activity?
-          heritage.record :initialize_activity!
-
-          self["__sequence__"] = Sequence.new # the `Sequence` instance is the only mutable/persisted object in this class.
-          self["__activity__"] = recompile_activity!( self["__sequence__"] ) # almost empty NOOP circuit.
-        end
-
         private
+
         # The initial {Activity} circuit with no-op wiring.
         def InitialActivity
-          start = @start=  Circuit::Start.new(:default) # FIXME: the start event, argh
+          start = Circuit::Start.new(:default) # FIXME: the start event, argh
           end_for_success = End::Success.new(:success)
           end_for_failure = End::Failure.new(:failure)
 

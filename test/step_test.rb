@@ -42,8 +42,8 @@ class StepTest < Minitest::Spec
   it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?step_test.rb/, "").must_equal %{[>#<Proc::29 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>MyMacro]} }
   # poor test to make sure we pass debug information to Activity.
 
-  it { puts Create["__activity__"].to_fields.last.inspect }
-  it { Create["__activity__"].to_fields.last.to_a[3].last.must_equal :d }
+  # it { puts Create["__activity__"].to_fields.last.inspect }
+  it { Create["__graph__"][:graph].keys[8][:id].must_equal :d }
 
   #---
   #- :before, :after, :replace, :delete, :override
@@ -72,13 +72,13 @@ class StepTest < Minitest::Spec
   class D < Trailblazer::Operation
     step :a!
     step :add!
-    step :add!#, override: true
+    step :add!, name: :another_add!#, override: true
 
     def a!(options, **);   options["a"] = []; end
     def add!(options, **); options["a"] << :b; end
   end
 
-  it { Trailblazer::Operation::Inspect.(D).must_equal %{[>a!,>add!,>add!]} }
+  it { Trailblazer::Operation::Inspect.(D).must_equal %{[>a!,>add!,>another_add!]} }
   it { D.().inspect("a").must_equal %{<Result:true [[:b, :b]] >} }
 
   class E < Trailblazer::Operation

@@ -21,6 +21,7 @@ module Trailblazer
     class Node < Edge
       # Single entry point for adding nodes and edges to the graph.
       private def connect_for!(source, edge, target)
+        # raise if find_all( source[:id] ).any?
         self[:graph][source] ||= {}
         self[:graph][target] ||= {} # keep references to all nodes, even when detached.
         self[:graph][source][edge] = target
@@ -48,6 +49,9 @@ module Trailblazer
         old_node = find_all(old_node)[0] || raise( "#{old_node} not found") unless old_node.kind_of?(Node)
 
         new_node            = Node(*node)
+
+        raise "#{}" if find_all(new_node[:id]).any?
+
         incoming_tuples     = old_node.predecessors
         rewired_connections = incoming_tuples.find_all { |(node, edge)| incoming.(edge) }
 
@@ -97,6 +101,7 @@ module Trailblazer
       end
 
       def to_h(include_leafs:true)
+        # puts "@@@@@ #{self[:graph].keys.collect{ |k| k[:_wrapped] }.inspect}"
         hash = ::Hash[
           self[:graph].collect do |node, connections|
             connections = connections.collect { |edge, node| [ edge[:_wrapped], node[:_wrapped] ] }

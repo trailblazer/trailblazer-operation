@@ -65,6 +65,7 @@ module Trailblazer
 
 
         # build the task.
+        #   runner_options #=>{:alteration=>#<Proc:0x00000001dcbb20@test/task_wrap_test.rb:15 (lambda)>}
         task, options_from_macro, runner_options, task_outputs = if proc.is_a?(Array)
           task, options_from_macro, runner_options, _task_outputs = *proc
 
@@ -121,7 +122,8 @@ module Trailblazer
         sequence.insert!(wirings, options)
         # sequence is now an up-to-date representation of our operation's steps.
 
-        self["__activity__"] = recompile_activity!(sequence)
+        # FIXME: overwriting @start here sucks.
+        @start, self["__graph__"], self["__activity__"] = recompile_activity!(sequence)
       end
 
         # TODO: how do we handle basic wirings?
@@ -146,7 +148,7 @@ module Trailblazer
         end_events = graph.find_all { |node| node.successors.size == 0 } # Find leafs of graph.
           .collect { |n| n[:_wrapped] } # unwrap the actual End event instance from the Node.
 
-        Circuit.new(graph.to_h( include_leafs: false ), end_events, { id: self.class.to_s,  })
+        return graph[:_wrapped], graph, Circuit.new(graph.to_h( include_leafs: false ), end_events, {})
       end
 
       private
