@@ -70,6 +70,7 @@ module Trailblazer
           task, options_from_macro, runner_options, _task_outputs = *proc
 
           _task_outputs                     = task_outputs if _task_outputs.nil? # FIXME: macros must always return their endings.
+          runner_options                    = {} if runner_options.nil?
 
           [ task, options_from_macro, runner_options, _task_outputs ]
         else
