@@ -22,7 +22,6 @@ module Trailblazer
       # @param Hash list of key/value that should be set if not already assigned/set before (or injected from the outside).
       def self.ReverseMergeDefaults(default_dependencies)
         ->(direction, options, flow_options, *args) do
-          raise
           default_dependencies.each { |k, v| options[k] ||= v }
 
           [ direction, options, flow_options, *args ]
