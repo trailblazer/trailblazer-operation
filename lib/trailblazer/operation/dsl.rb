@@ -124,6 +124,18 @@ module Trailblazer
 
         # FIXME: overwriting @start here sucks.
         @start, self["__graph__"], self["__activity__"] = recompile_activity!( sequence, InitialActivity() )
+
+        {
+          start:    @start,
+          graph:    self["__graph__"],
+          circuit:  self["__activity__"],
+
+          # also return all computed data for this step:
+          task:           task,
+          options:        options,
+          runner_options: runner_options,
+          task_outputs:   task_outputs, # we don't need them outside.
+        }
       end
 
       # @api private
