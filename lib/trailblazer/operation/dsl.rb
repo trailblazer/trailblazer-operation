@@ -67,7 +67,6 @@ module Trailblazer
         # build the task.
         task, options_from_macro, runner_options, task_outputs = if proc.is_a?(Array)
           task, options_from_macro, runner_options, _task_outputs = *proc
-          puts "@@@@@ #{options_from_macro.inspect}"
 
           _task_outputs                     = task_outputs if _task_outputs.nil? # FIXME: macros must always return their endings.
 
@@ -147,7 +146,7 @@ module Trailblazer
         end_events = graph.find_all { |node| node.successors.size == 0 } # Find leafs of graph.
           .collect { |n| n[:_wrapped] } # unwrap the actual End event instance from the Node.
 
-        Circuit.new(graph.to_h, end_events, { id: self.class.to_s,  })
+        Circuit.new(graph.to_h( include_leafs: false ), end_events, { id: self.class.to_s,  })
       end
 
       private

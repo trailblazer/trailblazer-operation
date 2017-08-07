@@ -30,7 +30,7 @@ class StepTest < Minitest::Spec
     step Callable
     step Implementation.method(:c)
     step :d
-    step [ MyMacro, {} ] # doesn't provide runner_options.
+    step [ MyMacro, { name: "MyMacro" } ] # doesn't provide runner_options.
 
     def d(options, d:nil, **)
       options["d"] = d
@@ -39,7 +39,7 @@ class StepTest < Minitest::Spec
 
   it { Create.({}, a: 1, b: 2, c: 3, d: 4, e: 5).inspect("a", "b", "c", "d", "e").must_equal "<Result:true [1, 2, 3, 4, 5] >" }
 
-  it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?step_test.rb/, "").must_equal %{[>#<Proc::29 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>]} }
+  it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?step_test.rb/, "").must_equal %{[>#<Proc::29 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>MyMacro]} }
   # poor test to make sure we pass debug information to Activity.
 
   it { puts Create["__activity__"].to_fields.last.inspect }
@@ -149,7 +149,7 @@ class StepTest < Minitest::Spec
     step :a, override: true
   end
 
-  it { Ii["__activity__"].circuit.instance_variable_get(:@map).size.must_equal 2 }
+  it { Ii["__activity__"].instance_variable_get(:@map).size.must_equal 2 }
 
   #---
   #-
@@ -181,13 +181,13 @@ class StepTest < Minitest::Spec
   class New < Create
   end
 
-  it { Trailblazer::Operation::Inspect.(New).gsub(/0x.+?step_test.rb/, "").must_equal %{[>#<Proc::29 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>]} }
+  it { Trailblazer::Operation::Inspect.(New).gsub(/0x.+?step_test.rb/, "").must_equal %{[>#<Proc::29 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>MyMacro]} }
 
   class Update < Create
     step :after_save!
   end
 
-  it { Trailblazer::Operation::Inspect.(Update).gsub(/0x.+?step_test.rb/, "").must_equal %{[>#<Proc::29 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>,>after_save!]} }
+  it { Trailblazer::Operation::Inspect.(Update).gsub(/0x.+?step_test.rb/, "").must_equal %{[>#<Proc::29 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>MyMacro,>after_save!]} }
 end
 
 #---
@@ -210,6 +210,6 @@ class StepWithDeprecatedMacroTest < Minitest::Spec # TODO: remove me in 2.2.
   end
 
   it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?step_test.rb/, "").must_equal %{[>outdated,>oldie]} }
-  it { Create.().inspect("x", "y").must_equal %{<Result:true [StepWithDeprecatedMacroTest::Create, StepWithDeprecatedMacroTest::Create] >} }
+  it { Create.().inspect("x", "y").must_equal %{<Result:true [StepWithDeprecatedMacroTest::Create, StepWithDeprecatedMacroTest::Create] >MyMacro} }
 end
 
