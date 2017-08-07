@@ -123,14 +123,7 @@ module Trailblazer
         # sequence is now an up-to-date representation of our operation's steps.
 
         # FIXME: overwriting @start here sucks.
-        @start, self["__graph__"], self["__activity__"] = recompile_activity!(sequence)
-      end
-
-        # TODO: how do we handle basic wirings?
-        # DISCUSS:
-        # called with every DSL call and at init. re-compile the activity with every DSL call.
-      def recompile_activity!(sequence, graph=InitialActivity())
-        recompile_activity_for(graph, sequence)
+        @start, self["__graph__"], self["__activity__"] = recompile_activity!( sequence, InitialActivity() )
       end
 
       # @api private
@@ -140,7 +133,7 @@ module Trailblazer
       # 3. Returns a new Activity instance.
       #
       # This is called per "step"/task insertion.
-      def recompile_activity_for(graph, sequence)
+      def recompile_activity!(sequence, graph)
         sequence.each do |wirings|
           wirings.(graph)
         end

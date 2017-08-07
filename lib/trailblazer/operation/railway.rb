@@ -23,7 +23,7 @@ module Trailblazer
 
 
           # FIXME: we only need to do this to support empty NOOPs.
-          @start, self["__graph__"], self["__activity__"] = recompile_activity!( self["__sequence__"] ) # almost empty NOOP circuit.
+          @start, self["__graph__"], self["__activity__"] = recompile_activity!( self["__sequence__"], InitialActivity() ) # almost empty NOOP circuit.
         end
 
         # Low-level `Activity` call interface. Runs the circuit.
