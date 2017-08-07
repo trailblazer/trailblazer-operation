@@ -49,13 +49,17 @@ module Trailblazer
       module DSL
         # TODO: this override is hard to follow, we should have a pipeline circuit in DSL to add behavior.
         # @private
-        def build_task_for(*args)
-          super.tap do |task, options, alteration: nil, **| # Railway::DSL::build_task_for
-            task_wrap = Circuit::Wrap::Activity # default.
-            task_wrap = alteration.(task_wrap) if alteration # macro might want to apply changes to the static task_wrap (e.g. Inject)
-
-            self["__task_wraps__"][task] = [ Proc.new{task_wrap} ]
+        def add_step!(*args)
+          super.tap do |returned_hash|
+            save_task_wrap_from_runner_options!( returned_hash[:task], returned_hash[:runner_options] )
           end
+        end # TODO: do this with a circuit :)
+
+        def save_task_wrap_from_runner_options!(task, alteration:nil, **)
+          task_wrap = Circuit::Wrap::Activity # default.
+          task_wrap = alteration.(task_wrap) if alteration # macro might want to apply changes to the static task_wrap (e.g. Inject)
+
+          self["__task_wraps__"][task] = [ Proc.new{task_wrap} ]
         end
       end
     end # TaskWrap
