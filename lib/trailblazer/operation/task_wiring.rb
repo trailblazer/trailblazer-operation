@@ -6,10 +6,14 @@ module Trailblazer
     # This data object can only be `call`ed which will apply the alterations. See {call}.
     class TaskWiring
       # assumptions FIXME: 1. the first wiring instruction produces the new node.
-      def initialize(wirings, debug)
+      def initialize(wirings, id, debug)
         @wirings = wirings
-        @debug   = debug
+        @meta_data   = debug
+        @id = id
       end
+
+      attr_reader :meta_data
+      attr_reader :id
 
       #
       # It evaluates each option and substitutes placeholders with the currently inserted node.
@@ -20,7 +24,7 @@ module Trailblazer
           # wiring.last[:node] = [ task, options ] if wiring.last.key?(:node) && wiring.last[:node].nil? # FIXME: this is only needed for insert_before!
           # wiring.last[:source] = options[:id] if wiring.last[:source]=="fixme!!!" # FIXME: this is only needed for connect!
 
-          p wiring
+          # p wiring
 
           graph.send *wiring # apply the wiring by calling graph.insert_before!, etc.
         end

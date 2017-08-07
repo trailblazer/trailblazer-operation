@@ -10,35 +10,26 @@ module Trailblazer
     #
     # @api private
     class Sequence < ::Array
-      # Configuration for alter!, represents one sequence/circuit alteration. Usually per `step`.
-      Task = Struct.new(:task, :name, :wirings)
-
       # Insert the task into {Sequence} array by respecting options such as `:before`.
       # This mutates the object per design.
-      def insert!(task, options, wirings)
-        task = Sequence::Task.new(task, options[:name], wirings)
+      def insert!(task_wiring, options)
+        return insert(find_index!(options[:before]),  task_wiring) if options[:before]
+        return insert(find_index!(options[:after])+1, task_wiring) if options[:after]
+        return self[find_index!(options[:replace])] = task_wiring  if options[:replace]
+        return delete_at(find_index!(options[:delete]))    if options[:delete]
 
-        insert_for!(options, task)
+        self << task_wiring
       end
 
       private
 
-      def insert_for!(options, task)
-        return insert(find_index!(options[:before]),  task) if options[:before]
-        return insert(find_index!(options[:after])+1, task) if options[:after]
-        return self[find_index!(options[:replace])] = task  if options[:replace]
-        return delete_at(find_index!(options[:delete]))    if options[:delete]
-
-        self << task
-      end
-
-      def find_index(name)
-        task = find { |task| task.name == name }
+      def find_index(id)
+        task = find { |task_wiring| task_wiring.id == id }
         index(task)
       end
 
-      def find_index!(name)
-        find_index(name) or raise IndexError.new(name)
+      def find_index!(id)
+        find_index(id) or raise IndexError.new(id)
       end
 
       class IndexError < IndexError; end

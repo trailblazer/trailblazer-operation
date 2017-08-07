@@ -15,7 +15,7 @@ module Trailblazer
 
     # TODO: at some point, we should render the real circuit graph using circuit tools.
     def call(operation, options={ style: :line })
-      rows = operation["__sequence__"].each_with_index.collect { |row, i| [ i, [ row.wirings.first[1], row.name ] ]  }
+      rows = operation["__sequence__"].each_with_index.collect { |task_wiring, i| [ i, [ task_wiring.meta_data[:created_by], task_wiring.id ] ]  }
 
       return inspect_line(rows) if options[:style] == :line
       return inspect_rows(rows)
@@ -25,7 +25,7 @@ module Trailblazer
       @inspect[step]
     end
 
-    Operator = { [:End, :failure] => "<", [:End, :success] => ">", }
+    Operator = { :fail => "<<", :pass => ">>", :step => ">"}
 
     def inspect_line(names)
       string = names.collect { |i, (end_of_edge, name)| "#{Operator[end_of_edge]}#{name}" }.join(",")

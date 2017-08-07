@@ -60,52 +60,54 @@ module Trailblazer
         heritage.record(type, proc, user_options)
 
 
-        step_proc, options_from_macro, runner_options, outputs_map = *proc
-        # now, outputs_map might be nil because a task doesn't have them, yet.
+        # step_proc, options_from_macro, runner_options, task_outputs = *proc
+        # now, task_outputs might be nil because a task doesn't have them, yet.
 
 
         # build the task.
-        task, options = if options_from_macro.nil?
-          options_from_macro = {} # DISCUSS.
-          outputs_map     = task_outputs
+        task, options_from_macro, runner_options, task_outputs = if proc.is_a?(Array)
+          task, options_from_macro, runner_options, _task_outputs = *proc
+          puts "@@@@@ #{options_from_macro.inspect}"
 
-          build_task_for_step(step_proc, [Circuit::Right, Circuit::Left], task_builder)   # ALWAYS let task builder return two ends. FIXME: remove task builder's configuration and make it dumb.
+          _task_outputs                     = task_outputs if _task_outputs.nil? # FIXME: macros must always return their endings.
+
+          [ task, options_from_macro, runner_options, _task_outputs ]
         else
-          outputs_map     = task_outputs if outputs_map.nil? # FIXME: macros must always return their endings.
-          step_proc # a macro always returns a Task already.
+          task = build_task_for_step(proc, [Circuit::Right, Circuit::Left], task_builder)   # ALWAYS let task builder return two ends. FIXME: remove task builder's configuration and make it dumb.
+
+          [ task, {}, {}, task_outputs ]
         end
 
         # normalize options generically, such as :name, :override, etc.
-        options = process_options(options_from_macro, user_options, name: proc)
+        options = process_options( options_from_macro, user_options, name: proc )
 
         # raise options[:name].inspect
 
-        wirings = []
-        id      = options[:name] # DISCUSS all this
-        debug   = { id: id }
+        wirings         = []
 
-        step_specific_targets = send("output_mappings_for_#{type}",  task, options) #=> { :success => [ [:End, :success] ] }
-        insert_before_id      = send("insert_before_id_for_#{type}", task, options) #=> [:End, :success]
+        id              = options[:name] # DISCUSS all this
+        task_meta_data  = { id: id, created_by: type } # this is where we can add meta-data like "is a subprocess", "boundary events", etc.
+
+        known_targets     = send("output_mappings_for_#{type}",  task, options) #=> { :success => [ [:End, :success] ] }
+        insert_before_id  = send("insert_before_id_for_#{type}", task, options) #=> [:End, :success]
 
         #---
         # insert_before! section
-        wirings << [:insert_before!, insert_before_id, incoming: ->(edge) { edge[:type] == :railway }, node: [ task, { id: id } ] ]
+        wirings << [:insert_before!, insert_before_id, incoming: ->(edge) { edge[:type] == :railway }, node: [ task, task_meta_data ] ]
 
         #---
         # connect! section
-        # this is what the task has
-        outputs_map # { Left => { role: :failure }}
-
-
-        outputs_map.collect do |signal, options|
-          target = step_specific_targets[ options[:role] ]
+        # task_outputs is what the task has
+        task_outputs.collect do |signal, options|
+          target = known_targets[ options[:role] ]
 
           # TODO: add more options to edge like role: :success or role: pass_fast.
+          # FIXME: don't mark pass_fast with :railway
           wirings <<  [:connect!, source: id, edge: [signal, type: :railway], target: target ] # e.g. "Left --> End.failure"
         end
 
 
-        wirings = Operation::DSL::TaskWiring.new(wirings, debug)
+        wirings = Operation::DSL::TaskWiring.new(wirings, id, task_meta_data)
 
 
 
@@ -117,7 +119,7 @@ module Trailblazer
 
         puts "~~~"
         # 1. insert Step into Sequence (by respecting append, replace, before, etc.)
-        sequence.insert!(task, options, wirings)
+        sequence.insert!(wirings, options)
         # sequence is now an up-to-date representation of our operation's steps.
 
         self["__activity__"] = recompile_activity!(sequence)
@@ -138,11 +140,8 @@ module Trailblazer
       #
       # This is called per "step"/task insertion.
       def recompile_activity_for(graph, sequence)
-        sequence.each do |row|
-          task    = row.task
-          options = { id: row.name }
-
-          row.wirings.(graph)
+        sequence.each do |wirings|
+          wirings.(graph)
         end
 
         end_events = graph.find_all { |node| node.successors.size == 0 } # Find leafs of graph.
