@@ -7,7 +7,7 @@ module Trailblazer
 
         stack, direction, options, flow_options = Circuit::Trace.(
           operation,
-          operation["__activity__"][:Start],
+          operation.instance_variable_get(:@start),
           *args,
           &call_block # instructs Trace to use __call__.
         )
@@ -18,12 +18,17 @@ module Trailblazer
       end
 
       # `Operation::trace` is included for simple tracing of the flow.
+      # It simply forwards all arguments to `Trace.call`.
+      #
       # @public
+      #
       #   Operation.trace(params, "current_user" => current_user).wtf
       def trace(params, options={}, *dependencies)
         Trace.(self, params, options, *dependencies)
       end
 
+      # Presentation of the traced stack via the returned result object.
+      # This object is wrapped around the original result in {Trace.call}.
       class Result < SimpleDelegator
         def initialize(result, stack)
           super(result)
