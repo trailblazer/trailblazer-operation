@@ -39,7 +39,7 @@ module Trailblazer
         op = "#{operator}#{name}"
         padding = 38
 
-        proc = if operator == "<"
+        proc = if operator == "<<"
           sprintf("%- #{padding}s", op)
         elsif [">", ">>", "&"].include?(operator.to_s)
           sprintf("% #{padding}s", op)

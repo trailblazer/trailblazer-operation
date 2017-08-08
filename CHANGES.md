@@ -9,6 +9,8 @@ lots of work on the DSL specific parts.
 
 ## 0.1.0
 
+inspect: failure is << and success is >>
+
 call vs __call__: it's now designed to be run in a composition where the skills stuff is done only once, and the reslt object is not necessary
 
     FastTrack optional
