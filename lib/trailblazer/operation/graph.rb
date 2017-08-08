@@ -50,7 +50,7 @@ module Trailblazer
 
         new_node            = Node(*node)
 
-        raise "#{}" if find_all(new_node[:id]).any?
+        raise IllegalNodeError.new("The ID `#{new_node[:id]}` has been added before.") if find_all(new_node[:id]).any?
 
         incoming_tuples     = old_node.predecessors
         rewired_connections = incoming_tuples.find_all { |(node, edge)| incoming.(edge) }
@@ -120,6 +120,9 @@ module Trailblazer
 
     def self.Node(wrapped, data={})
       Node.new( { _wrapped: wrapped, graph: {} }.merge(data) ) { |node, data| data[:graph][node] = {} }
+    end
+
+    class IllegalNodeError < RuntimeError
     end
   end # Graph
 end

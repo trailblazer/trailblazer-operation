@@ -212,12 +212,16 @@ class GraphTest < Minitest::Spec
       incoming: ->(edge) { edge[:type] == :railway }
     )
 
-    a, edge = start.insert_before!(
-      [:End, :right],
-      node:     [ A, id: :A ],
-      outgoing: [ Circuit::Right, type: :railway ],
-      incoming: ->(edge) { edge[:type] == :railway }
-    )
+    exception = assert_raises Trailblazer::Operation::Graph::IllegalNodeError do
+      a, edge = start.insert_before!(
+        [:End, :right],
+        node:     [ A, id: :A ],
+        outgoing: [ Circuit::Right, type: :railway ],
+        incoming: ->(edge) { edge[:type] == :railway }
+      )
+    end
+
+    exception.message.must_equal "The ID `A` has been added before."
   end
 end
 # TODO: test attach! properly.
