@@ -74,7 +74,7 @@ module Trailblazer
 
           [ task, options_from_macro, runner_options, _task_outputs ]
         else
-          task = build_task_for_step(proc, [Circuit::Right, Circuit::Left], task_builder)   # ALWAYS let task builder return two ends. FIXME: remove task builder's configuration and make it dumb.
+          task = build_task_for_step(proc, task_builder)   # ALWAYS let task builder return two ends. FIXME: remove task builder's configuration and make it dumb.
 
           [ task, {}, {}, task_outputs ]
         end
@@ -159,8 +159,8 @@ module Trailblazer
 
       private
 
-      def build_task_for_step(proc, args_for_task_builder, task_builder)
-        task = task_builder.(proc, *args_for_task_builder)
+      def build_task_for_step(proc, task_builder)
+        task = task_builder.(proc, Circuit::Right, Circuit::Left)
       end
 
       # Normalizes :override and :name options.
