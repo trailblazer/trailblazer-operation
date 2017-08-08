@@ -67,14 +67,9 @@ module Trailblazer
         # build the task.
         #   runner_options #=>{:alteration=>#<Proc:0x00000001dcbb20@test/task_wrap_test.rb:15 (lambda)>}
         task, options_from_macro, runner_options, task_outputs = if proc.is_a?(Array)
-          task, options_from_macro, runner_options, _task_outputs = *proc
-
-          _task_outputs                     = task_outputs if _task_outputs.nil? # FIXME: macros must always return their endings.
-          runner_options                    = {} if runner_options.nil?
-
-          [ task, options_from_macro, runner_options, _task_outputs ]
+          build_task_for_macro( task_builder: task_builder, step: proc, task_outputs: task_outputs )
         else
-          build_task_for_step(task_builder: task_builder, step: proc, task_outputs: task_outputs)
+          build_task_for_step( task_builder: task_builder, step: proc, task_outputs: task_outputs )
         end
 
         # normalize options generically, such as :name, :override, etc.
@@ -161,6 +156,16 @@ module Trailblazer
         task = task_builder.(step, Circuit::Right, Circuit::Left)
 
         [ task, {}, {}, task_outputs ]
+      end
+
+      def build_task_for_macro(step:raise, task_outputs:raise, **)
+        task, options_from_macro, runner_options, _task_outputs = *step
+
+        # defaultize, DISCUSS whether or not macros should do this.
+        _task_outputs  = task_outputs if _task_outputs.nil? # FIXME: macros must always return their endings.
+        runner_options = {} if runner_options.nil?
+
+        [ task, options_from_macro, runner_options, _task_outputs ]
       end
 
       # Normalizes :override and :name options.

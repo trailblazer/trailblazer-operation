@@ -4,8 +4,8 @@ module Trailblazer
     module DSL
       # Allows old macros with the `(input, options)` signature.
       module DeprecatedMacro
-        def build_task_for_macro(_proc, *args)
-          proc, default_options, runner_options = *_proc
+        def build_task_for_macro(step:raise, **args)
+          proc, default_options, runner_options = *step
 
           if proc.is_a?(Proc)
             return super if proc.arity != 2
@@ -22,7 +22,7 @@ module Trailblazer
             [ direction, options, flow_options ]
           end
 
-          super([__proc, default_options, runner_options], *args)
+          super(args.merge( step: [__proc, default_options, runner_options] ))
         end
       end # DeprecatedMacro
     end
