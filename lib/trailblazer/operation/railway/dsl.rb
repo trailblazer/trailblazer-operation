@@ -9,6 +9,8 @@ module Trailblazer
     #  direction: "(output) signal"
 
     module DSL
+      TaskWiring = Operation::DSL::TaskWiring
+
       # An unaware step task usually has two outputs, one end event for success and one for failure.
       # Note that macros have to define their outputs when inserted and don't need a default config.
       DEFAULT_TASK_OUTPUTS = { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }}
@@ -101,7 +103,7 @@ module Trailblazer
         end
 
 
-        wirings = Operation::DSL::TaskWiring.new(wirings, id, task_meta_data)
+        wirings = TaskWiring.new(wirings, id, task_meta_data)
 
 
 
