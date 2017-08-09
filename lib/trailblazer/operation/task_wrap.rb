@@ -31,7 +31,8 @@ module Trailblazer
         activity     = operation["__activity__"]
 
         # TODO: we can probably save a lot of time here by using constants.
-        wrap_static  = Circuit::Wrap::Alterations.new( map: operation["__task_wraps__"] )
+        # TODO: this sucks as we merge the wrap_static, otherwise a nested op can override and removes all followin wraps. we have to use a Context for this.
+        wrap_static  = Circuit::Wrap::Alterations.new( map: operation["__task_wraps__"].merge( flow_options[:wrap_static].instance_variable_get(:@map) || {} ) )
         wrap_runtime = Circuit::Wrap::Alterations.new
 
         # override:
