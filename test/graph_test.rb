@@ -79,6 +79,16 @@ class GraphTest < Minitest::Spec
     # DISCUSS: now left_end is unconnected and invisible.
 
     # start["some.id"]
+
+    #- attach! with :source
+    start.attach!(source: [:C], target: [ D, id: "D" ], edge: [ Circuit::Right,  type: :middle ] )
+
+    start.to_h( include_leafs: false ).must_equal({
+      start_evt => { Circuit::Right => B, Circuit::Left => C },
+      A         => { A::Right => right_end_evt },
+      B         => { Circuit::Right => A, Circuit::Left => C },
+      C         => { Circuit::Right => D },
+    })
   end
 
   #- insert with id

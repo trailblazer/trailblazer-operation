@@ -28,10 +28,10 @@ module Trailblazer
       end
 
       # Builds a node from the provided `:node` argument array.
-      def attach!(target:raise, edge:raise)
+      def attach!(target:raise, edge:raise, source:self)
         target = target.kind_of?(Node) ? target : Node(*target)
 
-        connect!(target: target, edge: edge)
+        connect!(target: target, edge: edge, source: source)
       end
 
       def connect!(target:raise, edge:raise, source:self)
