@@ -103,7 +103,7 @@ module Trailblazer
         end
 
 
-        wirings = TaskWiring.new(wirings, id, task_meta_data)
+        wirings = TaskWiring.new(wirings, task_meta_data)
 
 
 

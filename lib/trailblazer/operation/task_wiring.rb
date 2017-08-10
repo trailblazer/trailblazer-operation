@@ -6,14 +6,12 @@ module Trailblazer
     # This data object can only be `call`ed which will apply the alterations. See {call}.
     class TaskWiring
       # assumptions FIXME: 1. the first wiring instruction produces the new node.
-      def initialize(wirings, id, debug)
-        @wirings = wirings
-        @meta_data   = debug
-        @id = id
+      def initialize(wirings, debug)
+        @wirings   = wirings
+        @meta_data = debug
       end
 
       attr_reader :meta_data
-      attr_reader :id
 
       #
       # It evaluates each option and substitutes placeholders with the currently inserted node.

@@ -24,7 +24,7 @@ module Trailblazer
       private
 
       def find_index(id)
-        task = find { |task_wiring| task_wiring.id == id }
+        task = find { |task_wiring| task_wiring.meta_data[:id] == id }
         index(task)
       end
 
