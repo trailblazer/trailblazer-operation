@@ -118,8 +118,31 @@ module Trailblazer
         sequence.insert!(wirings, options)
         # sequence is now an up-to-date representation of our operation's steps.
 
+
+        wirings = self["__wirings__"] # initial_wirings
+        wirings = sequence.inject(wirings) { |object, wiring| object += wiring.instance_variable_get(:@wirings) } # FIXME: sequence.to_a
+
+puts "no3asdfasfasdfafasdfasdasfas #{}"
+pp wirings
+        activity = Trailblazer::Activity.from_wirings( wirings )
+
+
+
+
         # FIXME: overwriting @start here sucks.
-        @start, self["__graph__"], self["__activity__"] = recompile_activity!( sequence, InitialActivity() )
+        # @start, self["__graph__"], self["__activity__"] = recompile_activity!( sequence, InitialActivity() )
+
+
+        # self["__activity__"]=activity
+        self["__graph__"] = activity.instance_variable_get(:@graph)
+        self["__activity__"] = activity.to_circuit
+
+
+         puts "@@@@@ #{self["__activity__"].inspect}"
+
+
+        @start = self["__graph__"].find_all([:Start, :default]).first[:_wrapped]
+
 
         {
           start:    @start,

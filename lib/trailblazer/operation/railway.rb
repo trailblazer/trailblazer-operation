@@ -19,6 +19,9 @@ module Trailblazer
         def initialize_activity! # TODO: rename to circuit, or make it Activity?
           heritage.record :initialize_activity!
 
+          self["__wirings__"] = []
+          self["__wirings__"] += initial_activity
+
           self["__sequence__"] = Sequence.new # the `Sequence` instance is the only mutable/persisted object in this class.
 
 
@@ -57,12 +60,22 @@ module Trailblazer
           end_for_success = End::Success.new(:success)
           end_for_failure = End::Failure.new(:failure)
 
-          start = @___start_fixme = Graph::Node( start, type: :event, id: [:Start, :default] )
+          start = Graph::Node( start, type: :event, id: [:Start, :default] )
 
           start.attach!( target: [ end_for_success, type: :event, id: [:End, :success] ], edge: [ Circuit::Right, type: :railway ] )
           start.attach!( target: [ end_for_failure, type: :event, id: [:End, :failure] ], edge: [ Circuit::Left,  type: :railway ] )
 
           start
+        end
+
+        def initial_activity
+          end_for_success = End::Success.new(:success)
+          end_for_failure = End::Failure.new(:failure)
+
+          [
+            [ :attach!, target: [ end_for_success, type: :event, id: [:End, :success] ], edge: [ Circuit::Right, type: :railway ] ],
+            [ :attach!, target: [ end_for_failure, type: :event, id: [:End, :failure] ], edge: [ Circuit::Left, type: :railway ] ],
+          ]
         end
       end
 

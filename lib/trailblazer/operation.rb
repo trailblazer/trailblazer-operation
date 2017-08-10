@@ -16,6 +16,8 @@ require "trailblazer/operation/task_wrap"
 require "trailblazer/operation/injection"
 require "trailblazer/operation/trace"
 
+require "trailblazer/activity"
+
 module Trailblazer
   # The Trailblazer-style operation.
   # Note that you don't have to use our "opinionated" version with result object, skills, etc.
