@@ -1,8 +1,9 @@
 module Trailblazer
   class Activity
+    Q_Operation = Operation
     def self.from_wirings(wirings)
       start_evt = Circuit::Start.new(:default)
-      start     = Operation::Graph::Node( start_evt, type: :event, id: [:Start, :default] )
+      start     = Q_Operation::Graph::Node( start_evt, type: :event, id: [:Start, :default] )
 
       wirings.each do |wiring|
         start.send(*wiring)

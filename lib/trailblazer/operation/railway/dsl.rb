@@ -122,8 +122,7 @@ module Trailblazer
         wirings = self["__wirings__"] # initial_wirings
         wirings = sequence.inject(wirings) { |object, wiring| object += wiring.instance_variable_get(:@wirings) } # FIXME: sequence.to_a
 
-puts "no3asdfasfasdfafasdfasdasfas #{}"
-pp wirings
+# pp wirings
         activity = Trailblazer::Activity.from_wirings( wirings )
 
 
@@ -138,7 +137,7 @@ pp wirings
         self["__activity__"] = activity.to_circuit
 
 
-         puts "@@@@@ #{self["__activity__"].inspect}"
+         # puts "@@@@@ #{self["__activity__"].inspect}"
 
 
         @start = self["__graph__"].find_all([:Start, :default]).first[:_wrapped]
