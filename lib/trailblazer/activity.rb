@@ -1,6 +1,7 @@
 module Trailblazer
   class Activity
     Q_Operation = Operation
+    # Only way to build an Activity.
     def self.from_wirings(wirings)
       start_evt = Circuit::Start.new(:default)
       start     = Q_Operation::Graph::Node( start_evt, type: :event, id: [:Start, :default] )
@@ -13,9 +14,21 @@ module Trailblazer
     end
 
     def initialize(graph)
-      @graph = graph
-      @start = @graph[:_wrapped]
+      @graph       = graph
+      @start_event = @graph[:_wrapped]
+      @circuit     = to_circuit
     end
+
+    def call(start_at, *args)
+      @circuit.( @start_event, *args )
+    end
+
+    # @private
+    attr_reader :circuit
+    # @private
+    attr_reader :graph
+
+    private
 
     def to_circuit
       end_events = @graph.find_all { |node| node.successors.size == 0 } # Find leafs of graph.

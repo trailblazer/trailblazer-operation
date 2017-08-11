@@ -18,10 +18,10 @@ class ActivityTest < Minitest::Spec
       ]
     )
 
-    activity.to_circuit.to_fields.must_equal(
+    activity.circuit.to_fields.must_equal(
       [
         {
-          activity.instance_variable_get(:@start) => { Circuit::Right => A },
+          activity.instance_variable_get(:@start_event) => { Circuit::Right => A },
           A => { Circuit::Right => end_for_success }
         },
         [end_for_success],

@@ -26,7 +26,7 @@ class TraceTest < Minitest::Spec
 
     stack, _ = Trailblazer::Circuit::Trace.(
       operation,
-      Create.instance_variable_get(:@start),
+      nil,
       options={},
     )
 

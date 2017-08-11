@@ -43,7 +43,7 @@ class StepTest < Minitest::Spec
   # poor test to make sure we pass debug information to Activity.
 
   # it { puts Create["__activity__"].to_fields.last.inspect }
-  it { Create["__graph__"][:graph].keys[8][:id].must_equal :d }
+  it { Create["__activity__"].graph.find_all(:d).first[:id].must_equal :d }
 
   #---
   #- :before, :after, :replace, :delete, :override
@@ -149,7 +149,7 @@ class StepTest < Minitest::Spec
     step :a, override: true
   end
 
-  it { Ii["__activity__"].instance_variable_get(:@map).size.must_equal 2 }
+  it { Ii["__activity__"].circuit.instance_variable_get(:@map).size.must_equal 2 }
 
   #---
   #-

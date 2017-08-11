@@ -78,12 +78,8 @@ module Trailblazer
         known_targets     = send("output_mappings_for_#{type}",  task, options) #=> { :success => [ [:End, :success] ] }
         insert_before_id  = send("insert_before_id_for_#{type}", task, options) #=> [:End, :success]
 
-        #---
-        # insert_before! section
         wirings << [:insert_before!, insert_before_id, incoming: ->(edge) { edge[:type] == :railway }, node: [ task, task_meta_data ] ]
 
-        #---
-        # connect! section
         # task_outputs is what the task has
         task_outputs.collect do |signal, options|
           target = known_targets[ options[:role] ]
@@ -105,24 +101,14 @@ module Trailblazer
         sequence.insert!(wirings, options) # The sequence is now an up-to-date representation of our operation's steps.
 
         # This op's graph are the initial wirings (different ends, etc) + the steps we added.
-        activity = Trailblazer::Activity.from_wirings( self["__wirings__"] + sequence.to_a )
+        activity = recompile_activity( self["__wirings__"] + sequence.to_a )
 
 
-        # self["__activity__"]=activity
-        self["__graph__"] = activity.instance_variable_get(:@graph)
-        self["__activity__"] = activity.to_circuit
-
-
-         # puts "@@@@@ #{self["__activity__"].inspect}"
-
-
-        @start = self["__graph__"].find_all([:Start, :default]).first[:_wrapped]
+        self["__activity__"] = activity
 
 
         {
-          start:    @start,
-          graph:    self["__graph__"],
-          circuit:  self["__activity__"],
+          activity:  self["__activity__"],
 
           # also return all computed data for this step:
           task:           task,
@@ -141,15 +127,8 @@ module Trailblazer
       # 3. Returns a new Activity instance.
       #
       # This is called per "step"/task insertion.
-      def recompile_activity!(sequence, graph)
-        sequence.each do |wirings|
-          wirings.(graph)
-        end
-
-        end_events = graph.find_all { |node| node.successors.size == 0 } # Find leafs of graph.
-          .collect { |n| n[:_wrapped] } # unwrap the actual End event instance from the Node.
-
-        return graph[:_wrapped], graph, Circuit.new(graph.to_h( include_leafs: false ), end_events, {})
+      def recompile_activity(wirings)
+        Trailblazer::Activity.from_wirings(wirings)
       end
 
       private
