@@ -9,8 +9,6 @@ module Trailblazer
     #  direction: "(output) signal"
 
     module DSL
-      TaskWiring = Operation::DSL::TaskWiring
-
       # An unaware step task usually has two outputs, one end event for success and one for failure.
       # Note that macros have to define their outputs when inserted and don't need a default config.
       DEFAULT_TASK_OUTPUTS = { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }}
@@ -61,11 +59,6 @@ module Trailblazer
       def add_step!(type, proc, user_options, task_builder=TaskBuilder, task_outputs:raise)
         heritage.record(type, proc, user_options)
 
-
-        # step_proc, options_from_macro, runner_options, task_outputs = *proc
-        # now, task_outputs might be nil because a task doesn't have them, yet.
-
-
         # build the task.
         #   runner_options #=>{:alteration=>#<Proc:0x00000001dcbb20@test/task_wrap_test.rb:15 (lambda)>}
         task, options_from_macro, runner_options, task_outputs = if proc.is_a?(Array)
@@ -76,8 +69,6 @@ module Trailblazer
 
         # normalize options generically, such as :name, :override, etc.
         options = process_options( options_from_macro, user_options, name: proc )
-
-        # raise options[:name].inspect
 
         wirings         = []
 
@@ -103,33 +94,18 @@ module Trailblazer
         end
 
 
-        wirings = TaskWiring.new(wirings, task_meta_data)
+        wirings = ElementWiring.new(wirings, task_meta_data)
 
 
 
 
         sequence = self["__sequence__"]
 
+        # Insert {Step} into {Sequence} while respecting :append, :replace, before, etc.
+        sequence.insert!(wirings, options) # The sequence is now an up-to-date representation of our operation's steps.
 
-
-
-        puts "~~~"
-        # 1. insert Step into Sequence (by respecting append, replace, before, etc.)
-        sequence.insert!(wirings, options)
-        # sequence is now an up-to-date representation of our operation's steps.
-
-
-        wirings = self["__wirings__"] # initial_wirings
-        wirings = sequence.inject(wirings) { |object, wiring| object += wiring.instance_variable_get(:@wirings) } # FIXME: sequence.to_a
-
-# pp wirings
-        activity = Trailblazer::Activity.from_wirings( wirings )
-
-
-
-
-        # FIXME: overwriting @start here sucks.
-        # @start, self["__graph__"], self["__activity__"] = recompile_activity!( sequence, InitialActivity() )
+        # This op's graph are the initial wirings (different ends, etc) + the steps we added.
+        activity = Trailblazer::Activity.from_wirings( self["__wirings__"] + sequence.to_a )
 
 
         # self["__activity__"]=activity
@@ -155,6 +131,8 @@ module Trailblazer
           task_outputs:   task_outputs, # we don't need them outside.
         }
       end
+
+      ElementWiring = Struct.new(:instructions, :data)
 
       # @api private
       # 1. Processes the step API's options (such as `:override` of `:before`).

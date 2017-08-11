@@ -12,19 +12,24 @@ module Trailblazer
     class Sequence < ::Array
       # Insert the task into {Sequence} array by respecting options such as `:before`.
       # This mutates the object per design.
-      def insert!(task_wiring, options)
-        return insert(find_index!(options[:before]),  task_wiring) if options[:before]
-        return insert(find_index!(options[:after])+1, task_wiring) if options[:after]
-        return self[find_index!(options[:replace])] = task_wiring  if options[:replace]
+      # @param element_wiring ElementWiring Set of instructions for a specific element in an activity graph.
+      def insert!(wiring, options)
+        return insert(find_index!(options[:before]),  wiring) if options[:before]
+        return insert(find_index!(options[:after])+1, wiring) if options[:after]
+        return self[find_index!(options[:replace])] = wiring  if options[:replace]
         return delete_at(find_index!(options[:delete]))    if options[:delete]
 
-        self << task_wiring
+        self << wiring
+      end
+
+      def to_a
+        collect { |wiring| wiring.instructions }.flatten(1)
       end
 
       private
 
       def find_index(id)
-        task = find { |task_wiring| task_wiring.meta_data[:id] == id }
+        task = find { |wiring| wiring.data[:id] == id }
         index(task)
       end
 
