@@ -52,7 +52,7 @@ class ActivityTest < Minitest::Spec
     extended.circuit.to_fields.must_equal(
       [
         {
-          activity.instance_variable_get(:@start_event) => { Circuit::Right => A },
+          extended.instance_variable_get(:@start_event) => { Circuit::Right => A },
           A => { Circuit::Right => B },
           B => { Circuit::Right => end_for_success }
         },

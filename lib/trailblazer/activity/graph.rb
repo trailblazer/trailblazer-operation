@@ -122,9 +122,9 @@ module Trailblazer
       end
     end
 
-    def self.Start(wrapped, graph:{}, **data)
-
-      Start.new( { _wrapped: wrapped, graph: graph }.merge(data) ) { |node, data| data[:graph][node] = {} }
+    def self.Start(wrapped, graph:{}, **data, &block)
+      block ||= ->(node, data) { data[:graph][node] = {} }
+      Start.new( { _wrapped: wrapped, graph: graph }.merge(data), &block )
     end
 
     class IllegalNodeError < RuntimeError

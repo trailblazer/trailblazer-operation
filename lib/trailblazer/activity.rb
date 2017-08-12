@@ -19,16 +19,16 @@ module Trailblazer
 
       # TODO: move this to Graph
       cloned_graph_ary = graph[:graph].collect { |node, connections| [ node, connections.clone ] }
-
-
-      cloned_graph_hash = ::Hash[cloned_graph_ary]
+      old_start_connections = cloned_graph_ary.delete_at(0)[1] # FIXME: what if some connection goes back to start?
 
       start_evt = Circuit::Start.new(:default)
-      start     = Graph::Node( start_evt, { type: :event, id: [:Start, :default], graph: cloned_graph_hash } )
+      start     = Graph::Start( start_evt, { type: :event, id: [:Start, :default] } ) do |start_node, data|
+        cloned_graph_ary.unshift [ start_node, old_start_connections ]
 
-      old_start_connections = cloned_graph_ary.delete_at(0)[1] # FIXME: what if some connection goes back to start?
+        data[:graph] = ::Hash[cloned_graph_ary]
+      end
+
 # raise old_start_connections.inspect
-      cloned_graph_ary.unshift [ start, old_start_connections ]
 
 
       wirings.each do |wiring|
