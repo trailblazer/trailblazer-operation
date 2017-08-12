@@ -15,7 +15,7 @@ class GraphTest < Minitest::Spec
   class D
   end
 
-  Graph = Trailblazer::Operation::Graph
+  Graph = Trailblazer::Activity::Graph
   Circuit = Trailblazer::Circuit
 
   let(:right_end_evt) { Trailblazer::Operation::Railway::End::Success.new(:right) }
@@ -222,7 +222,7 @@ class GraphTest < Minitest::Spec
       incoming: ->(edge) { edge[:type] == :railway }
     )
 
-    exception = assert_raises Trailblazer::Operation::Graph::IllegalNodeError do
+    exception = assert_raises Trailblazer::Activity::Graph::IllegalNodeError do
       a, edge = start.insert_before!(
         [:End, :right],
         node:     [ A, id: :A ],

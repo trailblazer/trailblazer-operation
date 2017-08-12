@@ -5,7 +5,6 @@ require "trailblazer/operation/public_call"      # TODO: Remove in 3.0.
 require "trailblazer/operation/skill"
 require "trailblazer/operation/deprecated_macro" # TODO: remove in 2.2.
 require "trailblazer/operation/result"
-require "trailblazer/operation/graph"
 require "trailblazer/operation/railway"
 require "trailblazer/operation/railway/sequence"
 require "trailblazer/operation/railway/dsl"
@@ -16,6 +15,7 @@ require "trailblazer/operation/injection"
 require "trailblazer/operation/trace"
 
 require "trailblazer/activity"
+require "trailblazer/activity/graph"
 
 module Trailblazer
   # The Trailblazer-style operation.

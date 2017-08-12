@@ -3,7 +3,7 @@ module Trailblazer
   # == Design
   # * This class is designed to maintain a graph while building up a circuit step-wise.
   # * It can be imperformant as this all happens at compile-time.
-  module Operation::Graph
+  module Activity::Graph
     # Task => { name: "Nested{Task}", type: :subprocess, boundary_events: { Circuit::Left => {} }  }
 
 
@@ -47,10 +47,9 @@ module Trailblazer
 
       def insert_before!(old_node, node:raise, outgoing:nil, incoming:raise)
         old_node = find_all(old_node)[0] || raise( "#{old_node} not found") unless old_node.kind_of?(Node)
+        new_node = Node(*node)
 
-        new_node            = Node(*node)
-
-        raise IllegalNodeError.new("The ID `#{new_node[:id]}` has been added before.") if find_all(new_node[:id]).any?
+        raise IllegalNodeError.new("The ID `#{new_node[:id]}` has been added before.") if find_all( new_node[:id] ).any?
 
         incoming_tuples     = old_node.predecessors
         rewired_connections = incoming_tuples.find_all { |(node, edge)| incoming.(edge) }
@@ -101,7 +100,6 @@ module Trailblazer
       end
 
       def to_h(include_leafs:true)
-        # puts "@@@@@ #{self[:graph].keys.collect{ |k| k[:_wrapped] }.inspect}"
         hash = ::Hash[
           self[:graph].collect do |node, connections|
             connections = connections.collect { |edge, node| [ edge[:_wrapped], node[:_wrapped] ] }

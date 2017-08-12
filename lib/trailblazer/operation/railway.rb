@@ -51,6 +51,11 @@ module Trailblazer
           __call__( nil, options, {} )
         end
 
+        # {Activity} interface
+        def end_events
+          self["__activity__"].end_events
+        end
+
         private
 
         def initial_activity
