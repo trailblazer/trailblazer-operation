@@ -36,5 +36,16 @@ module Trailblazer
 
       Circuit.new(@graph.to_h( include_leafs: false ), end_events, {})
     end
+
+    class Introspection
+      # @param activity Activity
+      def initialize(activity)
+        @graph = activity.graph
+      end
+
+      def [](task)
+        (node = @graph.find_all { |node| node[:_wrapped] == task  }.first) ? node : task
+      end
+    end
   end
 end
