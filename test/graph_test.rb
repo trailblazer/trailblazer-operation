@@ -21,7 +21,7 @@ class GraphTest < Minitest::Spec
   let(:right_end_evt) { Trailblazer::Operation::Railway::End::Success.new(:right) }
   let(:left_end_evt)  { Trailblazer::Operation::Railway::End::Failure.new(:left) }
   let(:start_evt)     { Circuit::Start.new(:default) }
-  let(:start)         { Graph::Node( start_evt, type: :event, id: [:Start, :default] ) }
+  let(:start)         { Graph::Start( start_evt, type: :event, id: [:Start, :default] ) }
 
   it do
     start[:id].must_equal [:Start, :default]
@@ -54,7 +54,7 @@ class GraphTest < Minitest::Spec
       incoming: ->(edge) { edge[:type] == :right }
     )
 
-    b.connect!(target: left_end, edge: [ Circuit::Left, type: :left ])
+    start.connect!(source: b, target: left_end, edge: [ Circuit::Left, type: :left ])
 
     start.to_h( include_leafs: false).must_equal({
       start_evt => { Circuit::Right => B, Circuit::Left => left_end_evt },
@@ -113,7 +113,7 @@ class GraphTest < Minitest::Spec
     events.must_equal [start, right_end, left_end]
 
     # TODO: test find_all/successors leafs explicitly.
-    leafs = start.find_all { |node| node.successors.size == 0 }
+    leafs = start.find_all { |node| start.successors(node).size == 0 }
     leafs.must_equal [ right_end, left_end ]
 
 

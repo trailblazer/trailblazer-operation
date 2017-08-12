@@ -3,7 +3,33 @@ module Trailblazer
     # Only way to build an Activity.
     def self.from_wirings(wirings)
       start_evt = Circuit::Start.new(:default)
-      start     = Graph::Node( start_evt, type: :event, id: [:Start, :default] )
+      start     = Graph::Start( start_evt, { type: :event, id: [:Start, :default] } )
+
+      wirings.each do |wiring|
+        start.send(*wiring)
+      end
+
+      new(start)
+    end
+
+    def self.merge(activity, wirings)
+      graph = activity.graph
+
+
+
+      # TODO: move this to Graph
+      cloned_graph_ary = graph[:graph].collect { |node, connections| [ node, connections.clone ] }
+
+
+      cloned_graph_hash = ::Hash[cloned_graph_ary]
+
+      start_evt = Circuit::Start.new(:default)
+      start     = Graph::Node( start_evt, { type: :event, id: [:Start, :default], graph: cloned_graph_hash } )
+
+      old_start_connections = cloned_graph_ary.delete_at(0)[1] # FIXME: what if some connection goes back to start?
+# raise old_start_connections.inspect
+      cloned_graph_ary.unshift [ start, old_start_connections ]
+
 
       wirings.each do |wiring|
         start.send(*wiring)
@@ -34,7 +60,7 @@ module Trailblazer
     private
 
     def to_circuit(graph)
-      end_events = graph.find_all { |node| node.successors.size == 0 } # Find leafs of graph.
+      end_events = graph.find_all { |node| graph.successors(node).size == 0 } # Find leafs of graph.
         .collect { |n| n[:_wrapped] } # unwrap the actual End event instance from the Node.
 
       Circuit.new(graph.to_h( include_leafs: false ), end_events, {})
