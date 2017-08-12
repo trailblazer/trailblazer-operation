@@ -6,6 +6,7 @@ module Trailblazer
   module Activity::Graph
     # Task => { name: "Nested{Task}", type: :subprocess, boundary_events: { Circuit::Left => {} }  }
 
+    # TODO: make Edge, Node, Start Hash::Immutable ?
     class Edge
       def initialize(data)
         @data = data

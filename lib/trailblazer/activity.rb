@@ -1,9 +1,11 @@
 module Trailblazer
   class Activity
     # Only way to build an Activity.
-    def self.from_wirings(wirings)
-      start_evt = Circuit::Start.new(:default)
-      start     = Graph::Start( start_evt, { type: :event, id: [:Start, :default] } )
+    def self.from_wirings(wirings, &block)
+      start_evt  = Circuit::Start.new(:default)
+      start_args = [ start_evt, { type: :event, id: [:Start, :default] } ]
+
+      start      = block ? Graph::Start( *start_args, &block ) : Graph::Start(*start_args)
 
       wirings.each do |wiring|
         start.send(*wiring)
@@ -15,27 +17,16 @@ module Trailblazer
     def self.merge(activity, wirings)
       graph = activity.graph
 
-
-
       # TODO: move this to Graph
+      # replace the old start node with the new one that's created in ::from_wirings.
       cloned_graph_ary = graph[:graph].collect { |node, connections| [ node, connections.clone ] }
       old_start_connections = cloned_graph_ary.delete_at(0)[1] # FIXME: what if some connection goes back to start?
 
-      start_evt = Circuit::Start.new(:default)
-      start     = Graph::Start( start_evt, { type: :event, id: [:Start, :default] } ) do |start_node, data|
-        cloned_graph_ary.unshift [ start_node, old_start_connections ]
+      from_wirings(wirings) do |start_node, data|
+        cloned_graph_ary.unshift [ start_node, old_start_connections ] # push new start node onto the graph.
 
         data[:graph] = ::Hash[cloned_graph_ary]
       end
-
-# raise old_start_connections.inspect
-
-
-      wirings.each do |wiring|
-        start.send(*wiring)
-      end
-
-      new(start)
     end
 
     def initialize(graph)
