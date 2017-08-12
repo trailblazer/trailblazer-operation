@@ -38,12 +38,22 @@ module Trailblazer
           runner:      Circuit::Wrap::Runner,
           wrap_static: wrap_static,
           # debug:       activity.circuit.instance_variable_get(:@name)
-          debug:       activity.graph
+          introspection:       Introspection.new(activity.graph) # TODO: don't create this at run-time!
         )
         # reverse_merge:
         flow_options = { wrap_runtime: wrap_runtime }.merge(flow_options)
 
         [ options, flow_options ]
+      end
+
+      class Introspection
+        def initialize(graph)
+          @graph = graph
+        end
+
+        def [](task)
+          (node = @graph.find_all { |node| node[:_wrapped] == task  }.first) ? node : task
+        end
       end
 
       module DSL
