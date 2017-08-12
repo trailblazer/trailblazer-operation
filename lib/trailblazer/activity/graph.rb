@@ -6,7 +6,6 @@ module Trailblazer
   module Activity::Graph
     # Task => { name: "Nested{Task}", type: :subprocess, boundary_events: { Circuit::Left => {} }  }
 
-
     class Edge
       def initialize(data)
         yield self, data if block_given?
@@ -19,6 +18,9 @@ module Trailblazer
     end
 
     class Node < Edge
+    end
+
+    class Start < Node
       # Single entry point for adding nodes and edges to the graph.
       private def connect_for!(source, edge, target)
         # raise if find_all( source[:id] ).any?
@@ -38,7 +40,7 @@ module Trailblazer
         target = target.kind_of?(Node) ? target : (find_all { |_target| _target[:id] == target }[0] || raise( "#{target} not found"))
         source = source.kind_of?(Node) ? source : (find_all { |_source| _source[:id] == source }[0] || raise( "#{source} not found"))
 
-        edge = source.Edge(*edge)
+        edge = Edge(*edge)
 
         connect_for!(source, edge, target)
 
@@ -51,7 +53,7 @@ module Trailblazer
 
         raise IllegalNodeError.new("The ID `#{new_node[:id]}` has been added before.") if find_all( new_node[:id] ).any?
 
-        incoming_tuples     = old_node.predecessors
+        incoming_tuples     = predecessors(old_node)
         rewired_connections = incoming_tuples.find_all { |(node, edge)| incoming.(edge) }
 
         # rewire old_task's predecessors to new_task.
@@ -81,22 +83,22 @@ module Trailblazer
       end
 
       def Edge(wrapped, options)
-        edge = Edge.new(options.merge( graph: self[:graph], _wrapped: wrapped ))
+        edge = Edge.new(options.merge( _wrapped: wrapped ))
       end
 
       def Node(wrapped, options)
-        Node.new( options.merge( graph: self[:graph], _wrapped: wrapped ) )
+        Node.new( options.merge( _wrapped: wrapped ) )
       end
 
       # private
-      def predecessors
+      def predecessors(target_node)
         self[:graph].each_with_object([]) do |(node, connections), ary|
-          connections.each { |edge, target| target == self && ary << [node, edge] }
+          connections.each { |edge, target| target == target_node && ary << [node, edge] }
         end
       end
 
-      def successors
-        ( self[:graph][self] || {} ).values
+      def successors(node)
+        ( self[:graph][node] || {} ).values
       end
 
       def to_h(include_leafs:true)
@@ -116,8 +118,8 @@ module Trailblazer
       end
     end
 
-    def self.Node(wrapped, data={})
-      Node.new( { _wrapped: wrapped, graph: {} }.merge(data) ) { |node, data| data[:graph][node] = {} }
+    def self.Start(wrapped, data={})
+      Start.new( { _wrapped: wrapped, graph: {} }.merge(data) ) { |node, data| data[:graph][node] = {} }
     end
 
     class IllegalNodeError < RuntimeError
