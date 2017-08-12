@@ -32,29 +32,29 @@ class TraceTest < Minitest::Spec
 
     puts output = Circuit::Trace::Present.tree(stack)
 
-    output.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- #<Trailblazer::Circuit::Start:>
+    output.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- [:Start, :default]
 |-- Create.task.a
 |-- #<Proc:.rb:6 (lambda)>
-|   |-- #<Trailblazer::Circuit::Start:>
+|   |-- [:Start, :default]
 |   |-- B.task.b
 |   |-- B.task.e
-|   |-- #<Trailblazer::Operation::Railway::End::Success:>
+|   |-- [:End, :success]
 |   `-- #<Proc:.rb:6 (lambda)>
 |-- Create.task.c
-`-- #<Trailblazer::Operation::Railway::End::Success:>}
+`-- [:End, :success]}
   end
 
   it "Operation::trace" do
     result = Create.trace(options={})
-    result.wtf?.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- #<Trailblazer::Circuit::Start:>
+    result.wtf?.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- [:Start, :default]
 |-- Create.task.a
 |-- #<Proc:.rb:6 (lambda)>
-|   |-- #<Trailblazer::Circuit::Start:>
+|   |-- [:Start, :default]
 |   |-- B.task.b
 |   |-- B.task.e
-|   |-- #<Trailblazer::Operation::Railway::End::Success:>
+|   |-- [:End, :success]
 |   `-- #<Proc:.rb:6 (lambda)>
 |-- Create.task.c
-`-- #<Trailblazer::Operation::Railway::End::Success:>}
+`-- [:End, :success]}
   end
 end

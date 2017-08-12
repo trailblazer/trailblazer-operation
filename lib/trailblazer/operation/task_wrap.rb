@@ -19,8 +19,6 @@ module Trailblazer
         # __call__ injects all necessary parameters into flow_options
         # so we can use task wraps per task, do tracing, etc.
         def __call__(direction, options, flow_options={}) # FIXME: direction
-          activity     = self["__activity__"]
-
           options, flow_options = TaskWrap.arguments_for_call(self, direction, options, flow_options)
 
           super(direction, options, flow_options) # Railway::__call__
@@ -40,7 +38,7 @@ module Trailblazer
           runner:      Circuit::Wrap::Runner,
           wrap_static: wrap_static,
           # debug:       activity.circuit.instance_variable_get(:@name)
-          debug:       activity.instance_variable_get(:@name)
+          debug:       activity.graph
         )
         # reverse_merge:
         flow_options = { wrap_runtime: wrap_runtime }.merge(flow_options)
