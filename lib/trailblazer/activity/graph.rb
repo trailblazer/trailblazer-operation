@@ -8,7 +8,6 @@ module Trailblazer
 
     class Edge
       def initialize(data)
-        yield self, data if block_given?
         @data = data
       end
 
@@ -21,6 +20,11 @@ module Trailblazer
     end
 
     class Start < Node
+      def initialize(data)
+        yield self, data if block_given?
+        super
+      end
+
       # Single entry point for adding nodes and edges to the graph.
       private def connect_for!(source, edge, target)
         # raise if find_all( source[:id] ).any?
