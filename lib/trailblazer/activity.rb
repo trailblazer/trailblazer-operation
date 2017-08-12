@@ -43,8 +43,9 @@ module Trailblazer
         @graph = activity.graph
       end
 
+      # Find the node that wraps `task` or return nil.
       def [](task)
-        (node = @graph.find_all { |node| node[:_wrapped] == task  }.first) ? node : task
+        @graph.find_all { |node| node[:_wrapped] == task  }.first
       end
     end
   end
