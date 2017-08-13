@@ -17,35 +17,28 @@ module Trailblazer
           self["__static_task_wraps__"] = ::Hash.new(Circuit::Wrap.initial_activity)
         end
 
-        # options is a Skill already.
-        # __call__ injects all necessary parameters into flow_options
-        # so we can use task wraps per task, do tracing, etc.
-        def __call__(direction, options, flow_options={}) # FIXME: direction
-          options, flow_options = TaskWrap.arguments_for_call(self, direction, options, flow_options)
+        # __call__ prepares `flow_options` and `static_wraps` for {TaskWrap::Runner}.
+        def __call__(direction, options, flow_options={})
+          options, flow_options, static_wraps = TaskWrap.arguments_for_call(self, direction, options, flow_options)
 
-          super(direction, options, flow_options) # Railway::__call__
+          super(direction, options, flow_options, static_wraps) # Railway::__call__
         end
       end
 
       def self.arguments_for_call(operation, direction, options, flow_options)
-        activity     = operation["__activity__"]
-
-        # TODO: we can probably save a lot of time here by using constants.
-        # TODO: this sucks as we merge the wrap_static, otherwise a nested op can override and removes all followin wraps. we have to use a Context for this.
-        wrap_static  = operation["__static_task_wraps__"] # .merge( flow_options[:wrap_static].instance_variable_get(:@map) || {} ) )
+        activity      = operation["__activity__"]
+        static_wraps  = operation["__static_task_wraps__"]
 
         # override:
         flow_options = flow_options.merge(
-          runner:      Circuit::Wrap::Runner,
-          wrap_static: wrap_static,
-          # debug:       activity.circuit.instance_variable_get(:@name)
-          introspection:       Activity::Introspection.new(activity) # TODO: don't create this at run-time! TODO; don't do this here!
+          runner:        Circuit::Wrap::Runner,
+          introspection: Activity::Introspection.new(activity) # TODO: don't create this at run-time! TODO; don't do this here!
         )
         # reverse_merge:
                   # FIXME: this sucks, why do we even need to pass an empty runtime there?
         flow_options = { wrap_runtime: ::Hash.new([]) }.merge(flow_options)
 
-        [ options, flow_options ]
+        [ options, flow_options, static_wraps ]
       end
 
       module DSL

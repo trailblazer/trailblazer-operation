@@ -56,32 +56,32 @@ class TaskWrapTest < Minitest::Spec
     [ direction, options, flow_options ]
   end
 
-  # class Update < Trailblazer::Operation
-  #   step [
-  #     ->(direction, options, flow_options) { _d, _o, _f = Create.__call__(Create.instance_variable_get(:@start), options, flow_options); [ Trailblazer::Circuit::Right, _o, _f ] },
-  #     { name: "Create" }
-  #   ]
-  #   step [
-  #     AnotherMacro,
-  #     { name: "AnotherMacro" },
+  class Update < Trailblazer::Operation
+    step [
+      ->(direction, options, flow_options) { _d, _o, _f = Create.__call__(Create.instance_variable_get(:@start), options, flow_options); [ Trailblazer::Circuit::Right, _o, _f ] },
+      { name: "Create" }
+    ]
+    step [
+      AnotherMacro,
+      { name: "AnotherMacro" },
 
-  #     { # runner_options:
-  #       alteration: ->(wrap_circuit) do
-  #         Trailblazer::Circuit::Activity::Before( wrap_circuit,
-  #           Trailblazer::Circuit::Wrap::Call,
-  #           Trailblazer::Operation::TaskWrap::Injection::ReverseMergeDefaults( another_contract: "AnotherDefaultContract" ),
-  #           direction: Trailblazer::Circuit::Right
-  #         )
-  #       end,
-  #     }
+      { # runner_options:
+        alteration: [
+          [ :insert_before!, "task_wrap.call_task",
+            node: [ Trailblazer::Operation::TaskWrap::Injection::ReverseMergeDefaults( another_contract: "AnotherDefaultContract" ), id: "inject.reverse_merge_defaults.{:another_contract=>AnotherDefaultContract}" ],
+            incoming: Proc.new{ true },
+            outgoing: [ Trailblazer::Circuit::Right, {} ]
+          ],
+        ]
+      }
 
-  #   ]
-  # end
+    ]
+  end
 
-  # it do
-  #   direction, options, _ = Update.__call__( Update.instance_variable_get(:@start), {}, {} )
+  it do
+    direction, options, _ = Update.__call__( Update.instance_variable_get(:@start), {}, {} )
 
-  #   Trailblazer::Hash.inspect(options, "options.contract", :contract, "MyMacro.contract", "AnotherMacro.another_contract").
-  #     must_equal %{{"options.contract"=>nil, :contract=>"MyDefaultContract", "MyMacro.contract"=>"MyDefaultContract", "AnotherMacro.another_contract"=>"AnotherDefaultContract"}}
-  # end
+    Trailblazer::Hash.inspect(options, "options.contract", :contract, "MyMacro.contract", "AnotherMacro.another_contract").
+      must_equal %{{"options.contract"=>nil, :contract=>"MyDefaultContract", "MyMacro.contract"=>"MyDefaultContract", "AnotherMacro.another_contract"=>"AnotherDefaultContract"}}
+  end
 end
