@@ -36,12 +36,17 @@ module Trailblazer
         # @param flow_options [Hash] arbitrary flow control options.
         # @return direction, options, flow_options
         def __call__(start_at, options, flow_options, *args)
+          exec_context = flow_options[:exec_context] # FIXME: make exec_context a positional arg, as it changes.
+
           # add the local operation's class dependencies to the skills.
           immutable_options = Trailblazer::Context::ContainerChain.new([options, self.skills])
 
           ctx = Trailblazer::Context(immutable_options)
 
-          self["__activity__"].(start_at, ctx, flow_options.merge( exec_context: new ), *args)
+          signal, options, flow_options = self["__activity__"].(start_at, ctx, flow_options.merge( exec_context: new ), *args)
+
+          # TODO: flow_options.freeze and see what happens. should exec_context be another positional arg?
+          [ signal, options, flow_options.merge( exec_context: exec_context ) ]
         end
 
         # This method gets overridden by PublicCall#call which will provide the Skills object.
