@@ -7,14 +7,9 @@ module Trailblazer
       # injection but need a default parameter to be set if not injected.
       # @returns Alteration
       def self.SetDefaults(default_dependencies)
-        ->(wrap_circuit) do
-          Circuit::Activity::Before(
-            wrap_circuit,
-            Circuit::Wrap::Call,
-            ReverseMergeDefaults( default_dependencies ),
-            direction: Circuit::Right
-          )
-        end
+        [
+          [ :insert_before!, "task_wrap.call_task", node: [ ReverseMergeDefaults( default_dependencies ), id: "ReverseMergeDefaults#{default_dependencies}" ], incoming: Proc.new{ true }, outgoing: [ Circuit::Right, {} ] ]
+        ]
       end
 
       # @api private
