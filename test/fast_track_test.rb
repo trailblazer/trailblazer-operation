@@ -77,12 +77,21 @@ class FailFastBangTest < Minitest::Spec
     failure ->(options, *) { options["a"] = true }
   end
 
-  it { Create.().inspect("x", "y", "a").must_equal %{<Result:false [true, nil, nil] >} }
+  # without proper configuration, emitting a FastTrack signal is illegal.
+  it { assert_raises(Trailblazer::Circuit::IllegalOutputSignalError) { Create.().inspect("x", "y", "a").must_equal %{<Result:false [true, nil, nil] >} } }
+
+  class Update < Trailblazer::Operation
+    step ->(options, *) { options["x"] = true; Railway.fail_fast! }, fast_track: true
+    step ->(options, *) { options["y"] = true }
+    failure ->(options, *) { options["a"] = true }
+  end
+
+  it { Update.().inspect("x", "y", "a").must_equal %{<Result:false [true, nil, nil] >} }
 end
 
 class PassFastBangTest < Minitest::Spec
   class Create < Trailblazer::Operation
-    step ->(options, *) { options["x"] = true; Railway.pass_fast! }
+    step ->(options, *) { options["x"] = true; Railway.pass_fast! }, fast_track: true
     step ->(options, *) { options["y"] = true }
     failure ->(options, *) { options["a"] = true }
   end

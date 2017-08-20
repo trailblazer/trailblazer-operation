@@ -13,9 +13,9 @@ module Trailblazer
       # Note that macros have to define their outputs when inserted and don't need a default config.
       DEFAULT_TASK_OUTPUTS = { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }}
 
-      def pass(proc, options={}); add_step!(:pass, proc, options, task_outputs: DEFAULT_TASK_OUTPUTS ); end
-      def fail(proc, options={}); add_step!(:fail, proc, options, task_outputs: DEFAULT_TASK_OUTPUTS ); end
-      def step(proc, options={}); add_step!(:step, proc, options, task_outputs: DEFAULT_TASK_OUTPUTS ); end
+      def pass(proc, options={}); add_step!(:pass, proc, options, task_outputs: task_outputs_for_pass(options) ); end
+      def fail(proc, options={}); add_step!(:fail, proc, options, task_outputs: task_outputs_for_fail(options) ); end
+      def step(proc, options={}); add_step!(:step, proc, options, task_outputs: task_outputs_for_step(options) ); end
       alias_method :success, :pass
       alias_method :failure, :fail
 
@@ -52,6 +52,18 @@ module Trailblazer
 
       def insert_before_id_for_step(task, options)
         [:End, :success]
+      end
+
+      def task_outputs_for_pass(options)
+        DEFAULT_TASK_OUTPUTS
+      end
+
+      def task_outputs_for_fail(options)
+        DEFAULT_TASK_OUTPUTS
+      end
+
+      def task_outputs_for_step(options)
+        DEFAULT_TASK_OUTPUTS
       end
 
       # |-- compile initial act from alterations

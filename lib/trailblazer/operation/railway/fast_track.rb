@@ -34,7 +34,22 @@ module Trailblazer
           ]
         end
 
+        def task_outputs_for_step(options)
+          return super.merge( FailFast => { role: :fail_fast }, PassFast => { role: :pass_fast } ) if options[:fast_track]
+          super
+        end
 
+        def task_outputs_for_pass(options)
+          return super.merge( FailFast => { role: :fail_fast }, PassFast => { role: :pass_fast } ) if options[:fast_track]
+          super
+        end
+
+        def task_outputs_for_pass(options)
+          return super.merge( FailFast => { role: :fail_fast }, PassFast => { role: :pass_fast } ) if options[:fast_track]
+          super
+        end
+
+        # Called in DSL::pass
         def output_mappings_for_pass(task, options)
           target = [:End, :pass_fast]
 
@@ -47,6 +62,7 @@ module Trailblazer
           # }
         end
 
+        # Called in DSL::fail
         def output_mappings_for_fail(task, options)
           target = [:End, :fail_fast]
 
@@ -58,6 +74,7 @@ module Trailblazer
           super.merge(step_options)
         end
 
+        # Called in DSL::step
         def output_mappings_for_step(task, options)
           step_options = {
             success: output_mappings_for_pass(task, options)[:success],

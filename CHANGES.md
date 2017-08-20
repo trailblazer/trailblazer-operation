@@ -6,6 +6,11 @@ lots of work on the DSL specific parts.
     macros can now add/modify the wiring, e.g. their end to the our end or the next task.
     [ use circuit for actual step_args/initialize process, too? ]
     You can now add an unlimited number of "your own" end events, which can then be interpreted on the outside (e.g. Endpoint)
+* Introduced the `fast_track: true` option for steps. If you were returning `Railway.fail_fast!` and the like, you now need to declare that option, e.g.
+
+        ```ruby
+        step :my_validate!, fast_track: true
+        ```
 
 ## 0.1.0
 
