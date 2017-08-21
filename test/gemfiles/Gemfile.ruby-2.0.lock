@@ -3,7 +3,7 @@ PATH
   specs:
     trailblazer-operation (0.1.0)
       declarative
-      trailblazer-circuit (>= 0.0.8)
+      trailblazer-activity (>= 0.1.0, < 0.2.0)
 
 GEM
   remote: https://rubygems.org/
@@ -21,7 +21,7 @@ GEM
       minitest (~> 5.0)
     raise (0.0.2)
     rake (12.0.0)
-    trailblazer-circuit (0.0.8)
+    trailblazer-activity (0.1.0)
       hirb
 
 PLATFORMS
