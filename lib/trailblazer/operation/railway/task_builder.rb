@@ -33,7 +33,7 @@ module Trailblazer
       end
 
       def self.binary_direction_for(result, on_true, on_false)
-        result.is_a?(Class) && result < Circuit::Direction ? result : (result ? on_true : on_false)
+        result.is_a?(Class) && result < Circuit::Signal ? result : (result ? on_true : on_false)
       end
     end
   end
