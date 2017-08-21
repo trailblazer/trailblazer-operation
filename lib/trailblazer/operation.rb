@@ -1,5 +1,6 @@
 require "forwardable"
 require "declarative"
+
 require "trailblazer/activity"
 require "trailblazer/operation/public_call"      # TODO: Remove in 3.0.
 require "trailblazer/operation/skill"
@@ -13,9 +14,6 @@ require "trailblazer/operation/railway/fast_track"
 require "trailblazer/operation/task_wrap"
 require "trailblazer/operation/injection"
 require "trailblazer/operation/trace"
-
-require "trailblazer/activity"
-require "trailblazer/activity/graph"
 
 module Trailblazer
   # The Trailblazer-style operation.
