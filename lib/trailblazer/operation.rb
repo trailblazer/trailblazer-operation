@@ -1,6 +1,6 @@
 require "forwardable"
 require "declarative"
-require "trailblazer/circuit"
+require "trailblazer/activity"
 require "trailblazer/operation/public_call"      # TODO: Remove in 3.0.
 require "trailblazer/operation/skill"
 require "trailblazer/operation/deprecated_macro" # TODO: remove in 2.2.
