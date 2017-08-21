@@ -151,7 +151,7 @@ module Trailblazer
         [ task, {}, {}, task_outputs ]
       end
 
-      def build_task_for_macro(step:raise, task_outputs:raise, **)
+      def build_task_for_macro(step:raise, task_outputs:raise, **o)
         task, options_from_macro, runner_options, _task_outputs = *step
 
         # defaultize, DISCUSS whether or not macros should do this.

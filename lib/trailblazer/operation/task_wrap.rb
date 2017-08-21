@@ -51,7 +51,7 @@ module Trailblazer
         end # TODO: do this with a circuit :)
 
         # Extend the static wrap for a specific task, at compile time.
-        def apply_wirings_from_runner_options!(task, alteration:nil, **)
+        def apply_wirings_from_runner_options!(task, alteration:nil, **o)
           return unless alteration
 
           static_wrap = self["__static_task_wraps__"][task]
