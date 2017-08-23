@@ -17,8 +17,8 @@ module Trailblazer
             end_for_pass_fast = Class.new(End::Success).new(:pass_fast)
             end_for_fail_fast = Class.new(End::Failure).new(:fail_fast)
 
-            start.attach!( target: [ end_for_pass_fast, id: [:End, :pass_fast] ], edge: [ PassFast, type: :railway ] )
-            start.attach!( target: [ end_for_fail_fast, id: [:End, :fail_fast] ], edge: [ FailFast, type: :railway ] )
+            start.attach!( target: [ end_for_pass_fast, id: "End.pass_fast" ], edge: [ PassFast, type: :railway ] )
+            start.attach!( target: [ end_for_fail_fast, id: "End.fail_fast" ], edge: [ FailFast, type: :railway ] )
           end
         end
 
@@ -29,8 +29,8 @@ module Trailblazer
 
 
           super + [
-            [ :attach!, target: [ end_for_pass_fast, id: [:End, :pass_fast] ], edge: [ PassFast, type: :railway ] ],
-            [ :attach!, target: [ end_for_fail_fast, id: [:End, :fail_fast] ], edge: [ FailFast, type: :railway ] ],
+            [ :attach!, target: [ end_for_pass_fast, id: "End.pass_fast" ], edge: [ PassFast, type: :railway ] ],
+            [ :attach!, target: [ end_for_fail_fast, id: "End.fail_fast" ], edge: [ FailFast, type: :railway ] ],
           ]
         end
 
@@ -51,20 +51,20 @@ module Trailblazer
 
         # Called in DSL::pass
         def output_mappings_for_pass(task, options)
-          target = [:End, :pass_fast]
+          target = "End.pass_fast"
 
           return super.merge(success: target, failure: target) if options[:pass_fast]
           super
 
           # {
-          #   :success => [:End, :success],
-          #   :failure => [:End, :success]
+          #   :success => "End.success",
+          #   :failure => "End.success"
           # }
         end
 
         # Called in DSL::fail
         def output_mappings_for_fail(task, options)
-          target = [:End, :fail_fast]
+          target = "End.fail_fast"
 
           step_options = {}
           step_options = step_options.merge( fail_fast: target ) # always add edge to fail_fast?
@@ -79,8 +79,8 @@ module Trailblazer
           step_options = {
             success: output_mappings_for_pass(task, options)[:success],
             failure: output_mappings_for_fail(task, options)[:failure],
-            pass_fast: [:End, :pass_fast],
-            fail_fast: [:End, :fail_fast], # always add edge to fail_fast?
+            pass_fast: "End.pass_fast",
+            fail_fast: "End.fail_fast", # always add edge to fail_fast?
           }
 
           super.merge(step_options)

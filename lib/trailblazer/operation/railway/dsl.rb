@@ -23,35 +23,35 @@ module Trailblazer
 
       def output_mappings_for_pass(task, options)
         {
-          :success => [:End, :success],
-          :failure => [:End, :success]
+          :success => "End.success",
+          :failure => "End.success"
         }
       end
 
       def output_mappings_for_fail(task, options)
         {
-          :success => [:End, :failure],
-          :failure => [:End, :failure]
+          :success => "End.failure",
+          :failure => "End.failure"
         }
       end
 
       def output_mappings_for_step(task, options)
         {
-          :success => [:End, :success],
-          :failure => [:End, :failure]
+          :success => "End.success",
+          :failure => "End.failure"
         }
       end
 
       def insert_before_id_for_pass(task, options)
-        [:End, :success]
+        "End.success"
       end
 
       def insert_before_id_for_fail(task, options)
-        [:End, :failure]
+        "End.failure"
       end
 
       def insert_before_id_for_step(task, options)
-        [:End, :success]
+        "End.success"
       end
 
       def task_outputs_for_pass(options)
@@ -87,8 +87,8 @@ module Trailblazer
         id              = options[:name] # DISCUSS all this
         task_meta_data  = { id: id, created_by: type } # this is where we can add meta-data like "is a subprocess", "boundary events", etc.
 
-        known_targets     = send("output_mappings_for_#{type}",  task, options) #=> { :success => [ [:End, :success] ] }
-        insert_before_id  = send("insert_before_id_for_#{type}", task, options) #=> [:End, :success]
+        known_targets     = send("output_mappings_for_#{type}",  task, options) #=> { :success => [ "End.success" ] }
+        insert_before_id  = send("insert_before_id_for_#{type}", task, options) #=> "End.success"
 
         wirings << [:insert_before!, insert_before_id, incoming: ->(edge) { edge[:type] == :railway }, node: [ task, task_meta_data ] ]
 

@@ -38,10 +38,10 @@ class TraceTest < Minitest::Spec
 |   |-- [:Start, :default]
 |   |-- B.task.b
 |   |-- B.task.e
-|   |-- [:End, :success]
+|   |-- End.success
 |   `-- #<Proc:.rb:6 (lambda)>
 |-- Create.task.c
-`-- [:End, :success]}
+`-- End.success}
   end
 
   it "Operation::trace" do
@@ -52,9 +52,9 @@ class TraceTest < Minitest::Spec
 |   |-- [:Start, :default]
 |   |-- B.task.b
 |   |-- B.task.e
-|   |-- [:End, :success]
+|   |-- End.success
 |   `-- #<Proc:.rb:6 (lambda)>
 |-- Create.task.c
-`-- [:End, :success]}
+`-- End.success}
   end
 end
