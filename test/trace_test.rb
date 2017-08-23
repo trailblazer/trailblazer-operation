@@ -32,10 +32,10 @@ class TraceTest < Minitest::Spec
 
     puts output = Circuit::Trace::Present.tree(stack)
 
-    output.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- [:Start, :default]
+    output.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- Start.default
 |-- Create.task.a
 |-- #<Proc:.rb:6 (lambda)>
-|   |-- [:Start, :default]
+|   |-- Start.default
 |   |-- B.task.b
 |   |-- B.task.e
 |   |-- End.success
@@ -46,10 +46,10 @@ class TraceTest < Minitest::Spec
 
   it "Operation::trace" do
     result = Create.trace(options={})
-    result.wtf?.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- [:Start, :default]
+    result.wtf?.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- Start.default
 |-- Create.task.a
 |-- #<Proc:.rb:6 (lambda)>
-|   |-- [:Start, :default]
+|   |-- Start.default
 |   |-- B.task.b
 |   |-- B.task.e
 |   |-- End.success

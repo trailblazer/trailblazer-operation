@@ -24,9 +24,7 @@ module Trailblazer
 
           self["__sequence__"] = Sequence.new # the `Sequence` instance is the only mutable/persisted object in this class.
 
-
-          # FIXME: we only need to do this to support empty NOOPs.
-          self["__activity__"] = recompile_activity( initial_activity ) # almost empty NOOP circuit.
+          self["__activity__"] = recompile_activity( initial_activity ) # almost empty NOOP circuit. (only needed for empty operations)
         end
 
         # Low-level `Activity` call interface. Runs the circuit.
