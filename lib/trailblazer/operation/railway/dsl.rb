@@ -92,6 +92,8 @@ module Trailblazer
 
         wirings << [:insert_before!, insert_before_id, incoming: ->(edge) { edge[:type] == :railway }, node: [ task, task_meta_data ] ]
 
+        #--- Outputs
+        #- connect! statements for outputs.
         # task_outputs is what the task has
         task_outputs.collect do |signal, options|
           target = known_targets[ options[:role] ]

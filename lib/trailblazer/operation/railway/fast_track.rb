@@ -12,16 +12,6 @@ module Trailblazer
       end
 
       module DSL
-        def InitialActivity # FIXME: make this cooler!
-          super.tap do |start|
-            end_for_pass_fast = Class.new(End::Success).new(:pass_fast)
-            end_for_fail_fast = Class.new(End::Failure).new(:fail_fast)
-
-            start.attach!( target: [ end_for_pass_fast, id: "End.pass_fast" ], edge: [ PassFast, type: :railway ] )
-            start.attach!( target: [ end_for_fail_fast, id: "End.fail_fast" ], edge: [ FailFast, type: :railway ] )
-          end
-        end
-
         # TODO: how to make this better overridable without super?
         def initial_activity
           end_for_pass_fast = Class.new(End::Success).new(:pass_fast)
