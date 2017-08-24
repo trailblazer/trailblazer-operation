@@ -13,9 +13,9 @@ module Trailblazer
       # Note that macros have to define their outputs when inserted and don't need a default config.
       DEFAULT_TASK_OUTPUTS = { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }}
 
-      def pass(proc, options={}); add_step!(:pass, proc, options, task_outputs: task_outputs_for_pass(options) ); end
-      def fail(proc, options={}); add_step!(:fail, proc, options, task_outputs: task_outputs_for_fail(options) ); end
-      def step(proc, options={}); add_step!(:step, proc, options, task_outputs: task_outputs_for_step(options) ); end
+      def pass(proc, options={}); add_step!(:pass, proc, options, default_task_outputs: default_task_outputs(options) ); end
+      def fail(proc, options={}); add_step!(:fail, proc, options, default_task_outputs: default_task_outputs(options) ); end
+      def step(proc, options={}); add_step!(:step, proc, options, default_task_outputs: default_task_outputs(options) ); end
       alias_method :success, :pass
       alias_method :failure, :fail
 
@@ -54,29 +54,21 @@ module Trailblazer
         "End.success"
       end
 
-      def task_outputs_for_pass(options)
-        DEFAULT_TASK_OUTPUTS
-      end
-
-      def task_outputs_for_fail(options)
-        DEFAULT_TASK_OUTPUTS
-      end
-
-      def task_outputs_for_step(options)
+      def default_task_outputs(options)
         DEFAULT_TASK_OUTPUTS
       end
 
       # |-- compile initial act from alterations
       # |-- add step alterations
-      def add_step!(type, proc, user_options, task_builder=TaskBuilder, task_outputs:raise)
+      def add_step!(type, proc, user_options, task_builder=TaskBuilder, default_task_outputs:raise)
         heritage.record(type, proc, user_options)
 
         # build the task.
         #   runner_options #=>{:alteration=>#<Proc:0x00000001dcbb20@test/task_wrap_test.rb:15 (lambda)>}
         task, options_from_macro, runner_options, task_outputs = if proc.is_a?(Array)
-          build_task_for_macro( task_builder: task_builder, step: proc, task_outputs: task_outputs )
+          build_task_for_macro( task_builder: task_builder, step: proc, task_outputs: default_task_outputs )
         else
-          build_task_for_step( task_builder: task_builder, step: proc, task_outputs: task_outputs )
+          build_task_for_step( task_builder: task_builder, step: proc, task_outputs: default_task_outputs )
         end
 
         # normalize options generically, such as :name, :override, etc.

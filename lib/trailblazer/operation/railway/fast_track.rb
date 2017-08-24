@@ -24,17 +24,7 @@ module Trailblazer
           ]
         end
 
-        def task_outputs_for_step(options)
-          return super.merge( FailFast => { role: :fail_fast }, PassFast => { role: :pass_fast } ) if options[:fast_track]
-          super
-        end
-
-        def task_outputs_for_pass(options)
-          return super.merge( FailFast => { role: :fail_fast }, PassFast => { role: :pass_fast } ) if options[:fast_track]
-          super
-        end
-
-        def task_outputs_for_pass(options)
+        def default_task_outputs(options)
           return super.merge( FailFast => { role: :fail_fast }, PassFast => { role: :pass_fast } ) if options[:fast_track]
           super
         end
