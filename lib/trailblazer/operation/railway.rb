@@ -66,8 +66,8 @@ module Trailblazer
           end_for_failure = End::Failure.new(:failure)
 
           [
-            [ :attach!, target: [ end_for_success, type: :event, id: "End.success" ], edge: [ Circuit::Right, type: :railway ] ],
-            [ :attach!, target: [ end_for_failure, type: :event, id: "End.failure" ], edge: [ Circuit::Left, type: :railway ] ],
+            [ :attach!, target: [ end_for_success, type: :event, id: "End.success", role: :success ], edge: [ Circuit::Right, type: :railway ] ],
+            [ :attach!, target: [ end_for_failure, type: :event, id: "End.failure", role: :failure ], edge: [ Circuit::Left, type: :railway ] ],
           ]
         end
       end

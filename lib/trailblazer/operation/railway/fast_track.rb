@@ -19,8 +19,8 @@ module Trailblazer
 
 
           super + [
-            [ :attach!, target: [ end_for_pass_fast, id: "End.pass_fast" ], edge: [ PassFast, type: :railway ] ],
-            [ :attach!, target: [ end_for_fail_fast, id: "End.fail_fast" ], edge: [ FailFast, type: :railway ] ],
+            [ :attach!, target: [ end_for_pass_fast, id: "End.pass_fast", role: :pass_fast ], edge: [ PassFast, type: :railway ] ],
+            [ :attach!, target: [ end_for_fail_fast, id: "End.fail_fast", role: :fail_fast ], edge: [ FailFast, type: :railway ] ],
           ]
         end
 

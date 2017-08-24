@@ -88,7 +88,7 @@ module Trailblazer
         wirings << [:insert_before!, insert_before_id, incoming: ->(edge) { edge[:type] == :railway }, node: [ task, task_meta_data ] ]
 
         # FIXME: don't mark pass_fast with :railway
-        wirings += wirings_for_outputs(task_outputs, role_to_target, id, type: :railway) # connect! for task outputs
+        wirings += Wirings.task_outputs_to(task_outputs, role_to_target, id, type: :railway) # connect! for task outputs
 
 
         wirings = ElementWiring.new(wirings, task_meta_data)
@@ -158,18 +158,21 @@ module Trailblazer
         options
       end
 
+      # @private
+      class Wirings # TODO: move to acti.
       #- connect! statements for outputs.
       # @param known_targets Hash {  }
-      def wirings_for_outputs(task_outputs, known_targets, id, options)
-        # task_outputs is what the task has
-        # known_targets are ends this activity/operation provides.
-        task_outputs.collect do |signal, role:raise|
-          target = known_targets[ role ]
-          # TODO: add more options to edge like role: :success or role: pass_fast.
+        def self.task_outputs_to(task_outputs, known_targets, id, edge_options)
+          # task_outputs is what the task has
+          # known_targets are ends this activity/operation provides.
+          task_outputs.collect do |signal, role:raise|
+            target = known_targets[ role ]
+            # TODO: add more options to edge like role: :success or role: pass_fast.
 
-          [:connect!, source: id, edge: [signal, options], target: target ] # e.g. "Left --> End.failure"
+            [:connect!, source: id, edge: [signal, edge_options], target: target ] # e.g. "Left --> End.failure"
+          end
         end
-      end
+      end # Wiring
     end # DSL
   end
 end
