@@ -60,7 +60,7 @@ module Trailblazer
 
       # |-- compile initial act from alterations
       # |-- add step alterations
-      def add_step!(type, proc, user_options, task_builder=TaskBuilder, default_task_outputs:raise)
+      def add_step!(type, proc, user_options, task_builder:TaskBuilder, default_task_outputs:raise)
         heritage.record(type, proc, user_options)
 
         # build the task.
