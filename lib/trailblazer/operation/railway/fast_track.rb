@@ -30,7 +30,7 @@ module Trailblazer
         end
 
         # Called in DSL::pass
-        def output_mappings_for_pass(task, options)
+        def role_to_target_for_pass(task, options)
           target = "End.pass_fast"
 
           return super.merge(success: target, failure: target) if options[:pass_fast]
@@ -43,7 +43,7 @@ module Trailblazer
         end
 
         # Called in DSL::fail
-        def output_mappings_for_fail(task, options)
+        def role_to_target_for_fail(task, options)
           target = "End.fail_fast"
 
           step_options = {}
@@ -55,10 +55,10 @@ module Trailblazer
         end
 
         # Called in DSL::step
-        def output_mappings_for_step(task, options)
+        def role_to_target_for_step(task, options)
           step_options = {
-            success: output_mappings_for_pass(task, options)[:success],
-            failure: output_mappings_for_fail(task, options)[:failure],
+            success: role_to_target_for_pass(task, options)[:success],
+            failure: role_to_target_for_fail(task, options)[:failure],
             pass_fast: "End.pass_fast",
             fail_fast: "End.fail_fast", # always add edge to fail_fast?
           }

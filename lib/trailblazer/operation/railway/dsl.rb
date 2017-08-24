@@ -8,6 +8,9 @@ module Trailblazer
     # DRAFT
     #  direction: "(output) signal"
 
+    # document ## Outputs
+    #   task/acti has outputs, role_to_target says which task output goes to what next task in the composing acti.
+
     module DSL
       # An unaware step task usually has two outputs, one end event for success and one for failure.
       # Note that macros have to define their outputs when inserted and don't need a default config.
@@ -21,21 +24,21 @@ module Trailblazer
 
       private
 
-      def output_mappings_for_pass(task, options)
+      def role_to_target_for_pass(task, options)
         {
           :success => "End.success",
           :failure => "End.success"
         }
       end
 
-      def output_mappings_for_fail(task, options)
+      def role_to_target_for_fail(task, options)
         {
           :success => "End.failure",
           :failure => "End.failure"
         }
       end
 
-      def output_mappings_for_step(task, options)
+      def role_to_target_for_step(task, options)
         {
           :success => "End.success",
           :failure => "End.failure"
@@ -79,12 +82,13 @@ module Trailblazer
         id              = options[:name] # DISCUSS all this
         task_meta_data  = { id: id, created_by: type } # this is where we can add meta-data like "is a subprocess", "boundary events", etc.
 
-        known_targets     = send("output_mappings_for_#{type}",  task, options) #=> { :success => [ "End.success" ] }
+        role_to_target    = send("role_to_target_for_#{type}",  task, options) #=> { :success => [ "End.success" ] }
         insert_before_id  = send("insert_before_id_for_#{type}", task, options) #=> "End.success"
 
         wirings << [:insert_before!, insert_before_id, incoming: ->(edge) { edge[:type] == :railway }, node: [ task, task_meta_data ] ]
 
-        wirings += wirings_for_outputs(task_outputs, known_targets, id) # connect! for task outputs
+        # FIXME: don't mark pass_fast with :railway
+        wirings += wirings_for_outputs(task_outputs, role_to_target, id, type: :railway) # connect! for task outputs
 
 
         wirings = ElementWiring.new(wirings, task_meta_data)
@@ -154,16 +158,16 @@ module Trailblazer
         options
       end
 
-      def wirings_for_outputs(task_outputs, known_targets, id)
-        #--- Outputs
-        #- connect! statements for outputs.
+      #- connect! statements for outputs.
+      # @param known_targets Hash {  }
+      def wirings_for_outputs(task_outputs, known_targets, id, options)
         # task_outputs is what the task has
-        task_outputs.collect do |signal, options|
-          target = known_targets[ options[:role] ]
-
+        # known_targets are ends this activity/operation provides.
+        task_outputs.collect do |signal, role:raise|
+          target = known_targets[ role ]
           # TODO: add more options to edge like role: :success or role: pass_fast.
-          # FIXME: don't mark pass_fast with :railway
-          [:connect!, source: id, edge: [signal, type: :railway], target: target ] # e.g. "Left --> End.failure"
+
+          [:connect!, source: id, edge: [signal, options], target: target ] # e.g. "Left --> End.failure"
         end
       end
     end # DSL
