@@ -84,16 +84,7 @@ module Trailblazer
 
         wirings << [:insert_before!, insert_before_id, incoming: ->(edge) { edge[:type] == :railway }, node: [ task, task_meta_data ] ]
 
-        #--- Outputs
-        #- connect! statements for outputs.
-        # task_outputs is what the task has
-        task_outputs.collect do |signal, options|
-          target = known_targets[ options[:role] ]
-
-          # TODO: add more options to edge like role: :success or role: pass_fast.
-          # FIXME: don't mark pass_fast with :railway
-          wirings <<  [:connect!, source: id, edge: [signal, type: :railway], target: target ] # e.g. "Left --> End.failure"
-        end
+        wirings += wirings_for_outputs(task_outputs, known_targets, id) # connect! for task outputs
 
 
         wirings = ElementWiring.new(wirings, task_meta_data)
@@ -161,6 +152,19 @@ module Trailblazer
         options = default_options.merge(options)
         options = options.merge(replace: options[:name]) if options[:override] # :override
         options
+      end
+
+      def wirings_for_outputs(task_outputs, known_targets, id)
+        #--- Outputs
+        #- connect! statements for outputs.
+        # task_outputs is what the task has
+        task_outputs.collect do |signal, options|
+          target = known_targets[ options[:role] ]
+
+          # TODO: add more options to edge like role: :success or role: pass_fast.
+          # FIXME: don't mark pass_fast with :railway
+          [:connect!, source: id, edge: [signal, type: :railway], target: target ] # e.g. "Left --> End.failure"
+        end
       end
     end # DSL
   end
