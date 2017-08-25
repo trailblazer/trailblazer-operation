@@ -41,15 +41,15 @@ module Trailblazer
         }
       end
 
-      def insert_before_id_for_pass(task, options)
+      def insert_before_for_pass(task, options)
         "End.success"
       end
 
-      def insert_before_id_for_fail(task, options)
+      def insert_before_for_fail(task, options)
         "End.failure"
       end
 
-      def insert_before_id_for_step(task, options)
+      def insert_before_for_step(task, options)
         "End.success"
       end
 
@@ -57,6 +57,10 @@ module Trailblazer
       # Note that macros have to define their outputs when inserted and don't need a default config.
       def default_task_outputs(options)
         { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }}
+      end
+
+      def task(*)
+
       end
 
       # |-- compile initial act from alterations
@@ -82,9 +86,9 @@ module Trailblazer
         task_meta_data  = { id: id, created_by: type } # this is where we can add meta-data like "is a subprocess", "boundary events", etc.
 
         role_to_target    = send("role_to_target_for_#{type}",  task, options) #=> { :success => [ "End.success" ] }
-        insert_before_id  = send("insert_before_id_for_#{type}", task, options) #=> "End.success"
+        insert_before  = send("insert_before_for_#{type}", task, options) #=> "End.success"
 
-        wirings << [:insert_before!, insert_before_id, incoming: ->(edge) { edge[:type] == :railway }, node: [ task, task_meta_data ] ]
+        wirings << [:insert_before!, insert_before, incoming: ->(edge) { edge[:type] == :railway }, node: [ task, task_meta_data ] ]
 
         # FIXME: don't mark pass_fast with :railway
         wirings += Wirings.task_outputs_to(task_outputs, role_to_target, id, type: :railway) # connect! for task outputs
