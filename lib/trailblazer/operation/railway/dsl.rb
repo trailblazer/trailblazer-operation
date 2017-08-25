@@ -73,13 +73,12 @@ module Trailblazer
         end
 
         # normalize options generically, such as :name, :override, etc.
-        options = process_options( options_from_macro, user_options, name: proc )
+        options, id = process_options( options_from_macro, user_options, name: proc )
 
 
 
         wirings         = []
 
-        id              = options[:name] # DISCUSS all this
         task_meta_data  = { id: id, created_by: type } # this is where we can add meta-data like "is a subprocess", "boundary events", etc.
 
         role_to_target    = send("role_to_target_for_#{type}",  task, options) #=> { :success => [ "End.success" ] }
@@ -93,14 +92,7 @@ module Trailblazer
 
         wirings = ElementWiring.new(wirings, task_meta_data) # embraces all alterations for one "step".
 
-
-
-
-
-
-
-        self["__activity__"] = recompile_activity_for_wirings!(wirings, options)
-
+        self["__activity__"] = recompile_activity_for_wirings!(wirings, options) # options is :before,:after etc for Seq.insert!
 
         {
           activity:  self["__activity__"],
@@ -160,7 +152,9 @@ module Trailblazer
         options = macro_options.merge(user_options)
         options = default_options.merge(options)
         options = options.merge(replace: options[:name]) if options[:override] # :override
-        options
+        options[:id] = options[:name]
+
+        return options, options[:id]
       end
 
       # @private
