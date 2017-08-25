@@ -45,15 +45,13 @@ module Trailblazer
         # TODO: this override is hard to follow, we should have a pipeline circuit in DSL to add behavior.
         # @private
         def add_step!(*args)
-          super.tap do |returned_hash|
-            apply_wirings_from_runner_options!( returned_hash )
+          super.tap do |runner_options:nil, task:raise, **|
+            runner_options and apply_wirings_from_runner_options!( task, runner_options )
           end
         end # TODO: do this with a circuit :)
 
         # Extend the static wrap for a specific task, at compile time.
-        def apply_wirings_from_runner_options!(task:raise, alteration:nil, **o)
-          return unless alteration
-
+        def apply_wirings_from_runner_options!(task, alteration:raise, **o)
           static_wrap = self["__static_task_wraps__"][task]
 
           # macro might want to apply changes to the static task_wrap (e.g. Inject)

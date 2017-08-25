@@ -24,13 +24,13 @@ class StepTest < Minitest::Spec
 
     [ direction, options, flow_options ]
   end
-puts "yuo ________________________________"
+
   class Create < Trailblazer::Operation
     step ->(options, a:nil, **) { options["a"] = a }
     step Callable
     step Implementation.method(:c)
     step :d
-    step( { task: MyMacro, node_data: { id: "MyMacro" } } ) # doesn't provide runner_options.
+    step( { task: MyMacro, node_data: { id: "MyMacro" } } ) # doesn't provide `runner_options` and `outputs`.
 
     def d(options, d:nil, **)
       options["d"] = d

@@ -9,11 +9,11 @@ class TaskWrapTest < Minitest::Spec
   class Create < Trailblazer::Operation
     step :model!
     # step [ MyMacro, { name: "MyMacro" }, { dependencies: { "contract" => :external_maybe } }]
-    step [
-      MyMacro,
-      { name: "MyMacro" },
+    step(
+      task: MyMacro,
+      node_data: { id: "MyMacro" },
 
-      { # runner_options:
+      runner_options: {
         alteration: [
           [ :insert_before!, "task_wrap.call_task",
             node: [ Trailblazer::Operation::TaskWrap::Injection::ReverseMergeDefaults( contract: "MyDefaultContract" ), id: "inject.reverse_merge_defaults.{:contract=>MyDefaultContract}" ],
@@ -23,7 +23,7 @@ class TaskWrapTest < Minitest::Spec
         ]
       }
 
-    ]
+    )
 
     def model!(options, **)
       options["options.contract"] = options[:contract]
@@ -57,15 +57,15 @@ class TaskWrapTest < Minitest::Spec
   end
 
   class Update < Trailblazer::Operation
-    step [
-      ->(direction, options, flow_options) { _d, _o, _f = Create.__call__(Create.instance_variable_get(:@start), options, flow_options); [ Trailblazer::Circuit::Right, _o, _f ] },
-      { name: "Create" }
-    ]
-    step [
-      AnotherMacro,
-      { name: "AnotherMacro" },
+    step(
+      task: ->(direction, options, flow_options) { _d, _o, _f = Create.__call__(Create.instance_variable_get(:@start), options, flow_options); [ Trailblazer::Circuit::Right, _o, _f ] },
+      node_data: { id: "Create" }
+    )
+    step(
+      task:       AnotherMacro,
+      node_data:  { id: "AnotherMacro" },
 
-      { # runner_options:
+      runner_options: {
         alteration: [
           [ :insert_before!, "task_wrap.call_task",
             node: [ Trailblazer::Operation::TaskWrap::Injection::ReverseMergeDefaults( another_contract: "AnotherDefaultContract" ), id: "inject.reverse_merge_defaults.{:another_contract=>AnotherDefaultContract}" ],
@@ -74,8 +74,7 @@ class TaskWrapTest < Minitest::Spec
           ],
         ]
       }
-
-    ]
+    )
   end
 
   it do

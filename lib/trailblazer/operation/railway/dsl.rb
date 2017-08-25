@@ -64,7 +64,7 @@ module Trailblazer
       # mappings:      { success: "End.success", failure: "End.myend" } # where do my task's outputs go?
       # always adds task on a track edge.
       # @return ElementWiring
-      def wirings(task: nil, insert_before:raise, outputs:{}, connect_to:{}, node_data:raise)
+      def wirings(task: nil, insert_before:raise, outputs:{}, connect_to:{}, node_data:raise, **ignored)
         raise "missing node_data: { id: .. }" if node_data[:id].nil?
 
         wirings = []
@@ -72,7 +72,6 @@ module Trailblazer
         wirings << [:insert_before!, insert_before, incoming: ->(edge) { edge[:type] == :railway }, node: [ task, node_data ] ]
 
         # FIXME: don't mark pass_fast with :railway
-        puts "@@@@@x #{task} #{outputs.inspect}"
         raise "bla no outputs remove me at some point " unless outputs.any?
         wirings += Wirings.task_outputs_to(outputs, connect_to, node_data[:id], type: :railway) # connect! for task outputs
 
@@ -93,6 +92,7 @@ module Trailblazer
         task_o = #, options_from_macro, runner_options, task_outputs =
           if proc.is_a?(::Hash)
             proc
+            { outputs: default_task_outputs }.merge(proc)
           else
             task = task_builder.(proc, Circuit::Right, Circuit::Left)
 
@@ -102,7 +102,9 @@ module Trailblazer
               outputs:   default_task_outputs,
               node_data: { id: proc }
             }
+          # TODO: allow every step to have runner_options, etc
           end
+
 
         node_data = task_o[:node_data]
 
@@ -125,9 +127,6 @@ module Trailblazer
         wirings = wirings( wirings_options.merge(task_o) ) # TODO: this means macro could say where to insert?
 
 # pp wirings
-
-
-
 
 
 
