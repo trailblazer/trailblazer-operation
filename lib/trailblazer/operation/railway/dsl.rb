@@ -12,10 +12,6 @@ module Trailblazer
     #   task/acti has outputs, role_to_target says which task output goes to what next task in the composing acti.
 
     module DSL
-      # An unaware step task usually has two outputs, one end event for success and one for failure.
-      # Note that macros have to define their outputs when inserted and don't need a default config.
-      DEFAULT_TASK_OUTPUTS = { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }}
-
       def pass(proc, options={}); add_step!(:pass, proc, options, default_task_outputs: default_task_outputs(options) ); end
       def fail(proc, options={}); add_step!(:fail, proc, options, default_task_outputs: default_task_outputs(options) ); end
       def step(proc, options={}); add_step!(:step, proc, options, default_task_outputs: default_task_outputs(options) ); end
@@ -57,8 +53,10 @@ module Trailblazer
         "End.success"
       end
 
+      # An unaware step task usually has two outputs, one end event for success and one for failure.
+      # Note that macros have to define their outputs when inserted and don't need a default config.
       def default_task_outputs(options)
-        DEFAULT_TASK_OUTPUTS
+        { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }}
       end
 
       # |-- compile initial act from alterations
