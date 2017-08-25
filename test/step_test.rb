@@ -24,13 +24,13 @@ class StepTest < Minitest::Spec
 
     [ direction, options, flow_options ]
   end
-
+puts "yuo ________________________________"
   class Create < Trailblazer::Operation
     step ->(options, a:nil, **) { options["a"] = a }
     step Callable
     step Implementation.method(:c)
     step :d
-    step [ MyMacro, { name: "MyMacro" } ] # doesn't provide runner_options.
+    step( { task: MyMacro, node_data: { id: "MyMacro" } } ) # doesn't provide runner_options.
 
     def d(options, d:nil, **)
       options["d"] = d
@@ -62,7 +62,7 @@ class StepTest < Minitest::Spec
 
   class C < B
     step :e!, replace: :c!
-    step nil, delete: :d!
+    step "nil", delete: :d!
   end
 
   it { Trailblazer::Operation::Inspect.(C).must_equal %{[>b!,>e!,>a!]} }
@@ -72,7 +72,7 @@ class StepTest < Minitest::Spec
   class D < Trailblazer::Operation
     step :a!
     step :add!
-    step :add!, name: :another_add!#, override: true
+    step :add!, id: :another_add!#, override: true
 
     def a!(options, **);   options["a"] = []; end
     def add!(options, **); options["a"] << :b; end
@@ -96,8 +96,8 @@ class StepTest < Minitest::Spec
   #- with proc
   class F < Trailblazer::Operation
     step :a!
-    step ->(options, **) { options["a"] << :b }, name: "add"
-    step ->(options, **) { options["a"] << :b }, replace: "add", name: "add!!!"
+    step ->(options, **) { options["a"] << :b }, id: "add"
+    step ->(options, **) { options["a"] << :b }, replace: "add", id: "add!!!"
 
     def a!(options, **);   options["a"] = []; end
   end
@@ -112,9 +112,9 @@ class StepTest < Minitest::Spec
     # MyMacro3 = ->(direction, options, flow_options) { options["a"] << :b; [ direction, options, flow_options ] }
 
     step :a!
-    step [ MyMacro1, {name: "add"}, {} ]
-    step [ MyMacro2, {name: "add"}, {} ], replace: "add"
-    # step [ MyMacro3, {name: "add"}, {} ], override: true
+    step( { task: MyMacro1, node_data: { id: "add"} })
+    step( { task: MyMacro2, node_data: { id: "add"} }, replace: "add")
+    # step [ MyMacro3, {id: "add"}, {} ], override: true
 
     def a!(options, **);   options["a"] = []; end
   end
@@ -166,12 +166,12 @@ class StepTest < Minitest::Spec
 
   #---
   #- :name
-  #-   step :whatever, name: :validate
+  #-   step :whatever, id: :validate
   class Index < Trailblazer::Operation
-    step :validate!, name: "my validate"
+    step :validate!, id: "my validate"
     step :persist!
-    step [ MyMacro, name: "I win!" ]
-    step [ MyMacro, name: "I win!" ], name: "No, I do!"
+    step( { task: MyMacro, node_data: { id: "I win!" } })
+    step( { task: MyMacro, node_data: { id: "I win!" } }, id: "No, I do!")
   end
 
   it { Trailblazer::Operation::Inspect.(Index).must_equal %{[>my validate,>persist!,>I win!,>No, I do!]} }
@@ -205,8 +205,8 @@ class StepWithDeprecatedMacroTest < Minitest::Spec # TODO: remove me in 2.2.
       end
     end
 
-    step [ MyOutdatedMacro, name: :outdated ]
-    step [ AnotherOldMacro, name: :oldie ]
+    step [ MyOutdatedMacro, id: :outdated ]
+    step [ AnotherOldMacro, id: :oldie ]
   end
 
   it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?step_test.rb/, "").must_equal %{[>outdated,>oldie]} }

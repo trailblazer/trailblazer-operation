@@ -46,12 +46,12 @@ module Trailblazer
         # @private
         def add_step!(*args)
           super.tap do |returned_hash|
-            apply_wirings_from_runner_options!( returned_hash[:task], returned_hash[:runner_options] )
+            apply_wirings_from_runner_options!( returned_hash )
           end
         end # TODO: do this with a circuit :)
 
         # Extend the static wrap for a specific task, at compile time.
-        def apply_wirings_from_runner_options!(task, alteration:nil, **o)
+        def apply_wirings_from_runner_options!(task:raise, alteration:nil, **o)
           return unless alteration
 
           static_wrap = self["__static_task_wraps__"][task]

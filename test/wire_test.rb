@@ -18,10 +18,13 @@ class WireTest < Minitest::Spec
     step ->(options, **) { options["c"] = 3 }
 
 
-    element task: :d,
-      insert_before: "End.success",
-      outputs:       { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure } }, # any outputs and their polarization, generic.
-      connect_to:      { success: "End.success", failure: "End.myend" }, # where do my task's outputs go?,
-      task_meta_data: { id: "d" }
+    element wirings( task: :d,
+          insert_before: "End.success",
+          outputs:       { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure } }, # any outputs and their polarization, generic.
+          connect_to:      { success: "End.success", failure: "End.myend" }, # where do my task's outputs go?,
+          node_data: { id: "d" }) #, before: :bla
+
+    # element MyMacro(), insert_before: "End.success", connect_to: { success: "End.success", failure: "End.myend" }
+    # element MyMacro(), insert_before: "End.success", connect_to: { success: "End.success", failure: "End.myend" }, id: "MyMacro.2"
   end
 end

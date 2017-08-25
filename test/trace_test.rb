@@ -11,7 +11,7 @@ class TraceTest < Minitest::Spec
 
   class Create < Trailblazer::Operation
     step ->(options, **) { options[:a] = true }, name: "Create.task.a"
-    step [ MyNested, {} ],                       name: "MyNested"
+    step( { task: MyNested, node_data: {} },                    name: "MyNested")
     step ->(options, **) { options[:c] = true }, name: "Create.task.c"
   end
   # raise Create["__task_wraps__"].inspect

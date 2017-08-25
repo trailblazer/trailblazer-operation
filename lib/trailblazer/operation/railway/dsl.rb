@@ -64,15 +64,23 @@ module Trailblazer
       # mappings:      { success: "End.success", failure: "End.myend" } # where do my task's outputs go?
       # always adds task on a track edge.
       # @return ElementWiring
-      def element(task: nil, insert_before:raise, outputs:{}, connect_to:{}, task_meta_data:raise)
+      def wirings(task: nil, insert_before:raise, outputs:{}, connect_to:{}, node_data:raise)
+        raise "missing node_data: { id: .. }" if node_data[:id].nil?
+
         wirings = []
 
-        wirings << [:insert_before!, insert_before, incoming: ->(edge) { edge[:type] == :railway }, node: [ task, task_meta_data ] ]
+        wirings << [:insert_before!, insert_before, incoming: ->(edge) { edge[:type] == :railway }, node: [ task, node_data ] ]
 
         # FIXME: don't mark pass_fast with :railway
-        wirings += Wirings.task_outputs_to(outputs, connect_to, task_meta_data[:id], type: :railway) # connect! for task outputs
+        puts "@@@@@x #{task} #{outputs.inspect}"
+        raise "bla no outputs remove me at some point " unless outputs.any?
+        wirings += Wirings.task_outputs_to(outputs, connect_to, node_data[:id], type: :railway) # connect! for task outputs
 
-        ElementWiring.new(wirings, task_meta_data) # embraces all alterations for one "step".
+        ElementWiring.new(wirings, node_data) # embraces all alterations for one "step".
+      end
+
+      def element(*)
+
       end
 
       # |-- compile initial act from alterations
@@ -82,44 +90,82 @@ module Trailblazer
 
         # build the task.
         #   runner_options #=>{:alteration=>#<Proc:0x00000001dcbb20@test/task_wrap_test.rb:15 (lambda)>}
-        task, options_from_macro, runner_options, task_outputs =
-          if proc.is_a?(Array)
-            build_task_for_macro( task_builder: task_builder, step: proc, task_outputs: default_task_outputs )
+        task_o = #, options_from_macro, runner_options, task_outputs =
+          if proc.is_a?(::Hash)
+            proc
           else
-            build_task_for_step( task_builder: task_builder, step: proc, task_outputs: default_task_outputs )
+            task = task_builder.(proc, Circuit::Right, Circuit::Left)
+
+
+            {
+              task:      task,
+              outputs:   default_task_outputs,
+              node_data: { id: proc }
+            }
           end
 
-        # normalize options generically, such as :name, :override, etc.
-        options, id = process_options( options_from_macro, user_options, name: proc )
+        node_data = task_o[:node_data]
 
-        task_meta_data  = { id: id, created_by: type } # this is where we can add meta-data like "is a subprocess", "boundary events", etc.
+        node_data = normalize_node_options(node_data, user_options, proc)
 
-        role_to_target = send("role_to_target_for_#{type}",  task, options) #=> { :success => [ "End.success" ] }
-        insert_before  = send("insert_before_for_#{type}", task, options) #=> "End.success"
+        # normalize task_med
+        task  = task_o[:task]
+        id    = node_data[:id] || raise("this raise shouldn't be here but anyway we somehow messed up the element's id~!!!!!!")
+        node_data = node_data.merge(created_by: type) # this is where we can add meta-data like "is a subprocess", "boundary events", etc.
 
-        wirings = element( task: task, insert_before: insert_before, outputs: task_outputs, connect_to: role_to_target, task_meta_data: task_meta_data )
+        task_o[:node_data] = node_data # FIXME.
 
-        self["__activity__"] = recompile_activity_for_wirings!(wirings, options) # options is :before,:after etc for Seq.insert!
+        role_to_target = send("role_to_target_for_#{type}",  task, user_options) #=> { :success => [ "End.success" ] }
+        insert_before  = send("insert_before_for_#{type}", task, user_options) #=> "End.success"
+
+        wirings_options = {
+          insert_before: insert_before, connect_to: role_to_target
+        }
+
+        wirings = wirings( wirings_options.merge(task_o) ) # TODO: this means macro could say where to insert?
+
+# pp wirings
+
+
+
+
+
+
+
+
+        self["__activity__"] = recompile_activity_for_wirings!(wirings, id, user_options) # options is :before,:after etc for Seq.insert!
 
         {
           activity:  self["__activity__"],
 
           # also return all computed data for this step:
-          task:           task,
-          options:        options,
-          runner_options: runner_options,
-          task_outputs:   task_outputs, # we don't need them outside.
-        }
+          options:        user_options,
+        }.merge(task_o)
       end
 
       ElementWiring = Struct.new(:instructions, :data)
 
+      def normalize_node_options(node_data, user_options, proc)
+        id = user_options[:id] || user_options[:name] || node_data[:id]
+
+        node_data.merge( id: id ) # TODO: remove :name
+      end
+
+      # Normalizes :override and :name options.
+      def normalize_sequence_options(id, override:nil, **options)
+        # options = macro_options.merge(user_options)
+        options = options.merge( replace: id ) if override # :override
+        options
+      end
+
       # @private
-      def recompile_activity_for_wirings!(wirings, options)
+      def recompile_activity_for_wirings!(wirings, id, user_options)
+        seq_options = normalize_sequence_options(id, user_options)
+
         sequence = self["__sequence__"]
 
         # Insert {Step} into {Sequence} while respecting :append, :replace, before, etc.
-        sequence.insert!(wirings, options) # The sequence is now an up-to-date representation of our operation's steps.
+        sequence.insert!(wirings, seq_options) # The sequence is now an up-to-date representation of our operation's steps.
 
         # This op's graph are the initial wirings (different ends, etc) + the steps we added.
         activity = recompile_activity( self["__wirings__"] + sequence.to_a )
@@ -137,32 +183,6 @@ module Trailblazer
       end
 
       private
-
-      def build_task_for_step(step:raise, task_outputs:raise, task_builder: Operation::Railway::TaskBuilder)
-        task = task_builder.(step, Circuit::Right, Circuit::Left)
-
-        [ task, {}, {}, task_outputs ]
-      end
-
-      def build_task_for_macro(step:raise, task_outputs:raise, **o)
-        task, options_from_macro, runner_options, _task_outputs = *step
-
-        # defaultize, DISCUSS whether or not macros should do this.
-        _task_outputs  = task_outputs if _task_outputs.nil? # FIXME: macros must always return their endings.
-        runner_options = {} if runner_options.nil?
-
-        [ task, options_from_macro, runner_options, _task_outputs ]
-      end
-
-      # Normalizes :override and :name options.
-      def process_options(macro_options, user_options, default_options)
-        options = macro_options.merge(user_options)
-        options = default_options.merge(options)
-        options = options.merge(replace: options[:name]) if options[:override] # :override
-        options[:id] = options[:name]
-
-        return options, options[:id]
-      end
 
       # @private
       class Wirings # TODO: move to acti.
