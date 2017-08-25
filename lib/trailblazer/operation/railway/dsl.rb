@@ -12,44 +12,44 @@ module Trailblazer
     #   task/acti has outputs, role_to_target says which task output goes to what next task in the composing acti.
 
     module DSL
-      def pass(proc, options={}); add_step!(:pass, proc, options, default_task_outputs: default_task_outputs(options) ); end
-      def fail(proc, options={}); add_step!(:fail, proc, options, default_task_outputs: default_task_outputs(options) ); end
-      def step(proc, options={}); add_step!(:step, proc, options, default_task_outputs: default_task_outputs(options) ); end
+      def pass(proc, options={}); add_step!(proc, options, type: :pass, default_task_outputs: default_task_outputs(options) ); end
+      def fail(proc, options={}); add_step!(proc, options, type: :fail, default_task_outputs: default_task_outputs(options) ); end
+      def step(proc, options={}); add_step!(proc, options, type: :step, default_task_outputs: default_task_outputs(options) ); end
       alias_method :success, :pass
       alias_method :failure, :fail
 
       private
 
-      def role_to_target_for_pass(task, options)
+      def role_to_target_for_pass(options)
         {
           :success => "End.success",
           :failure => "End.success"
         }
       end
 
-      def role_to_target_for_fail(task, options)
+      def role_to_target_for_fail(options)
         {
           :success => "End.failure",
           :failure => "End.failure"
         }
       end
 
-      def role_to_target_for_step(task, options)
+      def role_to_target_for_step(options)
         {
           :success => "End.success",
           :failure => "End.failure"
         }
       end
 
-      def insert_before_for_pass(task, options)
+      def insert_before_for_pass(options)
         "End.success"
       end
 
-      def insert_before_for_fail(task, options)
+      def insert_before_for_fail(options)
         "End.failure"
       end
 
-      def insert_before_for_step(task, options)
+      def insert_before_for_step(options)
         "End.success"
       end
 
@@ -84,12 +84,12 @@ module Trailblazer
 
       # |-- compile initial act from alterations
       # |-- add step alterations
-      def add_step!(type, proc, user_options, task_builder:TaskBuilder, default_task_outputs:raise)
+      def add_step!(proc, user_options, type:nil, task_builder:TaskBuilder, **opts)
         heritage.record(type, proc, user_options)
 
         # build the task.
         #   runner_options #=>{:alteration=>#<Proc:0x00000001dcbb20@test/task_wrap_test.rb:15 (lambda)>}
-        task_o = #, options_from_macro, runner_options, task_outputs =
+        task_options =
           if proc.is_a?(::Hash)
             proc
           else
@@ -100,7 +100,7 @@ module Trailblazer
           # TODO: allow every step to have runner_options, etc
           end
 
-        add_task!(task_o, default_task_outputs: default_task_outputs, type: type, user_options: user_options)
+        add_task!( task_options, opts.merge( type: type, user_options: user_options ) )
       end
 
       # NOTE: here, we don't care if it was a step, macro or whatever else.
@@ -108,19 +108,10 @@ module Trailblazer
         # default options
         options = { outputs: default_task_outputs }.merge(options)
 
-        node_data = options[:node_data]
+        options[:node_data], id = normalize_node_data( options[:node_data], user_options, type )
 
-        node_data = normalize_node_options(node_data, user_options)
-
-        # normalize task_med
-        task  = options[:task]
-        id    = node_data[:id] || raise("this raise shouldn't be here but anyway we somehow messed up the element's id~!!!!!!")
-        node_data = node_data.merge(created_by: type) # this is where we can add meta-data like "is a subprocess", "boundary events", etc.
-
-        options[:node_data] = node_data # FIXME.
-
-        role_to_target = send("role_to_target_for_#{type}",  task, user_options) #=> { :success => [ "End.success" ] }
-        insert_before  = send("insert_before_for_#{type}", task, user_options) #=> "End.success"
+        role_to_target = send("role_to_target_for_#{type}", user_options) #=> { :success => [ "End.success" ] }
+        insert_before  = send("insert_before_for_#{type}", user_options) #=> "End.success"
 
         wirings_options = {
           insert_before: insert_before, connect_to: role_to_target
@@ -139,10 +130,13 @@ module Trailblazer
 
       ElementWiring = Struct.new(:instructions, :data)
 
-      def normalize_node_options(node_data, user_options)
+      def normalize_node_data(node_data, user_options, created_by)
         id = user_options[:id] || user_options[:name] || node_data[:id]
 
-        node_data.merge( id: id ) # TODO: remove :name
+        return node_data.merge(
+          id:         id,
+          created_by: created_by # this is where we can add meta-data like "is a subprocess", "boundary events", etc.
+        ), id # TODO: remove :name
       end
 
       # Normalizes :override and :name options.
