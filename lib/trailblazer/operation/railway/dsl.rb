@@ -75,6 +75,8 @@ module Trailblazer
         # normalize options generically, such as :name, :override, etc.
         options = process_options( options_from_macro, user_options, name: proc )
 
+
+
         wirings         = []
 
         id              = options[:name] # DISCUSS all this
@@ -89,21 +91,15 @@ module Trailblazer
         wirings += Wirings.task_outputs_to(task_outputs, role_to_target, id, type: :railway) # connect! for task outputs
 
 
-        wirings = ElementWiring.new(wirings, task_meta_data)
+        wirings = ElementWiring.new(wirings, task_meta_data) # embraces all alterations for one "step".
 
 
 
 
-        sequence = self["__sequence__"]
-
-        # Insert {Step} into {Sequence} while respecting :append, :replace, before, etc.
-        sequence.insert!(wirings, options) # The sequence is now an up-to-date representation of our operation's steps.
-
-        # This op's graph are the initial wirings (different ends, etc) + the steps we added.
-        activity = recompile_activity( self["__wirings__"] + sequence.to_a )
 
 
-        self["__activity__"] = activity
+
+        self["__activity__"] = recompile_activity_for_wirings!(wirings, options)
 
 
         {
@@ -119,7 +115,18 @@ module Trailblazer
 
       ElementWiring = Struct.new(:instructions, :data)
 
-      # @api private
+      # @private
+      def recompile_activity_for_wirings!(wirings, options)
+        sequence = self["__sequence__"]
+
+        # Insert {Step} into {Sequence} while respecting :append, :replace, before, etc.
+        sequence.insert!(wirings, options) # The sequence is now an up-to-date representation of our operation's steps.
+
+        # This op's graph are the initial wirings (different ends, etc) + the steps we added.
+        activity = recompile_activity( self["__wirings__"] + sequence.to_a )
+      end
+
+      # @private
       # 1. Processes the step API's options (such as `:override` of `:before`).
       # 2. Uses `Sequence.alter!` to maintain a linear array representation of the circuit's tasks.
       #    This is then transformed into a circuit/Activity. (We could save this step with some graph magic)

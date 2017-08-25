@@ -17,7 +17,6 @@ module Trailblazer
           end_for_pass_fast = Class.new(End::Success).new(:pass_fast)
           end_for_fail_fast = Class.new(End::Failure).new(:fail_fast)
 
-
           super + [
             [ :attach!, target: [ end_for_pass_fast, id: "End.pass_fast", role: :pass_fast ], edge: [ PassFast, type: :railway ] ],
             [ :attach!, target: [ end_for_fail_fast, id: "End.fail_fast", role: :fail_fast ], edge: [ FailFast, type: :railway ] ],
