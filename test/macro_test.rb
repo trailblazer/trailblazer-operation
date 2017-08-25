@@ -13,7 +13,7 @@ class MacroTest < Minitest::Spec
 
   class Create < Trailblazer::Operation
     step :a
-    step [ MacroB, { name: :MacroB }, {}, { "Allgood" => { role: :success }, "Fail!" => { role: :failure }, "Winning" => { role: :pass_fast } } ]
+    step( task: MacroB, node_data: { id: :MacroB }, outputs: { "Allgood" => { role: :success }, "Fail!" => { role: :failure }, "Winning" => { role: :pass_fast } } )
     step :c
 
     def a(options, **); options[:a] = true end
