@@ -21,6 +21,7 @@ class WireTest < Minitest::Spec
     task :d,
       insert_before: "End.success",
       outputs:       { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure } }, # any outputs and their polarization, generic.
-      mappings:      { success: "End.success", failure: "End.myend" } # where do my task's outputs go?
+      connect_to:      { success: "End.success", failure: "End.myend" }, # where do my task's outputs go?,
+      task_meta_data: { id: "d" }
   end
 end

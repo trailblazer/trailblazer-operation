@@ -59,8 +59,20 @@ module Trailblazer
         { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }}
       end
 
-      def task(*)
+      # insert_before: "End.success",
+      # outputs:       { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure } }, # any outputs and their polarization, generic.
+      # mappings:      { success: "End.success", failure: "End.myend" } # where do my task's outputs go?
+      # always adds task on a track edge.
+      # @return ElementWiring
+      def task(task, insert_before:raise, outputs:{}, connect_to:{}, task_meta_data:raise)
+        wirings = []
 
+        wirings << [:insert_before!, insert_before, incoming: ->(edge) { edge[:type] == :railway }, node: [ task, task_meta_data ] ]
+
+        # FIXME: don't mark pass_fast with :railway
+        wirings += Wirings.task_outputs_to(outputs, connect_to, task_meta_data[:id], type: :railway) # connect! for task outputs
+
+        ElementWiring.new(wirings, task_meta_data) # embraces all alterations for one "step".
       end
 
       # |-- compile initial act from alterations
@@ -80,21 +92,12 @@ module Trailblazer
         options, id = process_options( options_from_macro, user_options, name: proc )
 
 
-
-        wirings         = []
-
         task_meta_data  = { id: id, created_by: type } # this is where we can add meta-data like "is a subprocess", "boundary events", etc.
 
         role_to_target    = send("role_to_target_for_#{type}",  task, options) #=> { :success => [ "End.success" ] }
         insert_before  = send("insert_before_for_#{type}", task, options) #=> "End.success"
 
-        wirings << [:insert_before!, insert_before, incoming: ->(edge) { edge[:type] == :railway }, node: [ task, task_meta_data ] ]
-
-        # FIXME: don't mark pass_fast with :railway
-        wirings += Wirings.task_outputs_to(task_outputs, role_to_target, id, type: :railway) # connect! for task outputs
-
-
-        wirings = ElementWiring.new(wirings, task_meta_data) # embraces all alterations for one "step".
+        wirings         = task(task, insert_before: insert_before, outputs: task_outputs, connect_to: role_to_target, task_meta_data: task_meta_data)
 
         self["__activity__"] = recompile_activity_for_wirings!(wirings, options) # options is :before,:after etc for Seq.insert!
 
