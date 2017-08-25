@@ -64,7 +64,7 @@ module Trailblazer
       # mappings:      { success: "End.success", failure: "End.myend" } # where do my task's outputs go?
       # always adds task on a track edge.
       # @return ElementWiring
-      def task(task, insert_before:raise, outputs:{}, connect_to:{}, task_meta_data:raise)
+      def element(task: nil, insert_before:raise, outputs:{}, connect_to:{}, task_meta_data:raise)
         wirings = []
 
         wirings << [:insert_before!, insert_before, incoming: ->(edge) { edge[:type] == :railway }, node: [ task, task_meta_data ] ]
@@ -82,22 +82,22 @@ module Trailblazer
 
         # build the task.
         #   runner_options #=>{:alteration=>#<Proc:0x00000001dcbb20@test/task_wrap_test.rb:15 (lambda)>}
-        task, options_from_macro, runner_options, task_outputs = if proc.is_a?(Array)
-          build_task_for_macro( task_builder: task_builder, step: proc, task_outputs: default_task_outputs )
-        else
-          build_task_for_step( task_builder: task_builder, step: proc, task_outputs: default_task_outputs )
-        end
+        task, options_from_macro, runner_options, task_outputs =
+          if proc.is_a?(Array)
+            build_task_for_macro( task_builder: task_builder, step: proc, task_outputs: default_task_outputs )
+          else
+            build_task_for_step( task_builder: task_builder, step: proc, task_outputs: default_task_outputs )
+          end
 
         # normalize options generically, such as :name, :override, etc.
         options, id = process_options( options_from_macro, user_options, name: proc )
 
-
         task_meta_data  = { id: id, created_by: type } # this is where we can add meta-data like "is a subprocess", "boundary events", etc.
 
-        role_to_target    = send("role_to_target_for_#{type}",  task, options) #=> { :success => [ "End.success" ] }
+        role_to_target = send("role_to_target_for_#{type}",  task, options) #=> { :success => [ "End.success" ] }
         insert_before  = send("insert_before_for_#{type}", task, options) #=> "End.success"
 
-        wirings         = task(task, insert_before: insert_before, outputs: task_outputs, connect_to: role_to_target, task_meta_data: task_meta_data)
+        wirings = element( task: task, insert_before: insert_before, outputs: task_outputs, connect_to: role_to_target, task_meta_data: task_meta_data )
 
         self["__activity__"] = recompile_activity_for_wirings!(wirings, options) # options is :before,:after etc for Seq.insert!
 

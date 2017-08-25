@@ -18,7 +18,7 @@ class WireTest < Minitest::Spec
     step ->(options, **) { options["c"] = 3 }
 
 
-    task :d,
+    element task: :d,
       insert_before: "End.success",
       outputs:       { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure } }, # any outputs and their polarization, generic.
       connect_to:      { success: "End.success", failure: "End.myend" }, # where do my task's outputs go?,
