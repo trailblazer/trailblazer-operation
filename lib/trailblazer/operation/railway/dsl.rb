@@ -92,30 +92,32 @@ module Trailblazer
         task_o = #, options_from_macro, runner_options, task_outputs =
           if proc.is_a?(::Hash)
             proc
-            { outputs: default_task_outputs }.merge(proc)
           else
-            task = task_builder.(proc, Circuit::Right, Circuit::Left)
-
-
             {
-              task:      task,
-              outputs:   default_task_outputs,
+              task:      task_builder.(proc, Circuit::Right, Circuit::Left),
               node_data: { id: proc }
             }
           # TODO: allow every step to have runner_options, etc
           end
 
+        add_task!(task_o, default_task_outputs: default_task_outputs, type: type, user_options: user_options)
+      end
 
-        node_data = task_o[:node_data]
+      # NOTE: here, we don't care if it was a step, macro or whatever else.
+      def add_task!(options, default_task_outputs:raise, user_options:raise, type:raise)
+        # default options
+        options = { outputs: default_task_outputs }.merge(options)
 
-        node_data = normalize_node_options(node_data, user_options, proc)
+        node_data = options[:node_data]
+
+        node_data = normalize_node_options(node_data, user_options)
 
         # normalize task_med
-        task  = task_o[:task]
+        task  = options[:task]
         id    = node_data[:id] || raise("this raise shouldn't be here but anyway we somehow messed up the element's id~!!!!!!")
         node_data = node_data.merge(created_by: type) # this is where we can add meta-data like "is a subprocess", "boundary events", etc.
 
-        task_o[:node_data] = node_data # FIXME.
+        options[:node_data] = node_data # FIXME.
 
         role_to_target = send("role_to_target_for_#{type}",  task, user_options) #=> { :success => [ "End.success" ] }
         insert_before  = send("insert_before_for_#{type}", task, user_options) #=> "End.success"
@@ -124,27 +126,20 @@ module Trailblazer
           insert_before: insert_before, connect_to: role_to_target
         }
 
-        wirings = wirings( wirings_options.merge(task_o) ) # TODO: this means macro could say where to insert?
-
-# pp wirings
-
-
-
+        wirings = wirings( wirings_options.merge(options) ) # TODO: this means macro could say where to insert?
 
 
         self["__activity__"] = recompile_activity_for_wirings!(wirings, id, user_options) # options is :before,:after etc for Seq.insert!
 
         {
           activity:  self["__activity__"],
-
-          # also return all computed data for this step:
-          options:        user_options,
-        }.merge(task_o)
+          options:   user_options,
+        }.merge(options)
       end
 
       ElementWiring = Struct.new(:instructions, :data)
 
-      def normalize_node_options(node_data, user_options, proc)
+      def normalize_node_options(node_data, user_options)
         id = user_options[:id] || user_options[:name] || node_data[:id]
 
         node_data.merge( id: id ) # TODO: remove :name
