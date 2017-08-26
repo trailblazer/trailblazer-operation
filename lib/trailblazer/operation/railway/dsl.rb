@@ -102,7 +102,7 @@ module Trailblazer
 
         wirings = insertion_wirings_for( options ) # TODO: this means macro could say where to insert?
 
-        insert!( wirings, user_options )
+        insert!( wirings, user_options.merge(id: id) )
 
          # options is :before,:after etc for Seq.insert!
 
@@ -115,11 +115,9 @@ module Trailblazer
       # params wirings ElementWiring
       # params sequence_options Hash containing where to insert (:before, :replace, etc.)
       # semi-public
-      def insert!(wirings, sequence_options={})
-        self["__activity__"] = recompile_activity_for_wirings!(wirings, sequence_options)
+      def insert!(wirings, id:raise, **sequence_options)
+        self["__activity__"] = recompile_activity_for_wirings!(id, wirings, sequence_options)
       end
-
-      ElementWiring = Struct.new(:instructions, :data)
 
       def insertion_args_for(task:raise, node_data:raise, insert_before:raise, outputs:raise, connect_to:raise, **passthrough)
         # something like *** would be cool
@@ -148,7 +146,7 @@ module Trailblazer
         raise "bla no outputs remove me at some point " unless outputs.any?
         wirings += Wirings.task_outputs_to(outputs, connect_to, node_data[:id], type: :railway) # connect! for task outputs
 
-        ElementWiring.new(wirings, node_data) # embraces all alterations for one "step".
+        wirings # embraces all alterations for one "step".
       end
 
       def normalize_node_data(node_data, user_options, created_by)
@@ -167,11 +165,11 @@ module Trailblazer
       end
 
       # @private
-      def recompile_activity_for_wirings!(wirings, user_options)
+      def recompile_activity_for_wirings!(id, wirings, sequence_options)
         sequence = self["__sequence__"]
 
         # Insert {Step} into {Sequence} while respecting :append, :replace, before, etc.
-        sequence.insert!(wirings, user_options) # The sequence is now an up-to-date representation of our operation's steps.
+        sequence.insert!(id, wirings, sequence_options) # The sequence is now an up-to-date representation of our operation's steps.
 
         # This op's graph are the initial wirings (different ends, etc) + the steps we added.
         activity = recompile_activity( self["__wirings__"] + sequence.to_a )

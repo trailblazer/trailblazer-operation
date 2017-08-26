@@ -10,27 +10,31 @@ module Trailblazer
     #
     # @api private
     class Sequence < ::Array
+      Element = Struct.new(:id, :instructions)
+
       # Insert the task into {Sequence} array by respecting options such as `:before`.
       # This mutates the object per design.
       # @param element_wiring ElementWiring Set of instructions for a specific element in an activity graph.
-      def insert!(wiring, before:nil, after:nil, replace:nil, delete:nil, **user_options)
-        return insert(find_index!(before),  wiring) if before
-        return insert(find_index!(after)+1, wiring) if after
-        return self[find_index!(replace)] = wiring  if replace
+      def insert!(id, wiring, before:nil, after:nil, replace:nil, delete:nil, **user_options)
+        element = Element.new(id, wiring)
+
+        return insert(find_index!(before),  element) if before
+        return insert(find_index!(after)+1, element) if after
+        return self[find_index!(replace)] = element  if replace
         return delete_at(find_index!(delete))    if delete
 
-        self << wiring
+        self << element
       end
 
       def to_a
-        collect { |wiring| wiring.instructions }.flatten(1)
+        collect { |element| element.instructions }.flatten(1)
       end
 
       private
 
       def find_index(id)
-        task = find { |wiring| wiring.data[:id] == id }
-        index(task)
+        element = find { |el| el.id == id }
+        index(element)
       end
 
       def find_index!(id)

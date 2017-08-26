@@ -15,7 +15,13 @@ module Trailblazer
 
     # TODO: at some point, we should render the real circuit graph using circuit tools.
     def call(operation, options={ style: :line })
-      rows = operation["__sequence__"].each_with_index.collect { |task_wiring, i| [ i, [ task_wiring.data[:created_by], task_wiring.data[:id] ] ]  }
+      graph = operation["__activity__"].graph
+
+      rows = operation["__sequence__"].each_with_index.collect do |task_wiring, i|
+        node = graph.find_all( task_wiring.id ).first || raise
+
+        [ i, [ node[:created_by], node[:id] ] ]
+      end
 
       return inspect_line(rows) if options[:style] == :line
       return inspect_rows(rows)
