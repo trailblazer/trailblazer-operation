@@ -98,19 +98,16 @@ module Trailblazer
           # TODO: allow every step to have runner_options, etc
           end
 
-        add_task!( insertion_options, opts.merge( type: type, user_options: user_options ) )
+          # this id computation is specific to the step/pass/fail API and not add_task!'s job.
+        node_data, id = normalize_node_data( insertion_options[:node_data], user_options, type )
+
+        add_task!( insertion_options.merge(node_data: node_data), opts.merge( id: id, type: type, user_options: user_options ) )
       end
 
       # NOTE: here, we don't care if it was a step, macro or whatever else.
-      def add_task!(insertion_options, default_task_outputs:raise, user_options:raise, type:raise)
+      def add_task!(insertion_options, default_task_outputs:raise, user_options:raise, type:raise, id:raise)
         role_to_target = send("role_to_target_for_#{type}", user_options) #=> { :success => [ "End.success" ] }
         insert_before  = send("insert_before_for_#{type}", user_options) #=> "End.success"
-
-
-        node_data, id = normalize_node_data( insertion_options[:node_data], user_options, type )
-
-
-
 
 
         options, passthrough = insertion_args_for(
@@ -119,11 +116,7 @@ module Trailblazer
             insert_before: insert_before,
             connect_to:    role_to_target,
           }.
-            merge(insertion_options). # actual user/macro-provided options
-
-            merge( # overrides
-              node_data: node_data
-            )
+            merge(insertion_options) # actual user/macro-provided options
         )
 
         wirings = insertion_wirings_for( options ) # TODO: this means macro could say where to insert?
