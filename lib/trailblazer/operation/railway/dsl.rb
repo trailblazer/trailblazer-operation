@@ -103,12 +103,12 @@ module Trailblazer
 
       # NOTE: here, we don't care if it was a step, macro or whatever else.
       def add_task!(insertion_options, default_task_outputs:raise, user_options:raise, type:raise)
+        role_to_target = send("role_to_target_for_#{type}", user_options) #=> { :success => [ "End.success" ] }
+        insert_before  = send("insert_before_for_#{type}", user_options) #=> "End.success"
 
 
         node_data, id = normalize_node_data( insertion_options[:node_data], user_options, type )
 
-        role_to_target = send("role_to_target_for_#{type}", user_options) #=> { :success => [ "End.success" ] }
-        insert_before  = send("insert_before_for_#{type}", user_options) #=> "End.success"
 
 
 
@@ -119,7 +119,6 @@ module Trailblazer
             insert_before: insert_before,
             connect_to:    role_to_target,
           }.
-
             merge(insertion_options). # actual user/macro-provided options
 
             merge( # overrides
@@ -129,7 +128,6 @@ module Trailblazer
 
         wirings = insertion_wirings_for( options ) # TODO: this means macro could say where to insert?
 
-
         self["__activity__"] = recompile_activity_for_wirings!(wirings, id, user_options) # options is :before,:after etc for Seq.insert!
 
         {
@@ -138,17 +136,16 @@ module Trailblazer
         }.merge(passthrough).merge(options)
       end
 
-      InsertionWiringOptions = Value.new(:task, :node_data, :insert_before, :outputs, :connect_to)
-
       ElementWiring = Struct.new(:instructions, :data)
 
       def insertion_args_for(task:raise, node_data:raise, insert_before:raise, outputs:raise, connect_to:raise, **passthrough)
+        # something like *** would be cool
         return {
-          task: task,
-          node_data: node_data,
+          task:          task,
+          node_data:     node_data,
           insert_before: insert_before,
-          outputs: outputs,
-          connect_to: connect_to
+          outputs:       outputs,
+          connect_to:    connect_to
         }.freeze, passthrough
       end
 
