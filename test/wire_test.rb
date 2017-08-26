@@ -5,38 +5,45 @@ class WireTest < Minitest::Spec
   DSL = Trailblazer::Operation::Railway::DSL
 
   MyEnd = Class.new(Circuit::End)
+  ExceptionFromD = Class.new
+
+  D = ->(signal, options, flow_options, *args) do
+    options["D"] = [ options["a"], options["b"], options["c"] ]
+
+    signal = options["D_return"]
+    [ signal, options, flow_options, *args ]
+  end
 
   #- manual via ::graph API
   class Create < Trailblazer::Operation
-    def self.graph
-      self["__activity__"].graph
-    end
-
-
-
     step ->(options, **) { options["a"] = 1 }
-    step ->(options, **) { options["b"] = 1 }, name: "b"
-    step ->(options, **) { options["c"] = 3 }, name: :c
+    step ->(options, **) { options["b"] = 2 }, name: "b"
 
     # step provides insert_before, outputs, node_data
 
-    #graph.attach! target: [MyEnd.new(:myend), id: "End.myend"], edge: [Circuit::Left, {}], source: "Start.default"
-    # graph.connect! target: [B, id: :b], edge: []
-
     insert! [ [:attach!, target: [MyEnd.new(:myend), {id: _id="End.myend"}], edge: [Circuit::Left, {}], source: "Start.default"] ], id: _id
 
-    insert! insertion_wirings_for( task: :d,
+    insert! insertion_wirings_for( task: D,
           insert_before: "End.success",
-          outputs:       { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure } }, # any outputs and their polarization, generic.
-          connect_to:      { success: "End.success", failure: "End.myend" }, # where do my task's outputs go?,
+          outputs:       { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }, ExceptionFromD => { role: :exception } }, # any outputs and their polarization, generic.
+          connect_to:      { success: "End.success", failure: "End.failure", exception: "End.myend" }, # where do my task's outputs go?,
           node_data: { id: _id="d" }), id: _id #, before: :bla
+
+    fail ->(options, **) { options["f"] = 4 }, id: "f"
+    step ->(options, **) { options["c"] = 3 }, id: "c"
 
     # element MyMacro(), insert_before: "End.success", connect_to: { success: "End.success", failure: "End.myend" }
     # element MyMacro(), insert_before: "End.success", connect_to: { success: "End.success", failure: "End.myend" }, id: "MyMacro.2"
   end
 
   # myend ==> d
-  it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?wire_test.rb/, "").must_equal %{[>#<Proc::15 (lambda)>,>b,>c,End.myend,d]} }
+  it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?wire_test.rb/, "").must_equal %{[>#<Proc::19 (lambda)>,>b,End.myend,d,<<f,>c]} }
+
+  # normal flow as D sits on the Right track.
+  it { Create.({}, "D_return" => Circuit::Right).inspect("a", "b", "c", "D", "f").must_equal %{<Result:true [1, 2, 3, [1, 2, nil], nil] >} }
+  # ends on MyEnd, without hitting fail.
+  it { Create.({}, "D_return" => ExceptionFromD).inspect("a", "b", "c", "D", "f").must_equal %{<Result:false [1, 2, nil, [1, 2, nil], nil] >} } # todo: HOW TO CHECK End instance?
+  it { Create.({}, "D_return" => Circuit::Left).inspect("a", "b", "c", "D", "f").must_equal %{<Result:false [1, 2, nil, [1, 2, nil], 4] >} } # todo: HOW TO CHECK End instance?
 
   class B < Trailblazer::Operation
     insert! [ [:attach!, target: [MyEnd.new(:myend), {id: _id="End.myend"}], edge: [Circuit::Left, {}], source: "Start.default"] ], id: _id

@@ -16,7 +16,7 @@ module Trailblazer
       # This mutates the object per design.
       # @param element_wiring ElementWiring Set of instructions for a specific element in an activity graph.
       def insert!(id, wiring, before:nil, after:nil, replace:nil, delete:nil, **user_options)
-        element = Element.new(id, wiring)
+        element = Element.new(id, wiring).freeze
 
         return insert(find_index!(before),  element) if before
         return insert(find_index!(after)+1, element) if after

@@ -104,8 +104,6 @@ module Trailblazer
 
         insert!( wirings, user_options.merge(id: id) )
 
-         # options is :before,:after etc for Seq.insert!
-
         {
           activity:  self["__activity__"],
           options:   user_options,
@@ -117,6 +115,17 @@ module Trailblazer
       # semi-public
       def insert!(wirings, id:raise, **sequence_options)
         self["__activity__"] = recompile_activity_for_wirings!(id, wirings, sequence_options)
+      end
+
+      # @private
+      def recompile_activity_for_wirings!(id, wirings, sequence_options)
+        sequence = self["__sequence__"]
+
+        # Insert wirings as one element into {Sequence} while respecting :append, :replace, before, etc.
+        sequence.insert!(id, wirings, sequence_options) # The sequence is now an up-to-date representation of our operation's steps.
+
+        # This op's graph are the initial wirings (different ends, etc) + the steps we added.
+        activity = recompile_activity( self["__wirings__"] + sequence.to_a )
       end
 
       def insertion_args_for(task:raise, node_data:raise, insert_before:raise, outputs:raise, connect_to:raise, **passthrough)
@@ -164,24 +173,8 @@ module Trailblazer
         override ? { replace: id } : {}
       end
 
-      # @private
-      def recompile_activity_for_wirings!(id, wirings, sequence_options)
-        sequence = self["__sequence__"]
-
-        # Insert {Step} into {Sequence} while respecting :append, :replace, before, etc.
-        sequence.insert!(id, wirings, sequence_options) # The sequence is now an up-to-date representation of our operation's steps.
-
-        # This op's graph are the initial wirings (different ends, etc) + the steps we added.
-        activity = recompile_activity( self["__wirings__"] + sequence.to_a )
-      end
-
-      # @private
-      # 1. Processes the step API's options (such as `:override` of `:before`).
-      # 2. Uses `Sequence.alter!` to maintain a linear array representation of the circuit's tasks.
-      #    This is then transformed into a circuit/Activity. (We could save this step with some graph magic)
-      # 3. Returns a new Activity instance.
-      #
       # This is called per "step"/task insertion.
+      # @private
       def recompile_activity(wirings)
         Trailblazer::Activity.from_wirings(wirings)
       end
