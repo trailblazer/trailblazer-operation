@@ -12,9 +12,9 @@ module Trailblazer
     #   task/acti has outputs, role_to_target says which task output goes to what next task in the composing acti.
 
     module DSL
-      def pass(proc, options={}); add_step!(proc, options, type: :pass, default_task_outputs: default_task_outputs(options) ); end
-      def fail(proc, options={}); add_step!(proc, options, type: :fail, default_task_outputs: default_task_outputs(options) ); end
-      def step(proc, options={}); add_step!(proc, options, type: :step, default_task_outputs: default_task_outputs(options) ); end
+      def pass(proc, options={}); add_step_or_task!(proc, options, type: :pass, default_task_outputs: default_task_outputs(options) ); end
+      def fail(proc, options={}); add_step_or_task!(proc, options, type: :fail, default_task_outputs: default_task_outputs(options) ); end
+      def step(proc, options={}); add_step_or_task!(proc, options, type: :step, default_task_outputs: default_task_outputs(options) ); end
       alias_method :success, :pass
       alias_method :failure, :fail
 
@@ -84,7 +84,7 @@ module Trailblazer
 
       # |-- compile initial act from alterations
       # |-- add step alterations
-      def add_step!(proc, user_options, type:nil, task_builder:TaskBuilder, **opts)
+      def add_step_or_task!(proc, user_options, type:nil, task_builder:TaskBuilder, **opts)
         heritage.record(type, proc, user_options)
 
         # build the task.

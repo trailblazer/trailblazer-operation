@@ -44,7 +44,7 @@ module Trailblazer
       module DSL
         # TODO: this override is hard to follow, we should have a pipeline circuit in DSL to add behavior.
         # @private
-        def add_step!(*args)
+        def add_step_or_task!(*args)
           super.tap do |runner_options:nil, task:raise, **|
             runner_options and apply_wirings_from_runner_options!( task, runner_options )
           end
