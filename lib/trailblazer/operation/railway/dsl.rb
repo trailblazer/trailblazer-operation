@@ -64,7 +64,7 @@ module Trailblazer
       # mappings:      { success: "End.success", failure: "End.myend" } # where do my task's outputs go?
       # always adds task on a track edge.
       # @return ElementWiring
-      def wirings(task: nil, insert_before:raise, outputs:{}, connect_to:{}, node_data:raise, **ignored)
+      def insertion_wirings_for(task: nil, insert_before:raise, outputs:{}, connect_to:{}, node_data:raise)
         raise "missing node_data: { id: .. }" if node_data[:id].nil?
 
         wirings = []
@@ -87,12 +87,10 @@ module Trailblazer
       def add_step_or_task!(proc, user_options, type:nil, task_builder:TaskBuilder, **opts)
         heritage.record(type, proc, user_options)
 
-        # build the task.
-        #   runner_options #=>{:alteration=>#<Proc:0x00000001dcbb20@test/task_wrap_test.rb:15 (lambda)>}
-        task_options =
-          if proc.is_a?(::Hash)
+        insertion_options =
+          if proc.is_a?(::Hash) # macro.
             proc
-          else
+          else # user step.
             {
               task:      task_builder.(proc, Circuit::Right, Circuit::Left),
               node_data: { id: proc }
@@ -100,24 +98,36 @@ module Trailblazer
           # TODO: allow every step to have runner_options, etc
           end
 
-        add_task!( task_options, opts.merge( type: type, user_options: user_options ) )
+        add_task!( insertion_options, opts.merge( type: type, user_options: user_options ) )
       end
 
       # NOTE: here, we don't care if it was a step, macro or whatever else.
-      def add_task!(options, default_task_outputs:raise, user_options:raise, type:raise)
-        # default options
-        options = { outputs: default_task_outputs }.merge(options)
+      def add_task!(insertion_options, default_task_outputs:raise, user_options:raise, type:raise)
 
-        options[:node_data], id = normalize_node_data( options[:node_data], user_options, type )
+
+        node_data, id = normalize_node_data( insertion_options[:node_data], user_options, type )
 
         role_to_target = send("role_to_target_for_#{type}", user_options) #=> { :success => [ "End.success" ] }
         insert_before  = send("insert_before_for_#{type}", user_options) #=> "End.success"
 
-        wirings_options = {
-          insert_before: insert_before, connect_to: role_to_target
-        }
 
-        wirings = wirings( wirings_options.merge(options) ) # TODO: this means macro could say where to insert?
+
+
+        options, passthrough = insertion_args_for(
+          { # defaults
+            outputs:       default_task_outputs,
+            insert_before: insert_before,
+            connect_to:    role_to_target,
+          }.
+
+            merge(insertion_options). # actual user/macro-provided options
+
+            merge( # overrides
+              node_data: node_data
+            )
+        )
+
+        wirings = insertion_wirings_for( options ) # TODO: this means macro could say where to insert?
 
 
         self["__activity__"] = recompile_activity_for_wirings!(wirings, id, user_options) # options is :before,:after etc for Seq.insert!
@@ -125,10 +135,23 @@ module Trailblazer
         {
           activity:  self["__activity__"],
           options:   user_options,
-        }.merge(options)
+        }.merge(passthrough).merge(options)
       end
 
+      InsertionWiringOptions = Value.new(:task, :node_data, :insert_before, :outputs, :connect_to)
+
       ElementWiring = Struct.new(:instructions, :data)
+
+      def insertion_args_for(task:raise, node_data:raise, insert_before:raise, outputs:raise, connect_to:raise, **passthrough)
+        return {
+          task: task,
+          node_data: node_data,
+          insert_before: insert_before,
+          outputs: outputs,
+          connect_to: connect_to
+        }.freeze, passthrough
+      end
+
 
       def normalize_node_data(node_data, user_options, created_by)
         id = user_options[:id] || user_options[:name] || node_data[:id]

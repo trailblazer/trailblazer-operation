@@ -20,6 +20,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "declarative"
   spec.add_dependency "trailblazer-activity", ">= 0.1.2", "< 0.2.0"
+  spec.add_dependency "values"
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake"

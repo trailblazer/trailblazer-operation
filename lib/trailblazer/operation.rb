@@ -1,5 +1,6 @@
 require "forwardable"
 require "declarative"
+require "values"
 
 require "trailblazer/activity"
 require "trailblazer/operation/public_call"      # TODO: Remove in 3.0.
