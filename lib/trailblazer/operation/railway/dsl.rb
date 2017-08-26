@@ -82,8 +82,7 @@ module Trailblazer
 
       end
 
-      # |-- compile initial act from alterations
-      # |-- add step alterations
+      # Normalizations specific to the Operation's standard DSL, as pass/fail/step.
       def add_step_or_task!(proc, user_options, type:nil, task_builder:TaskBuilder, **opts)
         heritage.record(type, proc, user_options)
 
