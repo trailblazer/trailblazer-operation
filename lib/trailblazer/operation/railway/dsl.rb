@@ -59,25 +59,6 @@ module Trailblazer
         { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }}
       end
 
-      # insert_before: "End.success",
-      # outputs:       { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure } }, # any outputs and their polarization, generic.
-      # mappings:      { success: "End.success", failure: "End.myend" } # where do my task's outputs go?
-      # always adds task on a track edge.
-      # @return ElementWiring
-      def insertion_wirings_for(task: nil, insert_before:raise, outputs:{}, connect_to:{}, node_data:raise)
-        raise "missing node_data: { id: .. }" if node_data[:id].nil?
-
-        wirings = []
-
-        wirings << [:insert_before!, insert_before, incoming: ->(edge) { edge[:type] == :railway }, node: [ task, node_data ] ]
-
-        # FIXME: don't mark pass_fast with :railway
-        raise "bla no outputs remove me at some point " unless outputs.any?
-        wirings += Wirings.task_outputs_to(outputs, connect_to, node_data[:id], type: :railway) # connect! for task outputs
-
-        ElementWiring.new(wirings, node_data) # embraces all alterations for one "step".
-      end
-
       def element(*)
 
       end
@@ -99,8 +80,9 @@ module Trailblazer
 
           # this id computation is specific to the step/pass/fail API and not add_task!'s job.
         node_data, id = normalize_node_data( insertion_options[:node_data], user_options, type )
+        seq_options   = normalize_sequence_options(id, user_options)
 
-        add_task!( insertion_options.merge(node_data: node_data), opts.merge( id: id, type: type, user_options: user_options ) )
+        add_task!( insertion_options.merge(node_data: node_data), opts.merge( id: id, type: type, user_options: user_options.merge(seq_options) ) )
       end
 
       # NOTE: here, we don't care if it was a step, macro or whatever else.
@@ -120,12 +102,17 @@ module Trailblazer
 
         wirings = insertion_wirings_for( options ) # TODO: this means macro could say where to insert?
 
-        self["__activity__"] = recompile_activity_for_wirings!(wirings, id, user_options) # options is :before,:after etc for Seq.insert!
+        self["__activity__"] = recompile_activity_for_wirings!(wirings, user_options) # options is :before,:after etc for Seq.insert!
 
         {
           activity:  self["__activity__"],
           options:   user_options,
-        }.merge(passthrough).merge(options)
+        }.merge(passthrough).merge(options) # FIXME: i don't like we have to know about passthrough data here, this should be further up.
+      end
+
+      # params wirings ElementWiring
+      def insert(wirings, sequence_options)
+
       end
 
       ElementWiring = Struct.new(:instructions, :data)
@@ -141,6 +128,24 @@ module Trailblazer
         }.freeze, passthrough
       end
 
+      # insert_before: "End.success",
+      # outputs:       { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure } }, # any outputs and their polarization, generic.
+      # mappings:      { success: "End.success", failure: "End.myend" } # where do my task's outputs go?
+      # always adds task on a track edge.
+      # @return ElementWiring
+      def insertion_wirings_for(task: nil, insert_before:raise, outputs:{}, connect_to:{}, node_data:raise)
+        raise "missing node_data: { id: .. }" if node_data[:id].nil?
+
+        wirings = []
+
+        wirings << [:insert_before!, insert_before, incoming: ->(edge) { edge[:type] == :railway }, node: [ task, node_data ] ]
+
+        # FIXME: don't mark pass_fast with :railway
+        raise "bla no outputs remove me at some point " unless outputs.any?
+        wirings += Wirings.task_outputs_to(outputs, connect_to, node_data[:id], type: :railway) # connect! for task outputs
+
+        ElementWiring.new(wirings, node_data) # embraces all alterations for one "step".
+      end
 
       def normalize_node_data(node_data, user_options, created_by)
         id = user_options[:id] || user_options[:name] || node_data[:id]
@@ -151,21 +156,18 @@ module Trailblazer
         ), id # TODO: remove :name
       end
 
-      # Normalizes :override and :name options.
-      def normalize_sequence_options(id, override:nil, **options)
-        # options = macro_options.merge(user_options)
-        options = options.merge( replace: id ) if override # :override
-        options
+      # Normalizes :override.
+      # DSL::step/pass specific.
+      def normalize_sequence_options(id, override:nil, **user_options)
+        override ? { replace: id } : {}
       end
 
       # @private
-      def recompile_activity_for_wirings!(wirings, id, user_options)
-        seq_options = normalize_sequence_options(id, user_options)
-
+      def recompile_activity_for_wirings!(wirings, user_options)
         sequence = self["__sequence__"]
 
         # Insert {Step} into {Sequence} while respecting :append, :replace, before, etc.
-        sequence.insert!(wirings, seq_options) # The sequence is now an up-to-date representation of our operation's steps.
+        sequence.insert!(wirings, user_options) # The sequence is now an up-to-date representation of our operation's steps.
 
         # This op's graph are the initial wirings (different ends, etc) + the steps we added.
         activity = recompile_activity( self["__wirings__"] + sequence.to_a )
