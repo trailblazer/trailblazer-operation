@@ -102,7 +102,9 @@ module Trailblazer
 
         wirings = insertion_wirings_for( options ) # TODO: this means macro could say where to insert?
 
-        self["__activity__"] = recompile_activity_for_wirings!(wirings, user_options) # options is :before,:after etc for Seq.insert!
+        insert!( wirings, user_options )
+
+         # options is :before,:after etc for Seq.insert!
 
         {
           activity:  self["__activity__"],
@@ -111,8 +113,10 @@ module Trailblazer
       end
 
       # params wirings ElementWiring
-      def insert(wirings, sequence_options)
-
+      # params sequence_options Hash containing where to insert (:before, :replace, etc.)
+      # semi-public
+      def insert!(wirings, sequence_options={})
+        self["__activity__"] = recompile_activity_for_wirings!(wirings, sequence_options)
       end
 
       ElementWiring = Struct.new(:instructions, :data)
