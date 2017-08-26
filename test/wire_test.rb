@@ -46,8 +46,22 @@ class WireTest < Minitest::Spec
   it { Create.({}, "D_return" => Circuit::Left).inspect("a", "b", "c", "D", "f").must_equal %{<Result:false [1, 2, nil, [1, 2, nil], 4] >} } # todo: HOW TO CHECK End instance?
 
   class B < Trailblazer::Operation
-    insert! [ [:attach!, target: [MyEnd.new(:myend), {id: _id="End.myend"}], edge: [Circuit::Left, {}], source: "Start.default"] ], id: _id
+    extend DSL::Attach
+    extend DSL::Element
+
+    step ->(options, **) { options["a"] = 1 }, id: "a"
+    step ->(options, **) { options["b"] = 2 }, id: "b"
+
+    attach  MyEnd.new(:myend), id: "End.myend"
+    element D,
+      insert_before: "End.success",
+      outputs:       { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }, ExceptionFromD => { role: :exception } }, # any outputs and their polarization, generic.
+      connect_to:    { success: "End.success", failure: "End.failure", exception: "End.myend" },
+      id:            "d"
+
+    fail ->(options, **) { options["f"] = 4 }, id: "f"
+    step ->(options, **) { options["c"] = 3 }, id: "c"
   end
 
-  puts Trailblazer::Operation::Inspect.(Create)#.gsub(/0x.+?step_test.rb/, "").must_equal %{}
+  puts Trailblazer::Operation::Inspect.(B)#.gsub(/0x.+?step_test.rb/, "").must_equal %{}
 end

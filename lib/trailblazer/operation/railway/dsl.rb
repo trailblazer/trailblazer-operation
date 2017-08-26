@@ -86,16 +86,16 @@ module Trailblazer
       end
 
       # NOTE: here, we don't care if it was a step, macro or whatever else.
-      def add_task!(insertion_options, default_task_outputs:raise, user_options:raise, type:raise, id:raise)
-        role_to_target = send("role_to_target_for_#{type}", user_options) #=> { :success => [ "End.success" ] }
-        insert_before  = send("insert_before_for_#{type}", user_options) #=> "End.success"
+      def add_task!(insertion_options, default_task_outputs:raise, user_options:raise, type:raise, id:raise, connect_to:send("role_to_target_for_#{type}", user_options), insert_before:send("insert_before_for_#{type}", user_options))
+        # role_to_target = send("role_to_target_for_#{type}", user_options) #=> { :success => [ "End.success" ] }
+        # insert_before  = send("insert_before_for_#{type}", user_options) #=> "End.success"
 
 
         options, passthrough = insertion_args_for(
           { # defaults
             outputs:       default_task_outputs,
             insert_before: insert_before,
-            connect_to:    role_to_target,
+            connect_to:    connect_to,
           }.
             merge(insertion_options) # actual user/macro-provided options
         )

@@ -8,7 +8,11 @@ require "trailblazer/operation/deprecated_macro" # TODO: remove in 2.2.
 require "trailblazer/operation/result"
 require "trailblazer/operation/railway"
 require "trailblazer/operation/railway/sequence"
+
 require "trailblazer/operation/railway/dsl"
+require "trailblazer/operation/railway/attach"
+require "trailblazer/operation/railway/element"
+
 require "trailblazer/operation/railway/task_builder"
 require "trailblazer/operation/railway/fast_track"
 require "trailblazer/operation/task_wrap"
