@@ -12,9 +12,9 @@ module Trailblazer
     #   task/acti has outputs, role_to_target says which task output goes to what next task in the composing acti.
 
     module DSL
-      def pass(proc, options={}); add_step_or_task!(proc, options, type: :pass, default_task_outputs: default_task_outputs(options) ); end
-      def fail(proc, options={}); add_step_or_task!(proc, options, type: :fail, default_task_outputs: default_task_outputs(options) ); end
-      def step(proc, options={}); add_step_or_task!(proc, options, type: :step, default_task_outputs: default_task_outputs(options) ); end
+      def pass(proc, options={}); add_step_or_task_from_railway!(proc, options, type: :pass, default_task_outputs: default_task_outputs(options) ); end
+      def fail(proc, options={}); add_step_or_task_from_railway!(proc, options, type: :fail, default_task_outputs: default_task_outputs(options) ); end
+      def step(proc, options={}); add_step_or_task_from_railway!(proc, options, type: :step, default_task_outputs: default_task_outputs(options) ); end
       alias_method :success, :pass
       alias_method :failure, :fail
 
@@ -59,12 +59,13 @@ module Trailblazer
         { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }}
       end
 
-      def element(*)
-
+      # Normalizations specific to the Operation's standard DSL, as pass/fail/step.
+      def add_step_or_task_from_railway!(proc, user_options, type:raise, task_builder:TaskBuilder, connect_to:send("role_to_target_for_#{type}", user_options), insert_before:send("insert_before_for_#{type}", user_options), **opts)
+        add_step_or_task!( proc, user_options, opts.merge(connect_to: connect_to, insert_before: insert_before, type:type, task_builder:task_builder) )
       end
 
-      # Normalizations specific to the Operation's standard DSL, as pass/fail/step.
-      def add_step_or_task!(proc, user_options, type:nil, task_builder:TaskBuilder, **opts)
+      # DECOUPLED FROM any "local" config, except for __activity__, etc.
+      def add_step_or_task!(proc, user_options, type:nil, task_builder:TaskBuilder, connect_to:raise, insert_before:raise, **opts)
         heritage.record(type, proc, user_options)
 
         insertion_options =
@@ -82,15 +83,11 @@ module Trailblazer
         node_data, id = normalize_node_data( insertion_options[:node_data], user_options, type )
         seq_options   = normalize_sequence_options(id, user_options)
 
-        add_task!( insertion_options.merge(node_data: node_data), opts.merge( id: id, type: type, user_options: user_options.merge(seq_options) ) )
+        add_task!( insertion_options.merge(node_data: node_data), opts.merge( id: id, type: type, user_options: user_options.merge(seq_options) ).merge(connect_to: connect_to, insert_before: insert_before) )
       end
 
       # NOTE: here, we don't care if it was a step, macro or whatever else.
-      def add_task!(insertion_options, default_task_outputs:raise, user_options:raise, type:raise, id:raise, connect_to:send("role_to_target_for_#{type}", user_options), insert_before:send("insert_before_for_#{type}", user_options))
-        # role_to_target = send("role_to_target_for_#{type}", user_options) #=> { :success => [ "End.success" ] }
-        # insert_before  = send("insert_before_for_#{type}", user_options) #=> "End.success"
-
-
+      def add_task!(insertion_options, default_task_outputs:raise, user_options:raise, type:raise, id:raise, connect_to:raise, insert_before:raise)
         options, passthrough = insertion_args_for(
           { # defaults
             outputs:       default_task_outputs,
