@@ -12,9 +12,9 @@ module Trailblazer
     #   task/acti has outputs, role_to_target says which task output goes to what next task in the composing acti.
 
     module DSL
-      def pass(proc, options={}); add_step_or_task_from_railway!(proc, options, type: :pass, default_task_outputs: default_task_outputs(options) ); end
-      def fail(proc, options={}); add_step_or_task_from_railway!(proc, options, type: :fail, default_task_outputs: default_task_outputs(options) ); end
-      def step(proc, options={}); add_step_or_task_from_railway!(proc, options, type: :step, default_task_outputs: default_task_outputs(options) ); end
+      def pass(proc, options={}); add_step_or_task_from_railway!(proc, options, type: :pass ); end
+      def fail(proc, options={}); add_step_or_task_from_railway!(proc, options, type: :fail ); end
+      def step(proc, options={}); add_step_or_task_from_railway!(proc, options, type: :step ); end
       alias_method :success, :pass
       alias_method :failure, :fail
 
@@ -60,19 +60,20 @@ module Trailblazer
       end
 
       # Normalizations specific to the Operation's standard DSL, as pass/fail/step.
-      def add_step_or_task_from_railway!(proc, user_options, type:raise, task_builder:TaskBuilder, **opts)
+      def add_step_or_task_from_railway!(proc, user_options, type:raise, task_builder:TaskBuilder, **user_alteration_options)
         defaults = {
           connect_to:     send("role_to_target_for_#{type}", user_options),
-          insert_before:  send("insert_before_for_#{type}", user_options)
+          insert_before:  send("insert_before_for_#{type}", user_options),
+          default_task_outputs: default_task_outputs(user_options),
         }
 
-        add_step_or_task!( proc, user_options, opts.merge(defaults).merge(type:type, task_builder:task_builder).merge(user_options) )
+        add_step_or_task!( proc, user_options, user_alteration_options.merge(defaults).merge(type:type, task_builder:task_builder).merge(user_options) )
       end
 
       # { ..., runner_options: {}, } = add_step_or_task!
 
       # DECOUPLED FROM any "local" config, except for __activity__, etc.
-      def add_step_or_task!(proc, user_options, type:nil, task_builder:TaskBuilder, **user_alteration_options)
+      def add_step_or_task!(proc, user_options, type:nil, task_builder:raise, **user_alteration_options)
         heritage.record(type, proc, user_options) # FIXME.
 
         # these are the macro's (or steps) configurations, like :outputs or :id.
