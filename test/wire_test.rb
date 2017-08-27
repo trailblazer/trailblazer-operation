@@ -50,6 +50,15 @@ class WireTest < Minitest::Spec
     extend Railway::Attach::DSL
     extend Railway::Insert::DSL
 
+    # here, D has a step interface!
+    D = ->(options, a:, b:, **) {
+      options["D"] = [ a, b, options["c"] ]
+
+      options["D_return"]
+    }
+
+    ExceptionFromD = Class.new(Circuit::Signal) # for steps, return value has to be subclass of Signal to be passed through as a signal and not a boolean.
+
     step ->(options, **) { options["a"] = 1 }, id: "a"
     step ->(options, **) { options["b"] = 2 }, id: "b"
 
@@ -64,5 +73,46 @@ class WireTest < Minitest::Spec
     step ->(options, **) { options["c"] = 3 }, id: "c"
   end
 
-  puts Trailblazer::Operation::Inspect.(B)#.gsub(/0x.+?step_test.rb/, "").must_equal %{}
+  it { Trailblazer::Operation::Inspect.(B).gsub(/0x.+?wire_test.rb/, "").must_equal %{[>a,>b,End.myend,d,<<f,>c]} }
+
+  # normal flow as D sits on the Right track.
+  it { B.({}, "D_return" => Circuit::Right).inspect("a", "b", "c", "D", "f").must_equal %{<Result:true [1, 2, 3, [1, 2, nil], nil] >} }
+  # ends on MyEnd, without hitting fail.
+  it { B.({}, "D_return" => B::ExceptionFromD).inspect("a", "b", "c", "D", "f").must_equal %{<Result:false [1, 2, nil, [1, 2, nil], nil] >} } # todo: HOW TO CHECK End instance?
+  it { B.({}, "D_return" => Circuit::Left).inspect("a", "b", "c", "D", "f").must_equal %{<Result:false [1, 2, nil, [1, 2, nil], 4] >} } # todo: HOW TO CHECK End instance?
+
+
+  class C < Trailblazer::Operation
+    extend Railway::Attach::DSL
+    extend Railway::Insert::DSL
+
+    # here, D has a step interface!
+    D = ->(options, a:, b:, **) {
+      options["D"] = [ a, b, options["c"] ]
+
+      options["D_return"]
+    }
+
+    ExceptionFromD = Class.new(Circuit::Signal) # for steps, return value has to be subclass of Signal to be passed through as a signal and not a boolean.
+
+    step ->(options, **) { options["a"] = 1 }, id: "a"
+    step ->(options, **) { options["b"] = 2 }, id: "b"
+
+    attach  MyEnd.new(:myend), id: "End.myend"
+    step D,
+      outputs:       { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }, ExceptionFromD => { role: :exception } }, # any outputs and their polarization, generic.
+      connect_to:    { success: "End.success", failure: "End.failure", exception: "End.myend" },
+      id:            "d"
+
+    fail ->(options, **) { options["f"] = 4 }, id: "f"
+    step ->(options, **) { options["c"] = 3 }, id: "c"
+  end
+
+  it { Trailblazer::Operation::Inspect.(C).gsub(/0x.+?wire_test.rb/, "").must_equal %{[>a,>b,End.myend,>d,<<f,>c]} }
+
+  # normal flow as D sits on the Right track.
+  it { C.({}, "D_return" => Circuit::Right).inspect("a", "b", "c", "D", "f").must_equal %{<Result:true [1, 2, 3, [1, 2, nil], nil] >} }
+  # ends on MyEnd, without hitting fail.
+  it { C.({}, "D_return" => C::ExceptionFromD).inspect("a", "b", "c", "D", "f").must_equal %{<Result:false [1, 2, nil, [1, 2, nil], nil] >} } # todo: HOW TO CHECK End instance?
+  it { C.({}, "D_return" => Circuit::Left).inspect("a", "b", "c", "D", "f").must_equal %{<Result:false [1, 2, nil, [1, 2, nil], 4] >} } # todo: HOW TO CHECK End instance?
 end
