@@ -48,13 +48,13 @@ class WireTest < Minitest::Spec
 
   class B < Trailblazer::Operation
     extend Railway::Attach::DSL
-    extend DSL::Element
+    extend Railway::Insert::DSL
 
     step ->(options, **) { options["a"] = 1 }, id: "a"
     step ->(options, **) { options["b"] = 2 }, id: "b"
 
     attach  MyEnd.new(:myend), id: "End.myend"
-    element D,
+    insert D,
       insert_before: "End.success",
       outputs:       { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }, ExceptionFromD => { role: :exception } }, # any outputs and their polarization, generic.
       connect_to:    { success: "End.success", failure: "End.failure", exception: "End.myend" },

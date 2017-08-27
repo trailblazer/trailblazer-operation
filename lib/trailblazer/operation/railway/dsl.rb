@@ -60,49 +60,41 @@ module Trailblazer
       end
 
       # Normalizations specific to the Operation's standard DSL, as pass/fail/step.
-      def add_step_or_task_from_railway!(proc, user_options,
-        type:                 raise,
-        task_builder:         TaskBuilder,
-        connect_to:           send("role_to_target_for_#{type}", user_options),
-        insert_before:        send("insert_before_for_#{type}", user_options),
-        default_task_outputs: default_task_outputs(user_options) )
+      # It provides sensible defaults such as :default_task_outputs or :insert_before.
+      def add_step_or_task_from_railway!(proc, user_options, type:raise)
+        defaults = {
+          type:                 type,
+          task_builder:         TaskBuilder,
+          connect_to:           send("role_to_target_for_#{type}", user_options),
+          insert_before:        send("insert_before_for_#{type}", user_options),
+          default_task_outputs: default_task_outputs(user_options),
+          alteration:           Insert,
+        }
 
-        add_step_or_task!( proc, user_options,
-          {
-            type:                 type,
-            alteration:           Insert,
-            task_builder:         task_builder,
-            connect_to:           connect_to,
-            insert_before:        insert_before,
-            default_task_outputs: default_task_outputs
-          }.merge(user_options)
+        _element( proc, user_options, defaults )
+      end
+
+      # Merges user_options over the defaults, allowing to inject different configuration and graph behavior via the step/pass/insert DSL.
+      def _element(proc, user_options, **defaults)
+        add_step_or_task!(
+          proc,
+          user_options,
+          defaults.merge( user_options ) # merge DEFAULT options with USER options.
         )
       end
 
       # { ..., runner_options: {}, } = add_step_or_task!
 
       # DECOUPLED FROM any "local" config, except for __activity__, etc.
+      # @param user_options Hash this is only used for non-alteration options, such as :before.
       def add_step_or_task!(proc, user_options, alteration:raise, type:nil, task_builder:raise, **user_alteration_options)
         heritage.record(type, proc, user_options) # FIXME.
 
-        # these are the macro's (or steps) configurations, like :outputs or :id.
-        macro_alteration_options =
-          if proc.is_a?(::Hash) # macro.
-            proc
-          else # user step.
-            {
-              task:      task_builder.(proc, Circuit::Right, Circuit::Left),
-              node_data: { id: proc }
-            }
-          # TODO: allow every step to have runner_options, etc
-          end
-
-          # this id computation is specific to the step/pass/fail API and not add_task!'s job.
-        node_data, id = normalize_node_data( macro_alteration_options[:node_data], user_options, type )
-        seq_options   = normalize_sequence_options(id, user_options)
+        id, macro_alteration_options, seq_options = Normalize.(proc, user_options, task_builder: task_builder, type: type)
 
         # alteration == Insert, Attach, Connect, etc.
-        wirings = alteration.(id, macro_alteration_options.merge( user_alteration_options ).merge( node_data: node_data ) ) # TODO: DEEP MERGE node_data in case there's data from user
+        # merge the MACRO options with the USER options
+        wirings = alteration.(id, macro_alteration_options.merge( user_alteration_options ) )
 
         add_element!( wirings, seq_options.merge(id: id) )
 
@@ -129,25 +121,56 @@ module Trailblazer
         activity = recompile_activity( self["__wirings__"] + sequence.to_a )
       end
 
-      def normalize_node_data(node_data, user_options, created_by)
-        id = user_options[:id] || user_options[:name] || node_data[:id]
-
-        return node_data.merge(
-          id:         id,
-          created_by: created_by # this is where we can add meta-data like "is a subprocess", "boundary events", etc.
-        ), id # TODO: remove :name
-      end
-
-      # Normalizes :override.
-      # DSL::step/pass specific.
-      def normalize_sequence_options(id, override:nil, before:nil, after:nil, replace:nil, delete:nil, **user_options)
-        override ? { replace: id }.freeze : { before: before, after: after, replace: replace, delete: delete }.freeze
-      end
-
       # This is called per "step"/task insertion.
       # @private
       def recompile_activity(wirings)
         Trailblazer::Activity.from_wirings(wirings)
+      end
+
+      # Receives the user's step `proc` and the user options. Computes id, seq options, the actual task to add to the graph, etc.
+      # This function does not care about any alteration-specific user options, such as :insert_before.
+      class Normalize
+        def self.call(proc, user_options, task_builder:raise, type:raise)
+          # these are the macro's (or steps) configurations, like :outputs or :id.
+          macro_alteration_options = normalize_macro_options(proc, task_builder)
+
+          # this id computation is specific to the step/pass/fail API and not add_task!'s job.
+          node_data, id = normalize_node_data( macro_alteration_options[:node_data], user_options, type )
+          seq_options   = normalize_sequence_options(id, user_options)
+
+          macro_alteration_options = macro_alteration_options.merge( node_data: node_data ) # TODO: DEEP MERGE node_data in case there's data from user
+
+          return id, macro_alteration_options, seq_options
+        end
+
+        private
+
+        def self.normalize_macro_options(proc, task_builder)
+          if proc.is_a?(::Hash) # macro.
+            proc
+          else # user step.
+            {
+              task:      task_builder.(proc, Circuit::Right, Circuit::Left),
+              node_data: { id: proc }
+            }
+          # TODO: allow every step to have runner_options, etc
+          end
+        end
+
+        def self.normalize_node_data(node_data, user_options, created_by)
+          id = user_options[:id] || user_options[:name] || node_data[:id]
+
+          return node_data.merge(
+            id:         id,
+            created_by: created_by # this is where we can add meta-data like "is a subprocess", "boundary events", etc.
+          ), id # TODO: remove :name
+        end
+
+        # Normalizes :override.
+        # DSL::step/pass specific.
+        def self.normalize_sequence_options(id, override:nil, before:nil, after:nil, replace:nil, delete:nil, **user_options)
+          override ? { replace: id }.freeze : { before: before, after: after, replace: replace, delete: delete }.freeze
+        end
       end
 
       private

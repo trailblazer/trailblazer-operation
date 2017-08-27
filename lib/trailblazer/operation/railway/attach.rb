@@ -6,7 +6,7 @@ module Trailblazer
           # we only want allow a task here?
           macro = { task: task, node_data: { id: task } } # id should get overridden from user_options.
 
-          add_step_or_task!( macro, user_options, alteration: Attach, type: :attach, task_builder: TaskBuilder )
+          _element( macro, user_options, { alteration: Attach, type: :attach, task_builder: TaskBuilder } )
         end
       end
 

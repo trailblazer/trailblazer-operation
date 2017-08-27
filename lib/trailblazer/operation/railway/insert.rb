@@ -4,10 +4,16 @@ module Trailblazer
     #   task/acti has outputs, role_to_target says which task output goes to what next task in the composing acti.
 
     module Insert
-      def self.call(id, default_task_outputs:raise, **insertion_options)
+      module DSL
+        def insert(step, **user_options)
+          _element( step, user_options, { alteration: Insert, type: :insert, task_builder: TaskBuilder } )
+        end
+      end
+
+      def self.call(id, default_task_outputs:{}, **insertion_options)
         insertion_options =
           { # defaults
-            outputs: default_task_outputs,
+            outputs: default_task_outputs, # TODO: should this be done outside?
           }.
           merge(insertion_options)
 
@@ -42,7 +48,7 @@ module Trailblazer
 
         # FIXME: don't mark pass_fast with :railway
         raise "bla no outputs remove me at some point " unless outputs.any?
-        wirings += DSL::Wirings.task_outputs_to(outputs, connect_to, node_data[:id], type: :railway) # connect! for task outputs
+        wirings += Operation::Railway::DSL::Wirings.task_outputs_to(outputs, connect_to, node_data[:id], type: :railway) # connect! for task outputs
 
         wirings # embraces all alterations for one "step".
       end
