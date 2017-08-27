@@ -66,7 +66,7 @@ module Trailblazer
 
       # DECOUPLED FROM any "local" config, except for __activity__, etc.
       def add_step_or_task!(proc, user_options, type:nil, task_builder:TaskBuilder, connect_to:raise, insert_before:raise, **opts)
-        heritage.record(type, proc, user_options)
+        heritage.record(type, proc, user_options) # FIXME.
 
         insertion_options =
           if proc.is_a?(::Hash) # macro.
@@ -83,23 +83,25 @@ module Trailblazer
         node_data, id = normalize_node_data( insertion_options[:node_data], user_options, type )
         seq_options   = normalize_sequence_options(id, user_options)
 
-        add_task!( insertion_options.merge(node_data: node_data), opts.merge( id: id, type: type, user_options: user_options.merge(seq_options) ).merge(connect_to: connect_to, insert_before: insert_before) )
+        add_task!( insertion_options.merge(node_data: node_data, connect_to: connect_to, insert_before: insert_before), opts.merge( id: id, type: type, user_options: user_options.merge(seq_options) ) )
       end
 
       # NOTE: here, we don't care if it was a step, macro or whatever else.
-      def add_task!(insertion_options, default_task_outputs:raise, user_options:raise, type:raise, id:raise, connect_to:raise, insert_before:raise)
+      def add_task!(insertion_options, default_task_outputs:raise, user_options:raise, type:raise, id:raise)
         options, passthrough = insertion_args_for(
           { # defaults
             outputs:       default_task_outputs,
-            insert_before: insert_before,
-            connect_to:    connect_to,
           }.
             merge(insertion_options) # actual user/macro-provided options
         )
 
         wirings = insertion_wirings_for( options ) # TODO: this means macro could say where to insert?
 
-        insert!( wirings, user_options.merge(id: id) )
+
+
+
+        # this is generic, again
+        add_element!( wirings, user_options.merge(id: id) )
 
         {
           activity:  self["__activity__"],
@@ -107,10 +109,12 @@ module Trailblazer
         }.merge(passthrough).merge(options) # FIXME: i don't like we have to know about passthrough data here, this should be further up.
       end
 
-      # params wirings ElementWiring
-      # params sequence_options Hash containing where to insert (:before, :replace, etc.)
+
+      # This method is generic for any kind of insertion/attach/connect.
+      # params wirings Array
+      # params sequence_options Hash containing where to insert in the Sequence (:before, :replace, etc.)
       # semi-public
-      def insert!(wirings, id:raise, **sequence_options)
+      def add_element!(wirings, id:raise, **sequence_options)
         self["__activity__"] = recompile_activity_for_wirings!(id, wirings, sequence_options)
       end
 

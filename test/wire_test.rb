@@ -21,9 +21,9 @@ class WireTest < Minitest::Spec
 
     # step provides insert_before, outputs, node_data
 
-    insert! [ [:attach!, target: [MyEnd.new(:myend), {id: _id="End.myend"}], edge: [Circuit::Left, {}], source: "Start.default"] ], id: _id
+    add_element! [ [:attach!, target: [MyEnd.new(:myend), {id: _id="End.myend"}], edge: [Circuit::Left, {}], source: "Start.default"] ], id: _id
 
-    insert! insertion_wirings_for( task: D,
+    add_element! insertion_wirings_for( task: D,
           insert_before: "End.success",
           outputs:       { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }, ExceptionFromD => { role: :exception } }, # any outputs and their polarization, generic.
           connect_to:      { success: "End.success", failure: "End.failure", exception: "End.myend" }, # where do my task's outputs go?,

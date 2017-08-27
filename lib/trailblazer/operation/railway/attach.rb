@@ -13,8 +13,18 @@ module Trailblazer
 
     module DSL
       module Attach
-        def attach(task_or_step, options={})
+        def attach(task, options={})
+          # we only want allow a task here?
 
+          # default_options = {
+          #   source:
+          #   edge:
+          #   target: [ task, id: options[:id] ]
+          # }
+
+          # # or use insert! here?
+          #                     # simulate macro here
+          # add_step_or_task!( { task: task }, user_options, :attach )
         end
       end
     end
