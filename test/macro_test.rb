@@ -29,8 +29,9 @@ class MacroTest < Minitest::Spec
 
   #- user overrides :outputs
   class Update < Trailblazer::Operation
+    macro = { task: MacroB, node_data: { id: :MacroB }, outputs: { "Allgood" => { role: :success }, "Fail!" => { role: :failure }, "Winning" => { role: :pass_fast } } }
+
     step :a
-      macro = { task: MacroB, node_data: { id: :MacroB }, outputs: { "Allgood" => { role: :success }, "Fail!" => { role: :failure }, "Winning" => { role: :pass_fast } } }
     step macro, outputs: { "Allgood" => { role: :failure }, "Fail!" => { role: :success }, "Winning" => { role: :fail_fast } }
     step :c
 
