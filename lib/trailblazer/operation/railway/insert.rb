@@ -4,11 +4,12 @@ module Trailblazer
     #   task/acti has outputs, role_to_target says which task output goes to what next task in the composing acti.
 
     module Insert
-      def self.call(id, **insertion_options)
+      def self.call(id, default_task_outputs:raise, **insertion_options)
         insertion_options =
           { # defaults
-            outputs:       insertion_options[:default_task_outputs],
-          }.merge(insertion_options)
+            outputs: default_task_outputs,
+          }.
+          merge(insertion_options)
 
         options, _ = insertion_args_for( insertion_options )
 
