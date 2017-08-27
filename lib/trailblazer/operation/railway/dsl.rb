@@ -61,7 +61,7 @@ module Trailblazer
 
       # Normalizations specific to the Operation's standard DSL, as pass/fail/step.
       def add_step_or_task_from_railway!(proc, user_options, type:raise, task_builder:TaskBuilder, connect_to:send("role_to_target_for_#{type}", user_options), insert_before:send("insert_before_for_#{type}", user_options), **opts)
-        add_step_or_task!( proc, user_options, opts.merge(connect_to: connect_to, insert_before: insert_before, type:type, task_builder:task_builder) )
+        add_step_or_task!( proc, user_options, opts.merge(connect_to: connect_to, insert_before: insert_before, type:type, task_builder:task_builder).merge(user_options) )
       end
 
       # { ..., runner_options: {}, } = add_step_or_task!
