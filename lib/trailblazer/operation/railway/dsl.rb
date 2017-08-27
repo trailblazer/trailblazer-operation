@@ -67,10 +67,11 @@ module Trailblazer
       # { ..., runner_options: {}, } = add_step_or_task!
 
       # DECOUPLED FROM any "local" config, except for __activity__, etc.
-      def add_step_or_task!(proc, user_options, type:nil, task_builder:TaskBuilder, **alteration_specific_options)
+      def add_step_or_task!(proc, user_options, type:nil, task_builder:TaskBuilder, **alteration_user_options)
         heritage.record(type, proc, user_options) # FIXME.
 
-        insertion_options =
+        # these are the macro's (or steps) configurations, like :outputs or :id.
+        alteration_options =
           if proc.is_a?(::Hash) # macro.
             proc
           else # user step.
@@ -82,34 +83,27 @@ module Trailblazer
           end
 
           # this id computation is specific to the step/pass/fail API and not add_task!'s job.
-        node_data, id = normalize_node_data( insertion_options[:node_data], user_options, type )
+        node_data, id = normalize_node_data( alteration_options[:node_data], user_options, type )
         seq_options   = normalize_sequence_options(id, user_options)
 
-        insert!(insertion_options, {user_options:user_options, type: type, id: id, node_data: node_data, sequence_options: seq_options}.merge(alteration_specific_options) )
+        insert!(alteration_options.merge(alteration_user_options), {user_options:user_options, type: type, id: id, node_data: node_data, sequence_options: seq_options} )
 
         # RETURN WHAT WE COMPUTED HERE. not sure about the API, yet.
-        insertion_options
+        alteration_options
       end
 
-      def insert!(insertion_options, sequence_options:raise, default_task_outputs:raise, user_options:raise, type:raise, id:raise, node_data: raise("bla"), connect_to:raise, insert_before:raise, **opts)
+      def insert!(insertion_options, sequence_options:raise, user_options:raise, type:raise, id:raise, node_data: raise, **opts)
         insertion_options =
           { # defaults
-            outputs:       default_task_outputs,
+            outputs:       insertion_options[:default_task_outputs],
           }.merge(insertion_options)
 
         insertion_options =
           insertion_options.merge(
             node_data:      node_data,
-            connect_to:     connect_to,
-            insert_before:  insert_before # actual user/macro-provided options
           )
 
-        opts.merge( id: id, type: type, user_options: user_options )
-
-
-        options, passthrough = insertion_args_for(
-          insertion_options
-        )
+        options, _ = insertion_args_for( insertion_options )
 
         wirings = insertion_wirings_for( options ) # TODO: this means macro could say where to insert?
 
@@ -145,7 +139,7 @@ module Trailblazer
           insert_before: insert_before,
           outputs:       outputs,
           connect_to:    connect_to
-        }.freeze, passthrough
+        }.freeze
       end
 
       # insert_before: "End.success",
