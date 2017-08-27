@@ -3,6 +3,7 @@ require "test_helper"
 class WireTest < Minitest::Spec
   Circuit = Trailblazer::Circuit
   DSL = Trailblazer::Operation::Railway::DSL
+  Insert = Trailblazer::Operation::Railway::Insert
 
   MyEnd = Class.new(Circuit::End)
   ExceptionFromD = Class.new
@@ -23,7 +24,7 @@ class WireTest < Minitest::Spec
 
     add_element! [ [:attach!, target: [MyEnd.new(:myend), {id: _id="End.myend"}], edge: [Circuit::Left, {}], source: "Start.default"] ], id: _id
 
-    add_element! insertion_wirings_for( task: D,
+    add_element! Insert.insertion_wirings_for( task: D,
           insert_before: "End.success",
           outputs:       { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }, ExceptionFromD => { role: :exception } }, # any outputs and their polarization, generic.
           connect_to:      { success: "End.success", failure: "End.failure", exception: "End.myend" }, # where do my task's outputs go?,
@@ -37,7 +38,7 @@ class WireTest < Minitest::Spec
   end
 
   # myend ==> d
-  it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?wire_test.rb/, "").must_equal %{[>#<Proc::19 (lambda)>,>b,End.myend,d,<<f,>c]} }
+  it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?wire_test.rb/, "").must_equal %{[>#<Proc::20 (lambda)>,>b,End.myend,d,<<f,>c]} }
 
   # normal flow as D sits on the Right track.
   it { Create.({}, "D_return" => Circuit::Right).inspect("a", "b", "c", "D", "f").must_equal %{<Result:true [1, 2, 3, [1, 2, nil], nil] >} }

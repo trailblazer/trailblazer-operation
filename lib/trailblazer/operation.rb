@@ -10,6 +10,7 @@ require "trailblazer/operation/railway"
 require "trailblazer/operation/railway/sequence"
 
 require "trailblazer/operation/railway/dsl"
+require "trailblazer/operation/railway/insert"
 require "trailblazer/operation/railway/attach"
 require "trailblazer/operation/railway/element"
 
