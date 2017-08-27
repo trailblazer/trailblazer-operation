@@ -86,22 +86,17 @@ module Trailblazer
         node_data, id = normalize_node_data( alteration_options[:node_data], user_options, type )
         seq_options   = normalize_sequence_options(id, user_options)
 
-        insert!(alteration_options.merge(alteration_user_options), {user_options:user_options, type: type, id: id, node_data: node_data, sequence_options: seq_options} )
+        insert!(id, seq_options, alteration_options.merge(alteration_user_options).merge(node_data: node_data) )
 
         # RETURN WHAT WE COMPUTED HERE. not sure about the API, yet.
         alteration_options
       end
 
-      def insert!(insertion_options, sequence_options:raise, user_options:raise, type:raise, id:raise, node_data: raise, **opts)
+      def insert!(id, sequence_options, **insertion_options)
         insertion_options =
           { # defaults
             outputs:       insertion_options[:default_task_outputs],
           }.merge(insertion_options)
-
-        insertion_options =
-          insertion_options.merge(
-            node_data:      node_data,
-          )
 
         options, _ = insertion_args_for( insertion_options )
 
