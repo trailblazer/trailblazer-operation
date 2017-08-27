@@ -64,8 +64,10 @@ module Trailblazer
         add_step_or_task!( proc, user_options, opts.merge(connect_to: connect_to, insert_before: insert_before, type:type, task_builder:task_builder) )
       end
 
+      # { ..., runner_options: {}, } = add_step_or_task!
+
       # DECOUPLED FROM any "local" config, except for __activity__, etc.
-      def add_step_or_task!(proc, user_options, type:nil, task_builder:TaskBuilder, connect_to:raise, insert_before:raise, **opts)
+      def add_step_or_task!(proc, user_options, type:nil, task_builder:TaskBuilder, **alteration_specific_options)
         heritage.record(type, proc, user_options) # FIXME.
 
         insertion_options =
@@ -83,30 +85,36 @@ module Trailblazer
         node_data, id = normalize_node_data( insertion_options[:node_data], user_options, type )
         seq_options   = normalize_sequence_options(id, user_options)
 
-        add_task!( insertion_options.merge(node_data: node_data, connect_to: connect_to, insert_before: insert_before), opts.merge( id: id, type: type, user_options: user_options.merge(seq_options) ) )
+        insert!(insertion_options, {user_options:user_options, type: type, id: id, node_data: node_data, sequence_options: seq_options}.merge(alteration_specific_options) )
+
+        # RETURN WHAT WE COMPUTED HERE. not sure about the API, yet.
+        insertion_options
       end
 
-      # NOTE: here, we don't care if it was a step, macro or whatever else.
-      def add_task!(insertion_options, default_task_outputs:raise, user_options:raise, type:raise, id:raise)
-        options, passthrough = insertion_args_for(
+      def insert!(insertion_options, sequence_options:raise, default_task_outputs:raise, user_options:raise, type:raise, id:raise, node_data: raise("bla"), connect_to:raise, insert_before:raise, **opts)
+        insertion_options =
           { # defaults
             outputs:       default_task_outputs,
-          }.
-            merge(insertion_options) # actual user/macro-provided options
+          }.merge(insertion_options)
+
+        insertion_options =
+          insertion_options.merge(
+            node_data:      node_data,
+            connect_to:     connect_to,
+            insert_before:  insert_before # actual user/macro-provided options
+          )
+
+        opts.merge( id: id, type: type, user_options: user_options )
+
+
+        options, passthrough = insertion_args_for(
+          insertion_options
         )
 
         wirings = insertion_wirings_for( options ) # TODO: this means macro could say where to insert?
 
 
-
-
-        # this is generic, again
-        add_element!( wirings, user_options.merge(id: id) )
-
-        {
-          activity:  self["__activity__"],
-          options:   user_options,
-        }.merge(passthrough).merge(options) # FIXME: i don't like we have to know about passthrough data here, this should be further up.
+        add_element!( wirings, sequence_options.merge(id: id) )
       end
 
 
@@ -170,8 +178,8 @@ module Trailblazer
 
       # Normalizes :override.
       # DSL::step/pass specific.
-      def normalize_sequence_options(id, override:nil, **user_options)
-        override ? { replace: id } : {}
+      def normalize_sequence_options(id, override:nil, before:nil, after:nil, replace:nil, delete:nil, **user_options)
+        override ? { replace: id }.freeze : { before: before, after: after, replace: replace, delete: delete }.freeze
       end
 
       # This is called per "step"/task insertion.

@@ -113,6 +113,7 @@ class StepTest < Minitest::Spec
 
     step :a!
     step( { task: MyMacro1, node_data: { id: "add"} })
+    puts "yo"
     step( { task: MyMacro2, node_data: { id: "add"} }, replace: "add")
     # step [ MyMacro3, {id: "add"}, {} ], override: true
 

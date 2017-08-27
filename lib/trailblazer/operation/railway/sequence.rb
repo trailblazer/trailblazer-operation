@@ -15,7 +15,7 @@ module Trailblazer
       # Insert the task into {Sequence} array by respecting options such as `:before`.
       # This mutates the object per design.
       # @param element_wiring ElementWiring Set of instructions for a specific element in an activity graph.
-      def insert!(id, wiring, before:nil, after:nil, replace:nil, delete:nil, **user_options)
+      def insert!(id, wiring, before:nil, after:nil, replace:nil, delete:nil)
         element = Element.new(id, wiring).freeze
 
         return insert(find_index!(before),  element) if before
