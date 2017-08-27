@@ -1,31 +1,20 @@
 module Trailblazer
   module Operation::Railway
-    # WARNING: The API here is still in a state of flux since we want to provide a simple yet flexible solution.
-    # This is code executed at compile-time and can be slow.
-    # @note `__sequence__` is a private concept, your custom DSL code should not rely on it.
-
-
-    # DRAFT
-    #  direction: "(output) signal"
-
-    # document ## Outputs
-    #   task/acti has outputs, role_to_target says which task output goes to what next task in the composing acti.
-
-    module DSL
-      module Attach
-        def attach(task, options={})
+    module Attach
+      module DSL
+        def attach(task, user_options={})
           # we only want allow a task here?
+          macro = { task: task, node_data: { id: task } } # id should get overridden from user_options.
 
-          # default_options = {
-          #   source:
-          #   edge:
-          #   target: [ task, id: options[:id] ]
-          # }
-
-          # # or use insert! here?
-          #                     # simulate macro here
-          # add_step_or_task!( { task: task }, user_options, :attach )
+          add_step_or_task!( macro, user_options, alteration: Attach, type: :attach, task_builder: TaskBuilder )
         end
+      end
+
+      # @return Array wirings
+      def self.call(id, task:, node_data:, **attach_options)
+        [
+          [ :attach!, target: [task, node_data], edge: [Circuit::Left, {}], source: "Start.default" ]
+        ]
       end
     end
   end

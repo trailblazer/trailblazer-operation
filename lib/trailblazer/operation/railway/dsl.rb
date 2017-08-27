@@ -70,6 +70,7 @@ module Trailblazer
         add_step_or_task!( proc, user_options,
           {
             type:                 type,
+            alteration:           Insert,
             task_builder:         task_builder,
             connect_to:           connect_to,
             insert_before:        insert_before,
@@ -81,7 +82,7 @@ module Trailblazer
       # { ..., runner_options: {}, } = add_step_or_task!
 
       # DECOUPLED FROM any "local" config, except for __activity__, etc.
-      def add_step_or_task!(proc, user_options, type:nil, task_builder:raise, **user_alteration_options)
+      def add_step_or_task!(proc, user_options, alteration:raise, type:nil, task_builder:raise, **user_alteration_options)
         heritage.record(type, proc, user_options) # FIXME.
 
         # these are the macro's (or steps) configurations, like :outputs or :id.
@@ -100,7 +101,8 @@ module Trailblazer
         node_data, id = normalize_node_data( macro_alteration_options[:node_data], user_options, type )
         seq_options   = normalize_sequence_options(id, user_options)
 
-        wirings = Insert.(id, macro_alteration_options.merge( user_alteration_options ).merge( node_data: node_data ) ) # TODO: DEEP MERGE node_data in case there's data from user
+        # alteration == Insert, Attach, Connect, etc.
+        wirings = alteration.(id, macro_alteration_options.merge( user_alteration_options ).merge( node_data: node_data ) ) # TODO: DEEP MERGE node_data in case there's data from user
 
         add_element!( wirings, seq_options.merge(id: id) )
 

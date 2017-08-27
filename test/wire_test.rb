@@ -47,7 +47,7 @@ class WireTest < Minitest::Spec
   it { Create.({}, "D_return" => Circuit::Left).inspect("a", "b", "c", "D", "f").must_equal %{<Result:false [1, 2, nil, [1, 2, nil], 4] >} } # todo: HOW TO CHECK End instance?
 
   class B < Trailblazer::Operation
-    extend DSL::Attach
+    extend Railway::Attach::DSL
     extend DSL::Element
 
     step ->(options, **) { options["a"] = 1 }, id: "a"
