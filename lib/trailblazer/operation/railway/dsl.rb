@@ -67,11 +67,11 @@ module Trailblazer
       # { ..., runner_options: {}, } = add_step_or_task!
 
       # DECOUPLED FROM any "local" config, except for __activity__, etc.
-      def add_step_or_task!(proc, user_options, type:nil, task_builder:TaskBuilder, **alteration_user_options)
+      def add_step_or_task!(proc, user_options, type:nil, task_builder:TaskBuilder, **user_alteration_options)
         heritage.record(type, proc, user_options) # FIXME.
 
         # these are the macro's (or steps) configurations, like :outputs or :id.
-        alteration_options =
+        macro_alteration_options =
           if proc.is_a?(::Hash) # macro.
             proc
           else # user step.
@@ -83,16 +83,18 @@ module Trailblazer
           end
 
           # this id computation is specific to the step/pass/fail API and not add_task!'s job.
-        node_data, id = normalize_node_data( alteration_options[:node_data], user_options, type )
+        node_data, id = normalize_node_data( macro_alteration_options[:node_data], user_options, type )
         seq_options   = normalize_sequence_options(id, user_options)
 
-        insert!(id, seq_options, alteration_options.merge(alteration_user_options).merge(node_data: node_data) )
+        wirings = insert!(id, macro_alteration_options.merge( user_alteration_options ).merge( node_data: node_data ) ) # TODO: DEEP MERGE node_data in case there's data from user
+
+        add_element!( wirings, seq_options.merge(id: id) )
 
         # RETURN WHAT WE COMPUTED HERE. not sure about the API, yet.
-        alteration_options
+        macro_alteration_options
       end
 
-      def insert!(id, sequence_options, **insertion_options)
+      def insert!(id, **insertion_options)
         insertion_options =
           { # defaults
             outputs:       insertion_options[:default_task_outputs],
@@ -101,9 +103,6 @@ module Trailblazer
         options, _ = insertion_args_for( insertion_options )
 
         wirings = insertion_wirings_for( options ) # TODO: this means macro could say where to insert?
-
-
-        add_element!( wirings, sequence_options.merge(id: id) )
       end
 
 
