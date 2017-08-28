@@ -131,19 +131,21 @@ class WireTest < Minitest::Spec
     extend Railway::Insert::DSL
 
     step ->(options, **) { options["a"] = 1 }, id: "a"
-    step ->(options, **) { options["b"] = 2 }, id: "b"
-
-    # attach  MyEnd.new(:myend), id: "End.myend"
-    # step D,
-    #   outputs:       { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }, ExceptionFromD => { role: :exception } }, # any outputs and their polarization, generic.
-    #   connect_to:    { success: "End.success", failure: "End.failure", exception: "End.myend" },
-    #   id:            "d"
-
-    fail ->(options, **) { options["f"] = 4 }, id: "f"
+    step ->(options, b_return:, **) { options["b"] = 2; b_return }, id: "b"
+    fail ->(options, f_return:, **) { options["f"] = 4; f_return }, id: "f"
     connect "f", edge: Circuit::Right, target: "End.success"
 
     step ->(options, **) { options["c"] = 3 }, id: "c"
   end
+
+  it { E.({}, "b_return" => true).inspect("a", "b", "c", "f").must_equal %{<Result:true [1, 2, 3, nil] >} }
+  # go to fail, but normal fail behavior.
+  it { E.({}, "b_return" => false,
+              "f_return" => false).inspect("a", "b", "c", "f").must_equal %{<Result:false [1, 2, nil, 4] >} }
+  # go to fail and back to right track.
+  it { E.({}, "b_return" => false,
+              "f_return" => Circuit::Right).inspect("a", "b", "c", "f").must_equal %{<Result:true [1, 2, 3, 4] >} }
+
 
   # it { puts xml = Trailblazer::Diagram::BPMN.to_xml( E["__activity__"], E["__sequence__"] )
 
