@@ -1,3 +1,5 @@
+require "trailblazer/circuit/wrap"
+
 module Trailblazer
   module Operation::Railway
     module TaskWrap
