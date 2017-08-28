@@ -157,15 +157,19 @@ class WireTest < Minitest::Spec
     extend Railway::Connect::DSL
     extend Railway::Insert::DSL
 
+    # 1
     step ->(options, **) { options["a"] = 1 }, id: "a"
 
+    # 4
     # our success "end":
-    step ->(options, b_return:, **) { options["z"] = 2; b_return }, id: "z"
+    step ->(options, **) { options["z"] = 2 }, id: "z"
 
-    step ->(options, a:, z:, **) { options["b"] = [a,z] },
+    # 2
+    pass ->(options, a:, **) { options["b"] = [a, options["c"], options["z"]].inspect },
       insert_before: "z", id: "b"
 
-    step ->(options, a:, z:, **) { options["b"] = [a,z] },
+    # 3
+    pass ->(options, a:, b:, **) { options["c"] = [a,b, options["z"], 1] },
       insert_before: "z", id: "c"
 
 
@@ -174,7 +178,10 @@ class WireTest < Minitest::Spec
 
     # step ->(options, **) { options["c"] = 3 }, id: "c"
   end
-    require "trailblazer/developer"
+
+  it { F.({}, "b_return" => false,
+                                  ).inspect("a", "b", "c", "z").must_equal %{<Result:true [1, "[1, nil, nil]", [1, "[1, nil, nil]", nil], 2] >} }
+    # require "trailblazer/developer"
   # it {
   #   puts xml = Trailblazer::Diagram::BPMN.to_xml( F["__activity__"], F["__sequence__"] )
   #   File.write("berry3.bpmn", xml)
