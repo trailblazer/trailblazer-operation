@@ -12,6 +12,7 @@ require "trailblazer/operation/railway/sequence"
 require "trailblazer/operation/railway/dsl"
 require "trailblazer/operation/railway/insert"
 require "trailblazer/operation/railway/attach"
+require "trailblazer/operation/railway/connect"
 
 require "trailblazer/operation/railway/task_builder"
 require "trailblazer/operation/railway/fast_track"

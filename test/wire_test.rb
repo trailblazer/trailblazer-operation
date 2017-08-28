@@ -122,4 +122,31 @@ it { puts xml = Trailblazer::Diagram::BPMN.to_xml( C["__activity__"], C["__seque
   # ends on MyEnd, without hitting fail.
   it { C.({}, "D_return" => C::ExceptionFromD).inspect("a", "b", "c", "D", "f").must_equal %{<Result:false [1, 2, nil, [1, 2, nil], nil] >} } # todo: HOW TO CHECK End instance?
   it { C.({}, "D_return" => Circuit::Left).inspect("a", "b", "c", "D", "f").must_equal %{<Result:false [1, 2, nil, [1, 2, nil], 4] >} } # todo: HOW TO CHECK End instance?
+
+
+  #- connect
+  class E < Trailblazer::Operation
+    extend Railway::Attach::DSL
+    extend Railway::Connect::DSL
+    extend Railway::Insert::DSL
+
+    step ->(options, **) { options["a"] = 1 }, id: "a"
+    step ->(options, **) { options["b"] = 2 }, id: "b"
+
+    # attach  MyEnd.new(:myend), id: "End.myend"
+    # step D,
+    #   outputs:       { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }, ExceptionFromD => { role: :exception } }, # any outputs and their polarization, generic.
+    #   connect_to:    { success: "End.success", failure: "End.failure", exception: "End.myend" },
+    #   id:            "d"
+
+    fail ->(options, **) { options["f"] = 4 }, id: "f"
+    connect "f", edge: Circuit::Right, target: "End.success"
+
+    step ->(options, **) { options["c"] = 3 }, id: "c"
+  end
+
+  it { puts xml = Trailblazer::Diagram::BPMN.to_xml( E["__activity__"], E["__sequence__"] )
+
+    File.write("berry2.bpmn", xml)
+  }
 end
