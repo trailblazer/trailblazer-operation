@@ -54,9 +54,9 @@ module Trailblazer
           __call__( nil, options, {} )
         end
 
-        # {Activity} interface
-        def end_events
-          self["__activity__"].end_events
+        # {Activity} interface. Returns outputs from {Activity#outputs}.
+         def outputs
+          self["__activity__"].outputs
         end
 
         private
