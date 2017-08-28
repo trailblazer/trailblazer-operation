@@ -13,7 +13,7 @@ module Trailblazer
       end
 
       # @return Array wirings
-      def self.call(id, source:, edge:, target:)
+      def self.call(id, source:raise, edge:raise, target:raise)
         [
           [ :connect!, target: target, edge: edge, source: source ]
         ]

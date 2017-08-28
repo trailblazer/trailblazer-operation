@@ -51,7 +51,7 @@ class WireTest < Minitest::Spec
     extend Railway::Insert::DSL
 
     # here, D has a step interface!
-    D = ->(options, a:, b:, **) {
+    D = ->(options, a:raise, b:raise, **) {
       options["D"] = [ a, b, options["c"] ]
 
       options["D_return"]
@@ -87,7 +87,7 @@ class WireTest < Minitest::Spec
     extend Railway::Insert::DSL
 
     # here, D has a step interface!
-    D = ->(options, a:, b:, **) {
+    D = ->(options, a:raise, b:raise, **) {
       options["D"] = [ a, b, options["c"] ]
 
       options["D_return"]

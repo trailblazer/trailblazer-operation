@@ -11,7 +11,7 @@ module Trailblazer
       end
 
       # @return Array wirings
-      def self.call(id, task:, node_data:, **attach_options)
+      def self.call(id, task:raise, node_data:raise, **attach_options)
         [
           [ :attach!, target: [task, node_data], edge: [Circuit::Left, {}], source: "Start.default" ]
         ]
