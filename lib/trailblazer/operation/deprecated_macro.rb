@@ -8,6 +8,7 @@ module Trailblazer
           return super unless proc.is_a?(Array)
 
           _proc, node_data = *proc
+          node_data = node_data.merge( id: node_data[:name] ) if node_data[:name]
 
           warn %{[Trailblazer] Macros with API (input, options) are deprecated. Please use the "Task API" signature (direction, options, flow_options) or use a simpler Callable. (#{proc})}
           __proc = ->(direction, options, flow_options) do
