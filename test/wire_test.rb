@@ -108,6 +108,13 @@ class WireTest < Minitest::Spec
     step ->(options, **) { options["c"] = 3 }, id: "c"
   end
 
+require "trailblazer/developer"
+it { puts xml = Trailblazer::Diagram::BPMN.to_xml( C["__activity__"], C["__sequence__"] )
+
+    File.write("berry.bpmn", xml)
+  }
+
+
   it { Trailblazer::Operation::Inspect.(C).gsub(/0x.+?wire_test.rb/, "").must_equal %{[>a,>b,End.myend,>d,<<f,>c]} }
 
   # normal flow as D sits on the Right track.
