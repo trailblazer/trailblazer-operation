@@ -146,9 +146,37 @@ class WireTest < Minitest::Spec
   it { E.({}, "b_return" => false,
               "f_return" => Circuit::Right).inspect("a", "b", "c", "f").must_equal %{<Result:true [1, 2, 3, 4] >} }
 
-
   # it { puts xml = Trailblazer::Diagram::BPMN.to_xml( E["__activity__"], E["__sequence__"] )
-
   #   File.write("berry2.bpmn", xml)
+  # }
+
+
+  #- add a node before End.failure and connect all other before that.
+  class F < Trailblazer::Operation
+    extend Railway::Attach::DSL
+    extend Railway::Connect::DSL
+    extend Railway::Insert::DSL
+
+    step ->(options, **) { options["a"] = 1 }, id: "a"
+
+    # our success "end":
+    step ->(options, b_return:, **) { options["z"] = 2; b_return }, id: "z"
+
+    step ->(options, a:, z:, **) { options["b"] = [a,z] },
+      insert_before: "z", id: "b"
+
+    step ->(options, a:, z:, **) { options["b"] = [a,z] },
+      insert_before: "z", id: "c"
+
+
+    # fail ->(options, f_return:, **) { options["f"] = 4; f_return }, id: "f"
+    # connect "f", edge: Circuit::Right, target: "End.success"
+
+    # step ->(options, **) { options["c"] = 3 }, id: "c"
+  end
+    require "trailblazer/developer"
+  # it {
+  #   puts xml = Trailblazer::Diagram::BPMN.to_xml( F["__activity__"], F["__sequence__"] )
+  #   File.write("berry3.bpmn", xml)
   # }
 end
