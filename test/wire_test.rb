@@ -166,7 +166,7 @@ class WireTest < Minitest::Spec
 
     # 2
     pass ->(options, a:, **) { options["b"] = [a, options["c"], options["z"]].inspect },
-      insert_before: "z", id: "b"
+      insert_before: "z", id: "b" #, connect_to: Right => Z #FIXME: we also need to change connect_to, e.g. connect_to: Merge( success: "z" )
 
     # 3
     pass ->(options, a:, b:, **) { options["c"] = [a,b, options["z"], 1] },
@@ -179,6 +179,8 @@ class WireTest < Minitest::Spec
     # step ->(options, **) { options["c"] = 3 }, id: "c"
   end
 
+
+  it { pp F['__sequence__'].to_a }
   it { F.({}, "b_return" => false,
                                   ).inspect("a", "b", "c", "z").must_equal %{<Result:true [1, "[1, nil, nil]", [1, "[1, nil, nil]", nil], 2] >} }
     # require "trailblazer/developer"

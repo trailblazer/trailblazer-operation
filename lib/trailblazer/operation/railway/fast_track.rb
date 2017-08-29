@@ -29,7 +29,7 @@ module Trailblazer
         end
 
         # Called in DSL::pass
-        def role_to_target_for_pass(options)
+        def connect_to_for_pass(options)
           target = "End.pass_fast"
 
           return super.merge(success: target, failure: target) if options[:pass_fast]
@@ -42,7 +42,7 @@ module Trailblazer
         end
 
         # Called in DSL::fail
-        def role_to_target_for_fail(options)
+        def connect_to_for_fail(options)
           target = "End.fail_fast"
 
           step_options = {}
@@ -54,10 +54,10 @@ module Trailblazer
         end
 
         # Called in DSL::step
-        def role_to_target_for_step(options)
+        def connect_to_for_step(options)
           step_options = {
-            success: role_to_target_for_pass(options)[:success],
-            failure: role_to_target_for_fail(options)[:failure],
+            success: connect_to_for_pass(options)[:success],
+            failure: connect_to_for_fail(options)[:failure],
             pass_fast: "End.pass_fast",
             fail_fast: "End.fail_fast", # always add edge to fail_fast?
           }

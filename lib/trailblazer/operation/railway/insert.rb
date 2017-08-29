@@ -5,6 +5,7 @@ module Trailblazer
 
     module Insert
       module DSL
+        # The `insert` alteration returns wirings array consisting of [ :insert_before, :connect, :connect, .. ]
         def insert(step, **user_options)
           _element( step, user_options, { alteration: Insert, type: :insert, task_builder: TaskBuilder } )
         end
@@ -36,9 +37,9 @@ module Trailblazer
 
       # insert_before: "End.success",
       # outputs:       { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure } }, # any outputs and their polarization, generic.
-      # mappings:      { success: "End.success", failure: "End.myend" } # where do my task's outputs go?
+      # connect_to:    { success: "End.success", failure: "End.myend" } # where do my task's outputs go?
       # always adds task on a track edge.
-      # @return ElementWiring
+      # @return [Array]
       def self.insertion_wirings_for(task: nil, insert_before:raise, outputs:{}, connect_to:{}, node_data:raise)
         raise "missing node_data: { id: .. }" if node_data[:id].nil?
 

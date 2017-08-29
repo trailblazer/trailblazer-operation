@@ -20,21 +20,21 @@ module Trailblazer
 
       private
 
-      def role_to_target_for_pass(options)
+      def connect_to_for_pass(options)
         {
           :success => "End.success",
           :failure => "End.success"
         }
       end
 
-      def role_to_target_for_fail(options)
+      def connect_to_for_fail(options)
         {
           :success => "End.failure",
           :failure => "End.failure"
         }
       end
 
-      def role_to_target_for_step(options)
+      def connect_to_for_step(options)
         {
           :success => "End.success",
           :failure => "End.failure"
@@ -65,7 +65,7 @@ module Trailblazer
         defaults = {
           type:                 type,
           task_builder:         TaskBuilder,
-          connect_to:           send("role_to_target_for_#{type}", user_options),
+          connect_to:           send("connect_to_for_#{type}", user_options),
           insert_before:        send("insert_before_for_#{type}", user_options),
           default_task_outputs: default_task_outputs(user_options),
           alteration:           Insert,
