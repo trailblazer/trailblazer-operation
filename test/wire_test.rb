@@ -1,4 +1,5 @@
 require "test_helper"
+# require "trailblazer/developer"
 
 class WireTest < Minitest::Spec
   Circuit = Trailblazer::Circuit
@@ -38,7 +39,7 @@ class WireTest < Minitest::Spec
   end
 
   # myend ==> d
-  it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?wire_test.rb/, "").must_equal %{[>#<Proc::20 (lambda)>,>b,End.myend,d,<<f,>c]} }
+  it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?wire_test.rb/, "").must_equal %{[>#<Proc::21 (lambda)>,>b,End.myend,d,<<f,>c]} }
 
   # normal flow as D sits on the Right track.
   it { Create.({}, "D_return" => Circuit::Right).inspect("a", "b", "c", "D", "f").must_equal %{<Result:true [1, 2, 3, [1, 2, nil], nil] >} }
@@ -183,7 +184,43 @@ class WireTest < Minitest::Spec
   # it { pp F['__sequence__'].to_a }
   # it { F.({}, "b_return" => false,
   #                                 ).inspect("a", "b", "c", "z").must_equal %{<Result:true [1, "[1, nil, nil]", [1, "[1, nil, nil]", nil], 2] >} }
-    # require "trailblazer/developer"
+  # it {
+  #   puts xml = Trailblazer::Diagram::BPMN.to_xml( F["__activity__"], F["__sequence__"] )
+  #   File.write("berry3.bpmn", xml)
+  # }
+
+
+  #- add a node before End.failure and connect all other before that using simple :before.
+  class G < Trailblazer::Operation
+    extend Railway::Attach::DSL
+    extend Railway::Connect::DSL
+    extend Railway::Insert::DSL
+
+    # 1
+    step ->(options, **) { options["row"] = [:a] }, id: "a"
+
+    # 4
+    # our success "end":
+    step ->(options, **) { options["row"] << :z }, id: "z"
+
+    # 2
+    pass ->(options, **) { options["row"] << :b },
+      before: "z", id: "b"
+
+    # 3
+    pass ->(options, **) { options["row"] << :c },
+      before: "z", id: "c"
+
+
+    fail ->(options, **) { options["row"] << :f }, id: "f"
+    # connect "f", edge: Circuit::Right, target: "End.success"
+
+    # step ->(options, **) { options["c"] = 3 }, id: "c"
+  end
+
+  # it { pp F['__sequence__'].to_a }
+  it { G.({}, "b_return" => false,
+                                  ).inspect("row").must_equal %{<Result:true [[:a, :b, :c, :z]] >} }
   # it {
   #   puts xml = Trailblazer::Diagram::BPMN.to_xml( F["__activity__"], F["__sequence__"] )
   #   File.write("berry3.bpmn", xml)
