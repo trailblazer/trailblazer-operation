@@ -174,37 +174,47 @@ class WireTest < Minitest::Spec
   #   puts xml = Trailblazer::Diagram::BPMN.to_xml( F["__activity__"], F["__sequence__"] )
   #   File.write("berry3.bpmn", xml)
   # }
+end
 
+class DoormatStepDocsTest < Minitest::Spec
+  #:doormat-before
+  class Create < Trailblazer::Operation
+    step :first
+    step :log_success!
 
-  #- add a node before End.failure and connect all other before that using simple :before.
-  class G < Trailblazer::Operation
-    # 1
-    step ->(options, **) { options["row"] = [:a] }, id: "a"
+    step :second, before: :log_success!
+    step :third,  before: :log_success!
 
-    # 4
+    #~ignore
+    def first(options, **)
+      options["row"] = [:a]
+    end
+
     # our success "end":
-    step ->(options, **) { options["row"] << :z }, id: "z"
+    def log_success!(options, **)
+      options["row"] << :z
+    end
 
     # 2
-    pass ->(options, **) { options["row"] << :b },
-      before: "z", id: "b"
+    def second(options, **)
+      options["row"] << :b
+    end
 
     # 3
-    pass ->(options, **) { options["row"] << :c },
-      before: "z", id: "c"
-
+    def third(options, **)
+      options["row"] << :c
+    end
 
     fail ->(options, **) { options["row"] << :f }, id: "f"
-    # connect "f", edge: Circuit::Right, target: "End.success"
-
-    # step ->(options, **) { options["c"] = 3 }, id: "c"
+    #~ignore end
   end
+  #:doormat-before end
 
   # it { pp F['__sequence__'].to_a }
-  it { G.({}, "b_return" => false,
+  it { Create.({}, "b_return" => false,
                                   ).inspect("row").must_equal %{<Result:true [[:a, :b, :c, :z]] >} }
   # it {
-  #   puts xml = Trailblazer::Diagram::BPMN.to_xml( F["__activity__"], F["__sequence__"] )
+  #   puts xml = Trailblazer::Diagram::BPMN.to_xml( Create["__activity__"], Create["__sequence__"] )
   #   File.write("berry3.bpmn", xml)
   # }
 end
