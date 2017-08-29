@@ -49,9 +49,23 @@ module Trailblazer
 
         # FIXME: don't mark pass_fast with :railway
         raise "bla no outputs remove me at some point " unless outputs.any?
-        wirings += Operation::Railway::DSL::Wirings.task_outputs_to(outputs, connect_to, node_data[:id], type: :railway) # connect! for task outputs
+        wirings += task_outputs_to(outputs, connect_to, node_data[:id], type: :railway) # connect! for task outputs
 
         wirings # embraces all alterations for one "step".
+      end
+
+      # @private
+      # connect! statements for outputs.
+      # @param known_targets Hash {  }
+      def self.task_outputs_to(task_outputs, known_targets, id, edge_options)
+        # task_outputs is what the task has
+        # known_targets are ends this activity/operation provides.
+        task_outputs.collect do |signal, role:raise|
+          target = known_targets[ role ]
+          # TODO: add more options to edge like role: :success or role: pass_fast.
+
+          [:connect!, source: id, edge: [signal, edge_options], target: target ] # e.g. "Left --> End.failure"
+        end
       end
     end # Insert
   end

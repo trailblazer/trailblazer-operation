@@ -172,24 +172,6 @@ module Trailblazer
           override ? { replace: id }.freeze : { before: before, after: after, replace: replace, delete: delete }.freeze
         end
       end
-
-      private
-
-      # @private
-      class Wirings # TODO: move to acti.
-      #- connect! statements for outputs.
-      # @param known_targets Hash {  }
-        def self.task_outputs_to(task_outputs, known_targets, id, edge_options)
-          # task_outputs is what the task has
-          # known_targets are ends this activity/operation provides.
-          task_outputs.collect do |signal, role:raise|
-            target = known_targets[ role ]
-            # TODO: add more options to edge like role: :success or role: pass_fast.
-
-            [:connect!, source: id, edge: [signal, edge_options], target: target ] # e.g. "Left --> End.failure"
-          end
-        end
-      end # Wiring
     end # DSL
   end
 end
