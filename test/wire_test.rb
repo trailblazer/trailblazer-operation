@@ -179,10 +179,10 @@ class WireTest < Minitest::Spec
     # step ->(options, **) { options["c"] = 3 }, id: "c"
   end
 
-
-  it { pp F['__sequence__'].to_a }
-  it { F.({}, "b_return" => false,
-                                  ).inspect("a", "b", "c", "z").must_equal %{<Result:true [1, "[1, nil, nil]", [1, "[1, nil, nil]", nil], 2] >} }
+  it { skip "implement" }
+  # it { pp F['__sequence__'].to_a }
+  # it { F.({}, "b_return" => false,
+  #                                 ).inspect("a", "b", "c", "z").must_equal %{<Result:true [1, "[1, nil, nil]", [1, "[1, nil, nil]", nil], 2] >} }
     # require "trailblazer/developer"
   # it {
   #   puts xml = Trailblazer::Diagram::BPMN.to_xml( F["__activity__"], F["__sequence__"] )
