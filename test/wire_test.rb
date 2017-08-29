@@ -282,20 +282,20 @@ class DoormatInheritanceTest < Minitest::Spec
   it { Create.({}, "b_return" => false,
                                   ).inspect("row").must_equal %{<Result:true [[:a, :b, :c, :z]] >} }
 
-  require "trailblazer/developer"
-   xml = Trailblazer::Diagram::BPMN.to_xml( Create["__activity__"], Create["__sequence__"] )
-  token = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJpZCI6MywidXNlcm5hbWUiOiJhcG90b25pY2siLCJlbWFpbCI6Im5pY2tAdHJhaWxibGF6ZXIudG8ifQ."
-  require "faraday"
-    conn = Faraday.new(:url => 'https://api.trb.to')
-    response = conn.post do |req|
-      req.url '/dev/v1/import'
-      req.headers['Content-Type'] = 'application/json'
-      req.headers["Authorization"] = token
-      require "base64"
+  # require "trailblazer/developer"
+  #  xml = Trailblazer::Diagram::BPMN.to_xml( Create["__activity__"], Create["__sequence__"] )
+  # token = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJpZCI6MywidXNlcm5hbWUiOiJhcG90b25pY2siLCJlbWFpbCI6Im5pY2tAdHJhaWxibGF6ZXIudG8ifQ."
+  # require "faraday"
+  #   conn = Faraday.new(:url => 'https://api.trb.to')
+  #   response = conn.post do |req|
+  #     req.url '/dev/v1/import'
+  #     req.headers['Content-Type'] = 'application/json'
+  #     req.headers["Authorization"] = token
+  #     require "base64"
 
-      req.body = %{{ "name": "Doormat/:before/inherit", "xml":"#{Base64.strict_encode64(xml)}" }}
-    end
+  #     req.body = %{{ "name": "Doormat/:before/inherit", "xml":"#{Base64.strict_encode64(xml)}" }}
+  #   end
 
-    puts response.status.inspect
+  #   puts response.status.inspect
 end
 
