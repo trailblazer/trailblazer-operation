@@ -48,9 +48,6 @@ class WireTest < Minitest::Spec
   it { Create.({}, "D_return" => Circuit::Left).inspect("a", "b", "c", "D", "f").must_equal %{<Result:false [1, 2, nil, [1, 2, nil], 4] >} } # todo: HOW TO CHECK End instance?
 
   class B < Trailblazer::Operation
-    extend Railway::Attach::DSL
-    extend Railway::Insert::DSL
-
     # here, D has a step interface!
     D = ->(options, a:raise, b:raise, **) {
       options["D"] = [ a, b, options["c"] ]
@@ -84,9 +81,6 @@ class WireTest < Minitest::Spec
 
 
   class C < Trailblazer::Operation
-    extend Railway::Attach::DSL
-    extend Railway::Insert::DSL
-
     # here, D has a step interface!
     D = ->(options, a:raise, b:raise, **) {
       options["D"] = [ a, b, options["c"] ]
@@ -127,10 +121,6 @@ class WireTest < Minitest::Spec
 
   #- connect
   class E < Trailblazer::Operation
-    extend Railway::Attach::DSL
-    extend Railway::Connect::DSL
-    extend Railway::Insert::DSL
-
     step ->(options, **) { options["a"] = 1 }, id: "a"
     step ->(options, b_return:, **) { options["b"] = 2; b_return }, id: "b"
     fail ->(options, f_return:, **) { options["f"] = 4; f_return }, id: "f"
@@ -154,10 +144,6 @@ class WireTest < Minitest::Spec
 
   #- add a node before End.failure and connect all other before that.
   class F < Trailblazer::Operation
-    extend Railway::Attach::DSL
-    extend Railway::Connect::DSL
-    extend Railway::Insert::DSL
-
     # 1
     step ->(options, **) { options["a"] = 1 }, id: "a"
 
@@ -192,10 +178,6 @@ class WireTest < Minitest::Spec
 
   #- add a node before End.failure and connect all other before that using simple :before.
   class G < Trailblazer::Operation
-    extend Railway::Attach::DSL
-    extend Railway::Connect::DSL
-    extend Railway::Insert::DSL
-
     # 1
     step ->(options, **) { options["row"] = [:a] }, id: "a"
 
