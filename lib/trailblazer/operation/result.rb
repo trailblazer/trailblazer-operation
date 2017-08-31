@@ -1,19 +1,15 @@
 class Trailblazer::Operation
   class Result
-    def initialize(success, data)
-      @success, @data = success, data # @data is a Skill instance.
+    # @param event The last emitted signal in a circuit is usually the end event.
+    # @param data Context
+    def initialize(event, data)
+      @event, @data = event, data
     end
+
+    attr_reader :event
 
     extend Forwardable
     def_delegators :@data, :[] # DISCUSS: make it a real delegator? see Nested.
-
-    def success?
-      @success
-    end
-
-    def failure?
-      ! success?
-    end
 
     # DISCUSS: the two methods below are more for testing.
     def inspect(*slices)

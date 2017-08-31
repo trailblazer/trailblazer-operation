@@ -76,9 +76,19 @@ module Trailblazer
         end
       end
 
-      # The result of a railway is binary.
-      def self.Result(direction, options)
-        Result.new(direction.kind_of?(End::Success), options)
+      def self.Result(end_event, options, *)
+        Result.new(end_event, options)
+      end
+
+      # The Railway::Result knows about its binary state.
+      class Result < Result # Operation::Result
+        def success?
+          @event.kind_of?(End::Success)
+        end
+
+        def failure?
+          ! success?
+        end
       end
 
       module End
