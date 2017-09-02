@@ -21,8 +21,27 @@ class CallTest < Minitest::Spec
       step ->(options, **) { options["params"] }
     end
 
-    it { Update.(true).success?.must_equal true }
-    it { Update.(false).success?.must_equal false }
+    # operation success
+    it do
+      result = Update.(true)
+
+      result.success?.must_equal true
+
+      result.event.must_be_instance_of Trailblazer::Operation::Railway::End::Success
+      result.event.must_equal Update.outputs.keys[0]
+    end
+
+    # operation failure
+    it do
+      result = Update.(false)
+
+      result.success?.must_equal false
+      result.failure?.must_equal true
+
+      result.event.must_be_instance_of Trailblazer::Operation::Railway::End::Failure
+      result.event.must_equal Update.outputs.keys[1]
+    end
+
   end
 end
 
