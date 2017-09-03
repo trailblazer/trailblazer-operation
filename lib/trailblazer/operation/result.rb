@@ -2,11 +2,17 @@ class Trailblazer::Operation
   class Result
     # @param event The last emitted signal in a circuit is usually the end event.
     # @param data Context
-    def initialize(event, data)
-      @event, @data = event, data
+    def initialize(success, data)
+      @success, @data = success, data
     end
 
-    attr_reader :event
+    def success?
+      @success
+    end
+
+    def failure?
+      ! success?
+    end
 
     extend Forwardable
     def_delegators :@data, :[] # DISCUSS: make it a real delegator? see Nested.

@@ -77,18 +77,18 @@ module Trailblazer
       end
 
       def self.Result(end_event, options, *)
-        Result.new(end_event, options)
+        Result.new(end_event.kind_of?(End::Success), options, end_event)
       end
 
-      # The Railway::Result knows about its binary state.
+      # The Railway::Result knows about its binary state, the context (data), and the last event in the circuit.
       class Result < Result # Operation::Result
-        def success?
-          @event.kind_of?(End::Success)
+        def initialize(success, data, event)
+          super(success, data)
+
+          @event = event
         end
 
-        def failure?
-          ! success?
-        end
+        attr_reader :event
       end
 
       module End

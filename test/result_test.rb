@@ -5,7 +5,7 @@ class RailwayResultTest < Minitest::Spec
   Success = Trailblazer::Operation::Railway::End::Success
 
   let(:event)    { Success.new(nil) }
-  let (:success) { Result.new(event, "x"=> String) }
+  let (:success) { Result.new(true, { "x"=> String }, event) }
 
   it { success.success?.must_equal true }
   it { success.failure?.must_equal false }
@@ -20,7 +20,7 @@ class RailwayResultTest < Minitest::Spec
   #---
   # inspect
   it { success.inspect.must_equal %{<Result:true {\"x\"=>String} >} }
-  it { Result.new(event, "x"=> true, "y"=>1, "z"=>2).inspect("z", "y").must_equal %{<Result:true [2, 1] >} }
+  it { Result.new(true, { "x"=> true, "y"=>1, "z"=>2 }, event).inspect("z", "y").must_equal %{<Result:true [2, 1] >} }
 
   class Create < Trailblazer::Operation
     success :call
