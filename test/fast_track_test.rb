@@ -99,3 +99,46 @@ class PassFastBangTest < Minitest::Spec
   it { Create.().inspect("x", "y", "a").must_equal %{<Result:true [true, nil, nil] >} }
 end
 
+#-
+class NestedFastTrackTest < Minitest::Spec
+  class Edit < Trailblazer::Operation
+    step :a, fast_track: true # task is connected to End.pass_fast and End.fail_fast.
+
+    def a(options, edit_return:, **)
+      options["a"] = 1
+      edit_return # End.success, End.pass_fast, etc.
+    end
+  end
+
+  class Update < Trailblazer::Operation
+    step task: Trailblazer::Activity::Nested( Edit, call: :__call__ ), node_data: { id: "Nested/" }, outputs: Edit.outputs
+    step :b
+    fail :f
+
+    def b(options, a:, **)
+      options["b"] = a+1
+    end
+
+    def f(options, **)
+      options["f"] = 3
+    end
+  end
+
+  # Edit returns End.success
+  it { Update.({}, edit_return: true).inspect("a", "b", "f").must_equal %{<Result:true [1, 2, nil] >} }
+  # Edit returns End.failure
+  it { Update.({}, edit_return: false).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, 3] >} }
+
+  # Edit returns End.pass_fast
+  it { Update.({}, edit_return: Trailblazer::Operation::Railway.pass_fast!).inspect("a", "b", "f").must_equal %{<Result:true [1, nil, nil] >} }
+
+  # Edit returns End.fail_fast
+  it { Update.({}, edit_return: Trailblazer::Operation::Railway.fail_fast!).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, nil] >} }
+
+  # it do
+  #   require "trailblazer/developer"
+  #   puts Trailblazer::Developer::Client.push( operation: Update, name: "Update/#{Time.now}" )
+
+  # end
+end
+
