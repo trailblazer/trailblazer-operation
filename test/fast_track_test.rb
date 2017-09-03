@@ -101,6 +101,7 @@ end
 
 #-
 class NestedFastTrackTest < Minitest::Spec
+  #- The ::step DSL method automatically connects the nested's End.fail_fast/End.pass_fast to Update's End.fail_fast/End.pass_fast.
   class Edit < Trailblazer::Operation
     step :a, fast_track: true # task is connected to End.pass_fast and End.fail_fast.
 
