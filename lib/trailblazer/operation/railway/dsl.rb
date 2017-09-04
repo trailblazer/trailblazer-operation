@@ -7,6 +7,11 @@ module Trailblazer
 
     # DRAFT
     #  direction: "(output) signal"
+    #
+
+    # options merging
+    #  1. Defaults_from_DSL.merge user_options
+    #  2. macro_options.merge ( 1. )
 
     # document ## Outputs
     #   task/acti has outputs, role_to_target says which task output goes to what next task in the composing acti.

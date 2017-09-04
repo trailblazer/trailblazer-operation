@@ -1,6 +1,6 @@
 class Trailblazer::Operation
   class Result
-    # @param event The last emitted signal in a circuit is usually the end event.
+    # @param success Boolean validity of the result object
     # @param data Context
     def initialize(success, data)
       @success, @data = success, data

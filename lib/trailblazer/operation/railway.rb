@@ -76,6 +76,8 @@ module Trailblazer
         end
       end
 
+      # @param options Context
+      # @param end_event The last emitted signal in a circuit is usually the end event.
       def self.Result(end_event, options, *)
         Result.new(end_event.kind_of?(End::Success), options, end_event)
       end
