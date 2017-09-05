@@ -4,7 +4,7 @@ module Trailblazer
     module DSL
       # Allows old macros with the `(input, options)` signature.
       module DeprecatedMacro
-        def add_step_or_task!(proc, *args)
+        def _element(proc, *args)
           return super unless proc.is_a?(Array)
 
           _proc, node_data = *proc

@@ -79,20 +79,11 @@ module Trailblazer
         _element( proc, user_options, defaults )
       end
 
-      # Merges user_options over the defaults, allowing to inject different configuration and graph behavior via the step/pass/insert DSL.
-      def _element(proc, user_options, **defaults)
-        add_step_or_task!(
-          proc,
-          user_options,
-          defaults
-        )
-      end
-
-      # { ..., runner_options: {}, } = add_step_or_task!
 
       # DECOUPLED FROM any "local" config, except for __activity__, etc.
       # @param user_options Hash this is only used for non-alteration options, such as :before.
-      def add_step_or_task!(proc, user_options, alteration:raise, type:nil, task_builder:raise, **defaults)
+      # @return { ..., runner_options: {}, }
+      def _element(proc, user_options, alteration:raise, type:nil, task_builder:raise, **defaults)
         heritage.record(type, proc, user_options) # FIXME.
 
         id, macro_alteration_options, seq_options = Normalize.(proc, user_options, task_builder: task_builder, type: type)
