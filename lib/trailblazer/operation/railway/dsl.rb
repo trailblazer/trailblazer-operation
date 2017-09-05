@@ -179,6 +179,10 @@ module Trailblazer
           override ? { replace: id }.freeze : { before: before, after: after, replace: replace, delete: delete }.freeze
         end
       end
+
+      def self.Merge(*args, &block)
+        ::Declarative::Variables::Merge(*args, &block)
+      end
     end # DSL
   end
 end
