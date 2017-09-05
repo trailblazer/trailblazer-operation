@@ -72,7 +72,7 @@ module Trailblazer
           task_builder:         TaskBuilder,
           connect_to:           send("connect_to_for_#{type}", user_options),
           insert_before:        send("insert_before_for_#{type}", user_options),
-          default_task_outputs: default_task_outputs(user_options),
+          outputs:              default_task_outputs(user_options),
           alteration:           Insert,
         }
 
@@ -84,7 +84,7 @@ module Trailblazer
         add_step_or_task!(
           proc,
           user_options,
-          defaults.merge( user_options ) # merge DEFAULT options with USER options.
+          defaults
         )
       end
 
@@ -92,14 +92,16 @@ module Trailblazer
 
       # DECOUPLED FROM any "local" config, except for __activity__, etc.
       # @param user_options Hash this is only used for non-alteration options, such as :before.
-      def add_step_or_task!(proc, user_options, alteration:raise, type:nil, task_builder:raise, **user_alteration_options)
+      def add_step_or_task!(proc, user_options, alteration:raise, type:nil, task_builder:raise, **defaults)
         heritage.record(type, proc, user_options) # FIXME.
 
         id, macro_alteration_options, seq_options = Normalize.(proc, user_options, task_builder: task_builder, type: type)
 
         # alteration == Insert, Attach, Connect, etc.
-        # merge the MACRO options with the USER options
-        wirings = alteration.(id, macro_alteration_options.merge( user_alteration_options ) )
+        effective_user_options = macro_alteration_options.merge( user_options ) # merge the MACRO options with the USER options
+        effective_options      = defaults.merge( effective_user_options )
+
+        wirings = alteration.(id, effective_options )
 
         add_element!( wirings, seq_options.merge(id: id) )
 

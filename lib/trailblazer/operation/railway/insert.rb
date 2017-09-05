@@ -11,13 +11,7 @@ module Trailblazer
         end
       end
 
-      def self.call(id, default_task_outputs:{}, **insertion_options)
-        insertion_options =
-          { # defaults
-            outputs: default_task_outputs, # TODO: should this be done outside?
-          }.
-          merge(insertion_options)
-
+      def self.call(id, **insertion_options)
         options, _ = insertion_args_for( insertion_options )
 
         wirings = insertion_wirings_for( options ) # TODO: this means macro could say where to insert?
@@ -55,7 +49,7 @@ module Trailblazer
       end
 
       # @private
-      # connect! statements for outputs.
+      # connect! statements connecting `task_outputs` with `known_targets`.
       # @param known_targets Hash {  }
       def self.task_outputs_to(task_outputs, known_targets, id, edge_options)
         # task_outputs is what the task has
