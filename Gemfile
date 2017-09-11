@@ -11,11 +11,11 @@ gem "minitest-line"
 gem "benchmark-ips"
 
 # gem "trailblazer-circuit", git: "https://github.com/trailblazer/trailblazer-circuit"
-gem "trailblazer-activity", path: "../trailblazer-circuit"
-gem "trailblazer-developer", path: "../developer"
-# gem "trailblazer-developer", git: "https://github.com/trailblazer/trailblazer-developer"
+# gem "trailblazer-activity", path: "../trailblazer-circuit"
+# gem "trailblazer-developer", path: "../developer"
+gem "trailblazer-developer", git: "https://github.com/trailblazer/trailblazer-developer"
 # gem "representable", path: "../representable"
 
 # gem "raise", path: "../raise"
 
-gem "declarative", path: "../declarative"
+# gem "declarative", path: "../declarative"

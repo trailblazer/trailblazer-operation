@@ -76,4 +76,7 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
   it { Create.({}, a_return: false, b_return: false, c_return: true).inspect("a", "b", "c").must_equal %{<Result:true [1, 2, 3] >} }
   # a => b => c => false
   it { Create.({}, a_return: false, b_return: false, c_return: false).inspect("a", "b", "c").must_equal %{<Result:false [1, 2, 3] >} }
+
+  # require "trailblazer/developer"
+  # it { Trailblazer::Developer::Client.push( operation: Create, name: "ushi" ) }
 end
