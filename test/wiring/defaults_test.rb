@@ -40,3 +40,40 @@ end
 # step :a
 # fail :b, connect_to: { Circuit::Right => "End.success" }
 # fail :c, connect_to: { Circuit::Right => "End.success" }
+
+# @see https://github.com/trailblazer/trailblazer/issues/190#issuecomment-326992255
+class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
+  class Create < Trailblazer::Operation
+    step :a
+    fail :b, connect_to: Railway::DSL::Merge({ :success => "End.success" })
+    fail :c, connect_to: Railway::DSL::Merge({ :success => "End.success" })
+
+    def a(options, a_return:, **)
+      options["a"] = 1
+
+      a_return
+    end
+
+    def b(options, b_return:, **)
+      options["b"] = options["a"]+1
+
+      b_return
+    end
+
+
+    def c(options, c_return:, **)
+      options["c"] = options["b"]+1
+
+      c_return
+    end
+  end
+
+  # a => true
+  it { Create.({}, a_return: true).inspect("a", "b", "c").must_equal %{<Result:true [1, nil, nil] >} }
+  # b => true
+  it { Create.({}, a_return: false, b_return: true).inspect("a", "b", "c").must_equal %{<Result:true [1, 2, nil] >} }
+  # c => true
+  it { Create.({}, a_return: false, b_return: false, c_return: true).inspect("a", "b", "c").must_equal %{<Result:true [1, 2, 3] >} }
+  # a => b => c => false
+  it { Create.({}, a_return: false, b_return: false, c_return: false).inspect("a", "b", "c").must_equal %{<Result:false [1, 2, 3] >} }
+end
