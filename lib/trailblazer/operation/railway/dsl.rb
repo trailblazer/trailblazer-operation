@@ -89,14 +89,8 @@ module Trailblazer
         id, macro_alteration_options, seq_options = Normalize.(proc, user_options, task_builder: task_builder, type: type)
 
         # TODO: test how macros can now use defaults, too.
-        defaults = ::Declarative::Variables.new(defaults).merge(macro_alteration_options)
-        effective_options = ::Declarative::Variables.new(defaults).merge(user_options)
-
-
-
-        # puts "@@@@@ #{effective_options.inspect}"
-        # effective_user_options = effective_user_options.merge( user_options ) # merge the MACRO options with the USER options
-        # effective_options      = defaults.merge( effective_user_options )
+        defaults          = ::Declarative::Variables.merge(defaults, macro_alteration_options)
+        effective_options = ::Declarative::Variables.merge(defaults, user_options)
 
         # alteration == Insert, Attach, Connect, etc.
         wirings = alteration.(id, effective_options )
@@ -104,7 +98,7 @@ module Trailblazer
         add_element!( wirings, seq_options.merge(id: id) )
 
         # RETURN WHAT WE COMPUTED HERE. not sure about the API, yet.
-        macro_alteration_options
+        effective_options
       end
 
       # This method is generic for any kind of insertion/attach/connect.

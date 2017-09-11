@@ -35,3 +35,8 @@ class WireDefaultsTest < Minitest::Spec
   it { C.({}, "D_return" => C::ExceptionFromD).inspect("a", "b", "c", "D", "f").must_equal %{<Result:false [1, 2, nil, [1, 2, nil], nil] >} } # todo: HOW TO CHECK End instance?
   it { C.({}, "D_return" => Circuit::Left).inspect("a", "b", "c", "D", "f").must_equal %{<Result:false [1, 2, nil, [1, 2, nil], 4] >} } # todo: HOW TO CHECK End instance?
 end
+
+
+# step :a
+# fail :b, connect_to: { Circuit::Right => "End.success" }
+# fail :c, connect_to: { Circuit::Right => "End.success" }

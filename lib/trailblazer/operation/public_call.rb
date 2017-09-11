@@ -10,7 +10,7 @@ class Trailblazer::Operation
     # In workflows/Nested compositions, this method is not used anymore and it might probably
     # get removed in future versions of TRB. Currently, we use Activity::__call__ as an alternative.
     #
-    # @returns Operation::Railway::Result binary result object
+    # @return Operation::Railway::Result binary result object
     def call(params={}, options={}, *containers)
       options = options.merge("params" => params) # options will be passed to all steps/activities.
 
