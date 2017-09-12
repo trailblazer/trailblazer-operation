@@ -21,8 +21,8 @@ class WireDefaultsTest < Minitest::Spec
 
     # step provides defaults:
     step D,
-      outputs:       Railway::DSL::Merge( ExceptionFromD => { role: :exception } ),
-      connect_to:    Railway::DSL::Merge( exception: "End.myend" ),
+      outputs:       Merge( ExceptionFromD => { role: :exception } ),
+      connect_to:    Merge( exception: "End.myend" ),
       id:            "d"
 
     fail ->(options, **) { options["f"] = 4 }, id: "f"
@@ -45,8 +45,8 @@ end
 class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
   class Create < Trailblazer::Operation
     step :a
-    fail :b, connect_to: Railway::DSL::Merge({ :success => "End.success" })
-    fail :c, connect_to: Railway::DSL::Merge({ :success => "End.success" })
+    fail :b, connect_to: Merge({ :success => "End.success" })
+    fail :c, connect_to: Merge({ :success => "End.success" })
 
     def a(options, a_return:, **)
       options["a"] = 1

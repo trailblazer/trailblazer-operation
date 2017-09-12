@@ -34,7 +34,7 @@ class WiringWithNestedTest < Minitest::Spec
     step task: Trailblazer::Activity::Nested( Edit, call: :__call__ ),
       node_data:  { id: "Nested/" },
       outputs:    Edit.outputs, # THIS SHOULD OVERRIDE.
-      connect_to: Railway::DSL::Merge({ unauthorized: "End.unauthorized" }) # connects :success automatically.
+      connect_to: Merge({ unauthorized: "End.unauthorized" }) # connects :success automatically.
 
     step :b
     fail :f

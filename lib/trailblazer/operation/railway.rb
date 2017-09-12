@@ -15,6 +15,7 @@ module Trailblazer
         includer.extend Attach::DSL   # ::attach
         includer.extend Connect::DSL  # ::connect
         includer.extend Insert::DSL   # ::insert
+        includer.extend Merge    # ::Merge
 
         includer.initialize_activity!
       end
