@@ -220,7 +220,7 @@ class WireTest < Minitest::Spec
 end
 
 class WireExceptionTest < Minitest::Spec
-  # role in :connect_to unknown.
+  # role in :outputs can't be connected because not in :connect_to.
   it do
     exception = assert_raises do
       class Create < Trailblazer::Operation
