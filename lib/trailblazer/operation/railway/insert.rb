@@ -55,7 +55,8 @@ module Trailblazer
         # task_outputs is what the task has
         # known_targets are ends this activity/operation provides.
         task_outputs.collect do |signal, role:raise|
-          target = known_targets[ role ]
+          target = known_targets[ role ] or raise "Couldn't map output role #{role.inspect} for #{known_targets.inspect}"
+
           # TODO: add more options to edge like role: :success or role: pass_fast.
 
           [:connect!, source: id, edge: [signal, edge_options], target: target ] # e.g. "Left --> End.failure"

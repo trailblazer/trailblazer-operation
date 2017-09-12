@@ -218,3 +218,16 @@ class WireTest < Minitest::Spec
   #   File.write("berry3.bpmn", xml)
   # }
 end
+
+class WireExceptionTest < Minitest::Spec
+  # role in :connect_to unknown.
+  it do
+    exception = assert_raises do
+      class Create < Trailblazer::Operation
+        step :a, outputs: { "some" => { role: :success } }, connect_to: { :not_existent => "End.success" }
+      end
+    end
+
+    exception.message.must_equal %{Couldn't map output role :success for {:not_existent=>"End.success"}}
+  end
+end
