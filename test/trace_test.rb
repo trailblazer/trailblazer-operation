@@ -13,6 +13,7 @@ class TraceTest < Minitest::Spec
     step ->(options, a_return:, **) { options[:a] = a_return }, name: "Create.task.a"
     step( { task: MyNested, node_data: {} },                    name: "MyNested")
     step ->(options, **) { options[:c] = true }, name: "Create.task.c"
+    step ->(options, params:, **) { params.any? }, id: "Create.task.params"
   end
   # raise Create["__task_wraps__"].inspect
 
@@ -27,7 +28,7 @@ class TraceTest < Minitest::Spec
     stack, _ = Trailblazer::Circuit::Trace.(
       operation,
       nil,
-      options={ a_return: true },
+      options={ a_return: true, "params" => {} },
     )
 
     puts output = Circuit::Trace::Present.tree(stack)
@@ -41,11 +42,12 @@ class TraceTest < Minitest::Spec
 |   |-- End.success
 |   `-- #<Proc:.rb:6 (lambda)>
 |-- Create.task.c
-`-- End.success}
+|-- Create.task.params
+`-- End.failure}
   end
 
   it "Operation::trace" do
-    result = Create.trace({}, options={ a_return: true })
+    result = Create.trace({ x: 1 }, options={ a_return: true })
     result.wtf?.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- Start.default
 |-- Create.task.a
 |-- #<Proc:.rb:6 (lambda)>
@@ -55,6 +57,7 @@ class TraceTest < Minitest::Spec
 |   |-- End.success
 |   `-- #<Proc:.rb:6 (lambda)>
 |-- Create.task.c
+|-- Create.task.params
 `-- End.success}
   end
 end
