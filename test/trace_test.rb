@@ -4,7 +4,7 @@ class TraceTest < Minitest::Spec
   Circuit = Trailblazer::Circuit
 
   MyNested = ->(direction, options, flow_options) do
-    B.__call__(B.instance_variable_get(:@start), options, flow_options )
+    B.__call__(nil, options, flow_options )
 
     [ direction, options, flow_options ]
   end
