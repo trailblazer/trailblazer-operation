@@ -10,7 +10,7 @@ class TraceTest < Minitest::Spec
   end
 
   class Create < Trailblazer::Operation
-    step ->(options, **) { options[:a] = true }, name: "Create.task.a"
+    step ->(options, a_return:, **) { options[:a] = a_return }, name: "Create.task.a"
     step( { task: MyNested, node_data: {} },                    name: "MyNested")
     step ->(options, **) { options[:c] = true }, name: "Create.task.c"
   end
@@ -27,7 +27,7 @@ class TraceTest < Minitest::Spec
     stack, _ = Trailblazer::Circuit::Trace.(
       operation,
       nil,
-      options={},
+      options={ a_return: true },
     )
 
     puts output = Circuit::Trace::Present.tree(stack)
@@ -45,7 +45,7 @@ class TraceTest < Minitest::Spec
   end
 
   it "Operation::trace" do
-    result = Create.trace(options={})
+    result = Create.trace({}, options={ a_return: true })
     result.wtf?.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- Start.default
 |-- Create.task.a
 |-- #<Proc:.rb:6 (lambda)>

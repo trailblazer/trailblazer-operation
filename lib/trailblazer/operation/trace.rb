@@ -24,7 +24,7 @@ module Trailblazer
       #
       #   Operation.trace(params, "current_user" => current_user).wtf
       def trace(params, options={}, *dependencies)
-        Trace.(self, params, options, *dependencies)
+        Trace.(self, options.merge( params: params ), *dependencies)
       end
 
       # Presentation of the traced stack via the returned result object.
