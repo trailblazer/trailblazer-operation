@@ -1,13 +1,11 @@
 module Trailblazer
   module Operation::Railway
     module Attach
-      module DSL
-        def attach(task, user_options={})
-          # we only want allow a task here?
-          macro = { task: task, node_data: { id: task } } # id should get overridden from user_options.
+      def attach(task, user_options={})
+        # we only want allow a task here?
+        macro = { task: task, node_data: { id: task } } # id should get overridden from user_options.
 
-          _element( macro, user_options, { alteration: Attach, type: :attach, task_builder: TaskBuilder } )
-        end
+        _element( macro, user_options, { alteration: Attach, type: :attach, task_builder: TaskBuilder } )
       end
 
       # @return Array wirings

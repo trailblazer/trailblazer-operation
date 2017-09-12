@@ -12,9 +12,9 @@ module Trailblazer
         includer.extend DSL
         includer.extend DSL::DeprecatedMacro # TODO: remove in 2.2.
 
-        includer.extend Attach::DSL   # ::attach
-        includer.extend Connect::DSL  # ::connect
-        includer.extend Insert::DSL   # ::insert
+        includer.extend Attach   # ::attach
+        includer.extend Connect  # ::connect
+        includer.extend Insert   # ::insert
         includer.extend Merge    # ::Merge
 
         includer.initialize_activity!

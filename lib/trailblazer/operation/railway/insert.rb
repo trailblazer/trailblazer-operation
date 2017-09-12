@@ -4,11 +4,9 @@ module Trailblazer
     #   task/acti has outputs, role_to_target says which task output goes to what next task in the composing acti.
 
     module Insert
-      module DSL
-        # The `insert` alteration returns wirings array consisting of [ :insert_before, :connect, :connect, .. ]
-        def insert(step, **user_options)
-          _element( step, user_options, { alteration: Insert, type: :insert, task_builder: TaskBuilder } )
-        end
+      # The `insert` alteration returns wirings array consisting of [ :insert_before, :connect, :connect, .. ]
+      def insert(step, **user_options)
+        _element( step, user_options, { alteration: Insert, type: :insert, task_builder: TaskBuilder } )
       end
 
       def self.call(id, **insertion_options)

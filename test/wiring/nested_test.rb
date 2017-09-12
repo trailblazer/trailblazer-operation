@@ -21,6 +21,9 @@ class WiringWithNestedTest < Minitest::Spec
       #   @name=:failure,
       #   @options={}>=>{:role=>:unauthorized}}
       def self.outputs
+        # Outputs::Only(super, :success, :failure)
+        # Outputs::Update( outputs, failure: { role: :unauthorized}  )
+
         outs = super.to_a
 
         outs = Hash[*(outs[0]+outs[1])]
