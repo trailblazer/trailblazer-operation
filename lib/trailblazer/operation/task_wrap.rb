@@ -1,5 +1,3 @@
-require "trailblazer/circuit/wrap"
-
 module Trailblazer
   module Operation::Railway
     module TaskWrap
@@ -16,7 +14,7 @@ module Trailblazer
 
           # The map of task_wrap per step/task. Note that it defaults to Wrap.initial_activity.
           # This gets extended at compile-time for particular tasks as the steps are created via the DSL.
-          self["__static_task_wraps__"] = ::Hash.new(Circuit::Wrap.initial_activity)
+          self["__static_task_wraps__"] = ::Hash.new(Activity::Wrap.initial_activity)
         end
 
         # __call__ prepares `flow_options` and `static_wraps` for {TaskWrap::Runner}.
@@ -33,7 +31,7 @@ module Trailblazer
 
         # override:
         flow_options = flow_options.merge(
-          runner:        Circuit::Wrap::Runner,
+          runner:        Activity::Wrap::Runner,
           introspection: Activity::Introspection.new(activity) # TODO: don't create this at run-time! TODO; don't do this here!
         )
         # reverse_merge:

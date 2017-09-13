@@ -2,10 +2,10 @@ module Trailblazer
   class Operation
     module Trace
       def self.call(operation, *args)
-        # let Circuit::Trace::call handle all parameters, just make sure it calls Operation.__call__
+        # let Activity::Trace::call handle all parameters, just make sure it calls Operation.__call__
         call_block = ->(operation, *args) { operation.__call__(*args) }
 
-        stack, direction, options, flow_options = Circuit::Trace.(
+        stack, direction, options, flow_options = Activity::Trace.(
           operation,
           nil,
           *args,
@@ -36,7 +36,7 @@ module Trailblazer
         end
 
         def wtf?
-          Circuit::Trace::Present.tree(@stack)
+          Activity::Trace::Present.tree(@stack)
         end
 
         def wtf

@@ -1,8 +1,6 @@
 require "test_helper"
 
 class TraceTest < Minitest::Spec
-  Circuit = Trailblazer::Circuit
-
   MyNested = ->(direction, options, flow_options) do
     B.__call__(nil, options, flow_options )
 
@@ -25,22 +23,22 @@ class TraceTest < Minitest::Spec
   it do
     operation = ->(*args) { Create.__call__(*args) }
 
-    stack, _ = Trailblazer::Circuit::Trace.(
+    stack, _ = Trailblazer::Activity::Trace.(
       operation,
       nil,
       options={ a_return: true, "params" => {} },
     )
 
-    puts output = Circuit::Trace::Present.tree(stack)
+    puts output = Trailblazer::Activity::Trace::Present.tree(stack)
 
     output.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- Start.default
 |-- Create.task.a
-|-- #<Proc:.rb:6 (lambda)>
+|-- #<Proc:.rb:4 (lambda)>
 |   |-- Start.default
 |   |-- B.task.b
 |   |-- B.task.e
 |   |-- End.success
-|   `-- #<Proc:.rb:6 (lambda)>
+|   `-- #<Proc:.rb:4 (lambda)>
 |-- Create.task.c
 |-- Create.task.params
 `-- End.failure}
@@ -50,12 +48,12 @@ class TraceTest < Minitest::Spec
     result = Create.trace({ x: 1 }, options={ a_return: true })
     result.wtf?.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- Start.default
 |-- Create.task.a
-|-- #<Proc:.rb:6 (lambda)>
+|-- #<Proc:.rb:4 (lambda)>
 |   |-- Start.default
 |   |-- B.task.b
 |   |-- B.task.e
 |   |-- End.success
-|   `-- #<Proc:.rb:6 (lambda)>
+|   `-- #<Proc:.rb:4 (lambda)>
 |-- Create.task.c
 |-- Create.task.params
 `-- End.success}
