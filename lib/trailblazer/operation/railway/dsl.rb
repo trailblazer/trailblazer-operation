@@ -84,6 +84,8 @@ module Trailblazer
       # ActivityInterface # activity
       # lambda # step
 
+      # step Validate, no_key_err: "End.fail_fast"
+
 
       # DECOUPLED FROM any "local" config, except for __activity__, etc.
       # @param user_options Hash this is only used for non-alteration options, such as :before.
