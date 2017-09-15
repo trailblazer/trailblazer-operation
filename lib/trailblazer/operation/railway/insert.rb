@@ -1,14 +1,12 @@
 module Trailblazer
   module Operation::Railway
-    # document ## Outputs
-    #   task/acti has outputs, role_to_target says which task output goes to what next task in the composing acti.
-
     module Insert
       # The `insert` alteration returns wirings array consisting of [ :insert_before, :connect, :connect, .. ]
       def insert(step, **user_options)
         _element( step, user_options, { alteration: Insert, type: :insert, task_builder: TaskBuilder } )
       end
 
+      # @return Wirings wiring instructions applied to the graph. They include insertion of the task and outgoing connections.
       def self.call(id, **insertion_options)
         options, _ = insertion_args_for( insertion_options )
 
@@ -47,13 +45,13 @@ module Trailblazer
       end
 
       # @private
-      # connect! statements connecting `task_outputs` with `known_targets`.
-      # @param known_targets Hash {  }
-      def self.task_outputs_to(task_outputs, known_targets, id, edge_options)
+      # connect! statements connecting `task_outputs` with `connect_to`.
+      # @param connect_to Hash {  }
+      def self.task_outputs_to(task_outputs, connect_to, id, edge_options)
         # task_outputs is what the task has
-        # known_targets are ends this activity/operation provides.
+        # connect_to are ends this activity/operation provides.
         task_outputs.collect do |signal, role:raise|
-          target = known_targets[ role ] or raise "Couldn't map output role #{role.inspect} for #{known_targets.inspect}"
+          target = connect_to[ role ] or raise "Couldn't map output role #{role.inspect} for #{connect_to.inspect}"
 
           # TODO: add more options to edge like role: :success or role: pass_fast.
 

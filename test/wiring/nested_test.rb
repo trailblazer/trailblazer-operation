@@ -34,7 +34,7 @@ class WiringWithNestedTest < Minitest::Spec
 
     attach MyEnd.new(:myend), id: "End.unauthorized"
 
-    step task: Trailblazer::Activity::Nested( Edit, call: :__call__ ),
+    step task: Trailblazer::Activity::Subprocess( Edit, call: :__call__ ),
       node_data:  { id: "Nested/" },
       outputs:    Edit.outputs, # THIS SHOULD OVERRIDE.
       connect_to: Merge({ unauthorized: "End.unauthorized" }) # connects :success automatically.

@@ -80,6 +80,11 @@ module Trailblazer
       end
 
 
+      # { task: bla, outputs: bla } # macro
+      # ActivityInterface # activity
+      # lambda # step
+
+
       # DECOUPLED FROM any "local" config, except for __activity__, etc.
       # @param user_options Hash this is only used for non-alteration options, such as :before.
       # @return { ..., runner_options: {}, }
@@ -150,7 +155,8 @@ module Trailblazer
           else # user step.
             {
               task:      task_builder.(proc, Circuit::Right, Circuit::Left),
-              node_data: { id: proc }
+              node_data: { id: proc },
+              # outputs: proc.outputs,
             }
           # TODO: allow every step to have runner_options, etc
           end

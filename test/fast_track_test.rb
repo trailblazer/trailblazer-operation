@@ -112,7 +112,7 @@ class NestedFastTrackTest < Minitest::Spec
   end
 
   class Update < Trailblazer::Operation
-    step task: Trailblazer::Activity::Nested( Edit, call: :__call__ ), node_data: { id: "Nested/" }, outputs: Edit.outputs
+    step task: Trailblazer::Activity::Subprocess( Edit, call: :__call__ ), node_data: { id: "Subprocess/" }, outputs: Edit.outputs
     step :b
     fail :f
 
