@@ -36,7 +36,7 @@ class TaskWrapTest < Minitest::Spec
   #-
   # default gets set by Injection.
   it do
-    direction, options, _ = Create.__call__( Create.instance_variable_get(:@start), {}, {} )
+    direction, options, _ = Create.__call__( nil, {}, {} )
 
     Trailblazer::Hash.inspect(options, "options.contract", :contract, "MyMacro.contract").
       must_equal %{{"options.contract"=>nil, :contract=>"MyDefaultContract", "MyMacro.contract"=>"MyDefaultContract"}}
@@ -44,7 +44,7 @@ class TaskWrapTest < Minitest::Spec
 
   # injected from outside, Injection skips.
   it do
-    direction, options, _ = Create.__call__( Create.instance_variable_get(:@start), { :contract=>"MyExternalContract" }, {} )
+    direction, options, _ = Create.__call__( nil, { :contract=>"MyExternalContract" }, {} )
 
     Trailblazer::Hash.inspect(options, "options.contract", :contract, "MyMacro.contract").
       must_equal %{{"options.contract"=>"MyExternalContract", :contract=>"MyExternalContract", "MyMacro.contract"=>"MyExternalContract"}}
@@ -58,7 +58,7 @@ class TaskWrapTest < Minitest::Spec
 
   class Update < Trailblazer::Operation
     step(
-      task: ->(direction, options, flow_options) { _d, _o, _f = Create.__call__(Create.instance_variable_get(:@start), options, flow_options); [ Trailblazer::Circuit::Right, _o, _f ] },
+      task: ->(direction, options, flow_options) { _d, _o, _f = Create.__call__( nil, options, flow_options ); [ Trailblazer::Circuit::Right, _o, _f ] },
       node_data: { id: "Create" }
     )
     step(
