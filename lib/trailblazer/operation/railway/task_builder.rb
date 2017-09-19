@@ -21,14 +21,14 @@ module Trailblazer
       end
 
       def self.call(step, on_true=Circuit::Right, on_false=Circuit::Left)
-        Task.new step, &->(direction, options, flow_options) do
+        Task.new step, &->((options, flow_options), **circuit_args) do
           # Execute the user step with TRB's kw args.
           result = Trailblazer::Option::KW(step).(options, **flow_options)
 
           # Return an appropriate signal which direction to go next.
           direction = binary_direction_for(result, on_true, on_false)
 
-          [ direction, options, flow_options ]
+          [ direction, [ options, flow_options ], circuit_args ]
         end
       end
 

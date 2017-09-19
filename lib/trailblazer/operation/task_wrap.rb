@@ -18,27 +18,31 @@ module Trailblazer
         end
 
         # __call__ prepares `flow_options` and `static_wraps` for {TaskWrap::Runner}.
-        def __call__(direction, options, flow_options={})
-          options, flow_options, static_wraps = TaskWrap.arguments_for_call(self, direction, options, flow_options)
+        def __call__(args, **circuit_args)
 
-          super(direction, options, flow_options, static_wraps) # Railway::__call__
+          args, _circuit_args = TaskWrap.arguments_for_call(self, args)
+
+          super( args, _circuit_args.merge(circuit_args) ) # Railway::__call__
         end
       end
 
-      def self.arguments_for_call(operation, direction, options, flow_options)
+      def self.arguments_for_call(operation, (options, flow_options))
         activity      = operation["__activity__"]
         static_wraps  = operation["__static_task_wraps__"]
 
         # override:
         flow_options = flow_options.merge(
-          runner:        Activity::Wrap::Runner,
           introspection: Activity::Introspection.new(activity) # TODO: don't create this at run-time! TODO; don't do this here!
         )
         # reverse_merge:
-                  # FIXME: this sucks, why do we even need to pass an empty runtime there?
-        flow_options = { wrap_runtime: ::Hash.new([]) }.merge(flow_options)
 
-        [ options, flow_options, static_wraps ]
+        circuit_args = {
+          runner:        Activity::Wrap::Runner,
+                  # FIXME: this sucks, why do we even need to pass an empty runtime there?
+          wrap_runtime: ::Hash.new([]),
+        }
+
+        [ [ options, flow_options, static_wraps ], circuit_args ]
       end
 
       module DSL
