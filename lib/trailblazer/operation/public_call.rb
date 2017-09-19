@@ -21,7 +21,7 @@ class Trailblazer::Operation
 
       immutable_options = Trailblazer::Context::ContainerChain.new( [options, *containers], to_hash: hash_transformer ) # Runtime options, immutable.
 
-      last_signal, (options, flow_options) = super( immutable_options ) # Railway::call # DISCUSS: this could be ::call_with_context.
+      last_signal, (options, flow_options) = super( immutable_options, {} ) # Railway::call # DISCUSS: this could be ::call_with_context.
 
       # Result is successful if the activity ended with an End event derived from Railway::End::Success.
       Railway::Result(last_signal, options, flow_options)

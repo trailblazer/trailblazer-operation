@@ -54,8 +54,8 @@ module Trailblazer
         # This method gets overridden by PublicCall#call which will provide the Skills object.
         # @param options [Skill,Hash] all dependencies and runtime-data for this call
         # @return see #__call__
-        def call(options, flow_options={})
-          __call__( [ options, flow_options ] )
+        def call(*args)
+          __call__( args )
         end
 
         # {Activity} interface. Returns outputs from {Activity#outputs}.
