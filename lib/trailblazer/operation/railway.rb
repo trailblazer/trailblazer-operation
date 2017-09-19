@@ -34,11 +34,10 @@ module Trailblazer
 
         # Low-level `Activity` call interface. Runs the circuit.
         #
-        # @param start_at [Object] the task where to start circuit.
         # @param options [Hash, Skill] options to be passed to the first task. These are usually the "runtime options".
         # @param flow_options [Hash] arbitrary flow control options.
         # @return direction, options, flow_options
-        def __call__(start_at, options, flow_options, *args)
+        def __call__( (options, flow_options, *args), **circuit_options )
           exec_context = flow_options[:exec_context] # FIXME: make exec_context a positional arg, as it changes.
 
           # add the local operation's class dependencies to the skills.
@@ -46,7 +45,7 @@ module Trailblazer
 
           ctx = Trailblazer::Context(immutable_options)
 
-          signal, options, flow_options = self["__activity__"].(start_at, ctx, flow_options.merge( exec_context: new ), *args)
+          signal, (options, flow_options) = self["__activity__"].( [ ctx, flow_options.merge( exec_context: new ), *args ], **circuit_options )
 
           # TODO: flow_options.freeze and see what happens. should exec_context be another positional arg?
           [ signal, options, flow_options.merge( exec_context: exec_context ) ]
@@ -55,8 +54,8 @@ module Trailblazer
         # This method gets overridden by PublicCall#call which will provide the Skills object.
         # @param options [Skill,Hash] all dependencies and runtime-data for this call
         # @return see #__call__
-        def call(options)
-          __call__( nil, options, {} )
+        def call(options, flow_options={})
+          __call__( [ options, flow_options ] )
         end
 
         # {Activity} interface. Returns outputs from {Activity#outputs}.

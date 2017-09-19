@@ -19,14 +19,12 @@ class Trailblazer::Operation
 
       hash_transformer = ->(containers) { options.to_hash } # FIXME: don't transform any containers into kw args.
 
-      immutable_options = Trailblazer::Context::ContainerChain.new([options, *containers], to_hash: hash_transformer) # Runtime options, immutable.
+      immutable_options = Trailblazer::Context::ContainerChain.new( [options, *containers], to_hash: hash_transformer ) # Runtime options, immutable.
 
-      direction, options, flow_options = super(immutable_options) # DISCUSS: this could be ::call_with_context.
+      last_signal, (options, flow_options) = super( immutable_options ) # Railway::call # DISCUSS: this could be ::call_with_context.
 
       # Result is successful if the activity ended with an End event derived from Railway::End::Success.
-      Railway::Result(direction, options, flow_options)
+      Railway::Result(last_signal, options, flow_options)
     end
   end
 end
-
-
