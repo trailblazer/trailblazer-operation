@@ -39,7 +39,7 @@ module Trailblazer
         # @return direction, options, flow_options
         def __call__( (options, *args), **circuit_options )
           # add the local operation's class dependencies to the skills.
-          immutable_options = Trailblazer::Context::ContainerChain.new([options, self.skills])
+          immutable_options = Trailblazer::Context::ContainerChain.new([options, self.skills]) # TODO: make this a separate feature, non-default.
 
           ctx = Trailblazer::Context(immutable_options)
 
