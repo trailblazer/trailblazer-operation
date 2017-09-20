@@ -1,9 +1,9 @@
 require "test_helper"
 
 class TaskWrapTest < Minitest::Spec
-  MyMacro = ->(direction, options, flow_options) do
+  MyMacro = ->( (options, *args), *) do
     options["MyMacro.contract"] = options[:contract]
-    [ direction, options, flow_options ]
+    [ Trailblazer::Circuit::Right, [options, *args] ]
   end
 
   class Create < Trailblazer::Operation
@@ -36,7 +36,7 @@ class TaskWrapTest < Minitest::Spec
   #-
   # default gets set by Injection.
   it do
-    direction, options, _ = Create.__call__( nil, {}, {} )
+    direction, (options, _) = Create.__call__( [{}, {}] )
 
     Trailblazer::Hash.inspect(options, "options.contract", :contract, "MyMacro.contract").
       must_equal %{{"options.contract"=>nil, :contract=>"MyDefaultContract", "MyMacro.contract"=>"MyDefaultContract"}}
@@ -44,22 +44,26 @@ class TaskWrapTest < Minitest::Spec
 
   # injected from outside, Injection skips.
   it do
-    direction, options, _ = Create.__call__( nil, { :contract=>"MyExternalContract" }, {} )
+    direction, (options, _) = Create.__call__( [ { :contract=>"MyExternalContract" }, {} ] )
 
     Trailblazer::Hash.inspect(options, "options.contract", :contract, "MyMacro.contract").
       must_equal %{{"options.contract"=>"MyExternalContract", :contract=>"MyExternalContract", "MyMacro.contract"=>"MyExternalContract"}}
   end
 
   #- Nested task_wraps should not override the outer.
-  AnotherMacro = ->(direction, options, flow_options) do
+  AnotherMacro = ->( (options, *args), *) do
     options["AnotherMacro.another_contract"] = options[:another_contract]
-    [ direction, options, flow_options ]
+    [ Trailblazer::Circuit::Right, [options, *args] ]
   end
 
   class Update < Trailblazer::Operation
     step(
-      task: ->(direction, options, flow_options) { _d, _o, _f = Create.__call__( nil, options, flow_options ); [ Trailblazer::Circuit::Right, _o, _f ] },
-      node_data: { id: "Create" }
+      task: ->( (options, *args), * ) {
+          _d, *o = Create.__call__( [ options, *args ] )
+
+          [ Trailblazer::Circuit::Right, *o ]
+        },
+        node_data: { id: "Create" }
     )
     step(
       task:       AnotherMacro,
@@ -78,7 +82,7 @@ class TaskWrapTest < Minitest::Spec
   end
 
   it do
-    direction, options, _ = Update.__call__( Update.instance_variable_get(:@start), {}, {} )
+    direction, (options, _) = Update.__call__( [ {}, {} ] )
 
     Trailblazer::Hash.inspect(options, "options.contract", :contract, "MyMacro.contract", "AnotherMacro.another_contract").
       must_equal %{{"options.contract"=>nil, :contract=>"MyDefaultContract", "MyMacro.contract"=>"MyDefaultContract", "AnotherMacro.another_contract"=>"AnotherDefaultContract"}}
