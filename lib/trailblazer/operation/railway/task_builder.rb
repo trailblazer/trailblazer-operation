@@ -30,7 +30,7 @@ module Trailblazer
           # Return an appropriate signal which direction to go next.
           direction = binary_direction_for(result, on_true, on_false)
 
-          [ direction, [ options, *args ], circuit_args ]
+          [ direction, [ options, *args ], **circuit_args ]
         end
       end
 
