@@ -22,7 +22,7 @@ module Trailblazer
 
           args, _circuit_args = TaskWrap.arguments_for_call(self, args)
 
-          super( args, _circuit_args.merge(circuit_args) ) # Railway::__call__
+          super( args, circuit_args.merge(_circuit_args) ) # Railway::__call__
         end
       end
 
@@ -40,9 +40,10 @@ module Trailblazer
           runner:        Activity::Wrap::Runner,
                   # FIXME: this sucks, why do we even need to pass an empty runtime there?
           wrap_runtime: ::Hash.new([]),
+          wrap_static: static_wraps,
         }
 
-        [ [ options, flow_options, static_wraps ], circuit_args ]
+        [ [ options, flow_options ], circuit_args ]
       end
 
       module DSL
