@@ -20,10 +20,12 @@ module Trailblazer
         end
       end
 
+# TODO: make this class replaceable so @Mensfeld gets his own call style. :trollface:
+
       def self.call(step, on_true=Circuit::Right, on_false=Circuit::Left)
-        Task.new step, &->((options, flow_options), **circuit_args) do
+        Task.new step, &->( (options, flow_options), **circuit_args ) do
           # Execute the user step with TRB's kw args.
-          result = Trailblazer::Option::KW(step).(options, **flow_options)
+          result = Trailblazer::Option::KW(step).(options, **circuit_args) # circuit_args contains :exec_context.
 
           # Return an appropriate signal which direction to go next.
           direction = binary_direction_for(result, on_true, on_false)
@@ -32,6 +34,8 @@ module Trailblazer
         end
       end
 
+      # Translates the return value of the user step into a valid signal.
+      # Note that it passes through subclasses of {Signal}.
       def self.binary_direction_for(result, on_true, on_false)
         result.is_a?(Class) && result < Circuit::Signal ? result : (result ? on_true : on_false)
       end
