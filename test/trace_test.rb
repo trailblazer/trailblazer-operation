@@ -1,10 +1,10 @@
 require "test_helper"
 
 class TraceTest < Minitest::Spec
-  MyNested = ->(direction, options, flow_options) do
-    B.__call__(nil, options, flow_options )
+  MyNested = ->(*args) do
+    B.__call__(*args)
 
-    [ direction, options, flow_options ]
+    [ Trailblazer::Circuit::Right, *args ]
   end
 
   class Create < Trailblazer::Operation
@@ -21,11 +21,10 @@ class TraceTest < Minitest::Spec
   end
 
   it do
-    operation = ->(*args) { Create.__call__(*args) }
+    operation = ->(*args) { puts "@@@@@ #{args.last.inspect}"; Create.__call__(*args) }
 
     stack, _ = Trailblazer::Activity::Trace.(
       operation,
-      nil,
       options={ a_return: true, "params" => {} },
     )
 

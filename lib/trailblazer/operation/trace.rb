@@ -7,7 +7,6 @@ module Trailblazer
 
         stack, direction, options, flow_options = Activity::Trace.(
           operation,
-          nil,
           *args,
           &call_block # instructs Trace to use __call__.
         )

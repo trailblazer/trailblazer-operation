@@ -19,16 +19,15 @@ module Trailblazer
 
         # __call__ prepares `flow_options` and `static_wraps` for {TaskWrap::Runner}.
         def __call__(args, **circuit_args)
-
           args, _circuit_args = TaskWrap.arguments_for_call(self, args)
 
-          super( args, _circuit_args.merge(circuit_args) ) # Railway::__call__
+          super( args, _circuit_args.merge(circuit_args) )
         end
       end
 
       def self.arguments_for_call(operation, (options, flow_options))
-        activity      = operation["__activity__"]
-        static_wraps  = operation["__static_task_wraps__"]
+        activity    = operation["__activity__"]
+        wrap_static = operation["__static_task_wraps__"]
 
         # override:
         flow_options = flow_options.merge(
@@ -40,9 +39,10 @@ module Trailblazer
           runner:        Activity::Wrap::Runner,
                   # FIXME: this sucks, why do we even need to pass an empty runtime there?
           wrap_runtime: ::Hash.new([]),
+          wrap_static:  wrap_static,
         }
 
-        [ [ options, flow_options, static_wraps ], circuit_args ]
+        [ [ options, flow_options ], circuit_args ]
       end
 
       module DSL

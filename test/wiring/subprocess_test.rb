@@ -64,6 +64,6 @@ class WiringWithNestedTest < Minitest::Spec
     result.inspect("a", "b", "f").must_equal %{<Result:false [1, nil, nil] >}
     result.event.must_be_instance_of MyEnd
 
-    Create.trace({}, a_return: false ).wtf
+    # Create.trace({}, a_return: false ).wtf
   end
 end

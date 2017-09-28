@@ -19,10 +19,10 @@ class StepTest < Minitest::Spec
     end
   end
 
-  MyMacro = ->( direction, options, flow_options ) do
+  MyMacro = ->( (options, flow_options), * ) do
     options["e"] = options[:e]
 
-    [ direction, options, flow_options ]
+    [ Trailblazer::Circuit::Right, options, flow_options ]
   end
 
   class Create < Trailblazer::Operation
@@ -107,9 +107,9 @@ class StepTest < Minitest::Spec
 
   #- with macro
   class G < Trailblazer::Operation
-    MyMacro1 = ->(direction, options, flow_options) { options["a"] << :b; [ direction, options, flow_options ] }
-    MyMacro2 = ->(direction, options, flow_options) { options["a"] << :b; [ direction, options, flow_options ] }
-    # MyMacro3 = ->(direction, options, flow_options) { options["a"] << :b; [ direction, options, flow_options ] }
+    MyMacro1 = ->((options, flow_options), *) { options["a"] << :b; [ Trailblazer::Circuit::Right, options, flow_options ] }
+    MyMacro2 = ->((options, flow_options), *) { options["a"] << :b; [ Trailblazer::Circuit::Right, options, flow_options ] }
+    # MyMacro3 = ->(options, flow_options) { options["a"] << :b; [ Trailblazer::Circuit::Right, options, flow_options ] }
 
     step :a!
     step( { task: MyMacro1, node_data: { id: "add"} })
