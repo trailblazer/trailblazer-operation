@@ -21,7 +21,7 @@ module Trailblazer
         def __call__(args, **circuit_args)
           args, _circuit_args = TaskWrap.arguments_for_call(self, args)
 
-          super( args, _circuit_args.merge(circuit_args) )
+          super( args, circuit_args.merge(_circuit_args) ) # Railway::__call__
         end
       end
 

@@ -13,9 +13,10 @@ module Trailblazer
           warn %{[Trailblazer] Macros with API (input, options) are deprecated. Please use the "Task API" signature (direction, options, flow_options) or use a simpler Callable. (#{proc})}
           __proc = ->((options, flow_options), **circuit_options) do
             result    = _proc.(circuit_options[:exec_context], options) # run the macro, with the deprecated signature.
+
             direction = TaskBuilder.binary_direction_for(result, Circuit::Right, Circuit::Left)
 
-            [ direction, options, flow_options ]
+            [ direction, [options, *args] ]
           end
 
           super({ task: __proc, node_data: node_data }, *args)

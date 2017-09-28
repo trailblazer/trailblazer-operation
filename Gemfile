@@ -19,3 +19,5 @@ gem "trailblazer-developer", git: "https://github.com/trailblazer/trailblazer-de
 # gem "raise", path: "../raise"
 
 # gem "declarative", path: "../declarative"
+
+gem "trailblazer-activity", path: "../trailblazer-circuit"

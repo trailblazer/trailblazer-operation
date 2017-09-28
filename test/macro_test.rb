@@ -5,10 +5,10 @@ require "test_helper"
 # macro [ task, {name}, { alteration: }, {task_outputs} ] # for eg. nested
 
 class MacroTest < Minitest::Spec
-  MacroB = ->(direction, options, flow_options) do
+  MacroB = ->(( options, *args ), **) do
     options[:B] = true # we were here!
 
-    [ options[:MacroB_return], options, flow_options ]
+    [ options[:MacroB_return], [ options, *args ] ]
   end
 
   class Create < Trailblazer::Operation
