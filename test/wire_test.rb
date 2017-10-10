@@ -9,7 +9,7 @@ class WireTest < Minitest::Spec
   MyEnd = Class.new(Circuit::End)
   ExceptionFromD = Class.new
 
-  D = ->(options, flow_options, *args) do
+  D = ->((options, *args), *) do
     options["D"] = [ options["a"], options["b"], options["c"] ]
 
     signal = options["D_return"]
