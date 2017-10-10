@@ -20,13 +20,15 @@ class TraceTest < Minitest::Spec
     step ->(options, **) { options[:e] = true }, name: "B.task.e"
   end
 
-  it do
+  it "allows using low-level Activity::Trace" do
     operation = ->(*args) { puts "@@@@@ #{args.last.inspect}"; Create.__call__(*args) }
 
     stack, _ = Trailblazer::Activity::Trace.(
       operation,
       options={ a_return: true, "params" => {} },
     )
+
+# p stack
 
     puts output = Trailblazer::Activity::Trace::Present.tree(stack)
 
