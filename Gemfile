@@ -20,4 +20,4 @@ gem "trailblazer-developer", git: "https://github.com/trailblazer/trailblazer-de
 
 # gem "declarative", path: "../declarative"
 
-gem "trailblazer-activity", path: "../trailblazer-circuit"
+# gem "trailblazer-activity", path: "../trailblazer-circuit"
