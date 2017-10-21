@@ -20,7 +20,6 @@ require "trailblazer/operation/railway/merge"
 require "trailblazer/operation/railway/task_builder"
 require "trailblazer/operation/railway/fast_track"
 require "trailblazer/operation/task_wrap"
-require "trailblazer/operation/injection"
 require "trailblazer/operation/trace"
 
 module Trailblazer

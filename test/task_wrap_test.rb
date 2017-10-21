@@ -16,7 +16,7 @@ class TaskWrapTest < Minitest::Spec
       runner_options: {
         alteration: [
           [ :insert_before!, "task_wrap.call_task",
-            node: [ Trailblazer::Operation::TaskWrap::Injection::ReverseMergeDefaults( contract: "MyDefaultContract" ), id: "inject.reverse_merge_defaults.{:contract=>MyDefaultContract}" ],
+            node: [ Trailblazer::Activity::Wrap::Inject::ReverseMergeDefaults.new( contract: "MyDefaultContract" ), id: "inject.reverse_merge_defaults.{:contract=>MyDefaultContract}" ],
             incoming: Proc.new{ true },
             outgoing: [ Trailblazer::Circuit::Right, {} ]
           ],
@@ -72,7 +72,7 @@ class TaskWrapTest < Minitest::Spec
       runner_options: {
         alteration: [
           [ :insert_before!, "task_wrap.call_task",
-            node: [ Trailblazer::Operation::TaskWrap::Injection::ReverseMergeDefaults( another_contract: "AnotherDefaultContract" ), id: "inject.reverse_merge_defaults.{:another_contract=>AnotherDefaultContract}" ],
+            node: [ Trailblazer::Activity::Wrap::Inject::ReverseMergeDefaults.new( another_contract: "AnotherDefaultContract" ), id: "inject.reverse_merge_defaults.{:another_contract=>AnotherDefaultContract}" ],
             incoming: Proc.new{ true },
             outgoing: [ Trailblazer::Circuit::Right, {} ]
           ],

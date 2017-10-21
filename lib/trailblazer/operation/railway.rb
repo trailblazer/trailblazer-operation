@@ -42,6 +42,7 @@ module Trailblazer
           immutable_options = Trailblazer::Context::ContainerChain.new([options, self.skills]) # TODO: make this a separate feature, non-default.
 
           ctx = Trailblazer::Context(immutable_options)
+          puts "@@@@@__call__ #{ctx.object_id.inspect}"
 
           signal, args = self["__activity__"].( [ ctx, *args ], **circuit_options.merge( exec_context: new ) )
 
