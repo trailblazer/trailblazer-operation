@@ -109,11 +109,11 @@ module Trailblazer
         defaults          = ::Declarative::Variables.merge(defaults, macro_alteration_options)
         effective_options = ::Declarative::Variables.merge(defaults, user_options)
 
-        # alteration == Insert, Attach, Connect, etc.
-        # wirings = alteration.(id, effective_options )
+        # FIXME: this is of course experimental.
+        @__debug ||= {}
+        @__debug[id] = effective_options[:node_data]
 
         sequence_adds = Magnetic::Processor.( id, effective_options )
-
 
         add_element!( sequence_adds, seq_options.merge(id: id) )
 
@@ -127,7 +127,7 @@ module Trailblazer
       # semi-public
       def add_element!(sequence_adds, id:raise, **sequence_options)
         sequence_adds.each do |instruction|
-          self["__sequence__"].add(id, instruction)
+          self["__sequence__"].add(id, instruction, sequence_options)
         end
 
 

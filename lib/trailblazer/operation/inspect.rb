@@ -13,14 +13,15 @@ module Trailblazer
   module Operation::Inspect
     module_function
 
-    # TODO: at some point, we should render the real circuit graph using circuit tools.
     def call(operation, options={ style: :line })
-      graph = operation["__activity__"].graph
+      # TODO: better introspection API.
+      railway = operation["__sequence__"].instance_variable_get(:@groups)[:main]
+      debug   = operation.instance_variable_get(:@__debug)
 
-      rows = operation["__sequence__"].each_with_index.collect do |task_wiring, i|
-        node = graph.find_all( task_wiring.id ).first || raise
+      rows = railway.each_with_index.collect do |element, i|
+        introspect = debug[ element[:id] ]
 
-        [ i, [ node[:created_by], node[:id] ] ]
+        [ i, [ introspect[:created_by], introspect[:id] ] ]
       end
 
       return inspect_line(rows) if options[:style] == :line
