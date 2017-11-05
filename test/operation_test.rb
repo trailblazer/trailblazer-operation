@@ -70,15 +70,3 @@ class DeclarativeApiTest < Minitest::Spec
 
   it { Index.({}).inspect("a", "model.class").must_equal %{<Result:true [Module, Module] >} }
 end
-
-
-=begin
-module MiniTest::Assertions
-  def assert_inspect(text, subject)
-    circuit, _ = subject.values
-    map, _ = circuit.to_fields
-    map.inspect.gsub(/0x.+?lambda\)/, "").gsub("Trailblazer::Circuit::", "").gsub("AlterTest::", "").must_equal(text)
-  end
-end
-Trailblazer::Circuit::Activity.infect_an_assertion :assert_inspect, :must_inspect
-=end

@@ -25,39 +25,6 @@ module Trailblazer
 
       private
 
-      def connect_to_for_pass(options)
-        {
-          :success => "End.success",
-          :failure => "End.success"
-        }
-      end
-
-      def connect_to_for_fail(options)
-        {
-          :success => "End.failure",
-          :failure => "End.failure"
-        }
-      end
-
-      def connect_to_for_step(options)
-        {
-          :success => "End.success",
-          :failure => "End.failure"
-        }
-      end
-
-      def insert_before_for_pass(options)
-        "End.success"
-      end
-
-      def insert_before_for_fail(options)
-        "End.failure"
-      end
-
-      def insert_before_for_step(options)
-        "End.success"
-      end
-
       def Output(signal, color)
         Trailblazer::Activity::Schema::Output.new(signal, color)
       end
@@ -96,7 +63,6 @@ module Trailblazer
 
 
           outputs:              default_task_outputs(user_options),
-          # alteration:           Insert,
         }
 
         _element( proc, user_options, defaults ) # DSL::Magnetic::Processor
@@ -162,8 +128,6 @@ module Trailblazer
       # params sequence_options Hash containing where to insert in the Sequence (:before, :replace, etc.)
       # semi-public
       def add_element!(sequence_adds, id:raise, **sequence_options)
-
-
         sequence_adds.each do |instruction|
           self["__sequence__"].add(id, instruction)
         end
@@ -171,23 +135,6 @@ module Trailblazer
 
         self["__activity__"] = recompile_activity( self["__sequence__"] )
       end
-
-      # # @private
-      # def recompile_activity_for_wirings!(id, wirings, sequence_options)
-      #   sequence = self["__sequence__"]
-
-      #   # Insert wirings as one element into {Sequence} while respecting :append, :replace, before, etc.
-      #   sequence.insert!(id, wirings, sequence_options) # The sequence is now an up-to-date representation of our operation's steps.
-
-      #   # This op's graph are the initial wirings (different ends, etc) + the steps we added.
-      #   activity = recompile_activity( self["__sequence__"] + sequence.to_a )
-      # end
-
-      # # This is called per "step"/task insertion.
-      # # @private
-      # def recompile_activity(wirings)
-      #   Trailblazer::Activity.from_wirings(wirings)
-      # end
 
       # Receives the user's step `proc` and the user options. Computes id, seq options, the actual task to add to the graph, etc.
       # This function does not care about any alteration-specific user options, such as :insert_before.

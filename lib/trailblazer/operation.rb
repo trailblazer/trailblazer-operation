@@ -9,7 +9,6 @@ require "trailblazer/operation/skill"
 require "trailblazer/operation/deprecated_macro" # TODO: remove in 2.2.
 require "trailblazer/operation/result"
 require "trailblazer/operation/railway"
-require "trailblazer/operation/railway/sequence"
 
 require "trailblazer/operation/railway/dsl"
 require "trailblazer/operation/railway/insert"
@@ -37,7 +36,7 @@ module Trailblazer
     extend Skill::Accessors        # ::[] and ::[]=
 
     include Railway                # ::call, ::step, ...
-    # include Railway::FastTrack
+    include Railway::FastTrack
     # include Railway::TaskWrap
 
     # we want the skill dependency-mechanism.

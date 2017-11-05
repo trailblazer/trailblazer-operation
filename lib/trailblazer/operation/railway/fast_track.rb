@@ -3,24 +3,17 @@ module Trailblazer
     # Implements the fail_fast/pass_fast logic by connecting each task to the two
     # special end events.
     module FastTrack
-      # modules for declarative APIs are fine.
       def self.included(includer)
-        # add additional end events to the circuit.
         includer.extend(DSL)
-
-        # includer["__wirings__"] += DSL.initial_fast_tracks
       end
 
       module DSL
         # TODO: how to make this better overridable without super?
-        def initial_activity
-          end_for_pass_fast = Class.new(End::Success).new(:pass_fast)
-          end_for_fail_fast = Class.new(End::Failure).new(:fail_fast)
 
-          super + [
-            [ :attach!, target: [ end_for_pass_fast, id: "End.pass_fast", role: :pass_fast ], edge: [ PassFast, type: :railway ] ],
-            [ :attach!, target: [ end_for_fail_fast, id: "End.fail_fast", role: :fail_fast ], edge: [ FailFast, type: :railway ] ],
-          ]
+        def initialize_ends!(dependencies)
+          super
+          dependencies.add( "End.fail_fast", [ [:fail_fast], Class.new(End::Failure).new(:fail_fast), [] ], group: :end )
+          dependencies.add( "End.pass_fast", [ [:pass_fast], Class.new(End::Success).new(:pass_fast), [] ], group: :end )
         end
 
         def default_task_outputs(options)
@@ -28,43 +21,33 @@ module Trailblazer
           super
         end
 
-        # Called in DSL::pass
-        def connect_to_for_pass(options)
-          target = "End.pass_fast"
+        def seqargs_for_step(options)
+          magnetic_to, connect_to = super
 
-          return super.merge(success: target, failure: target) if options[:pass_fast]
-          super
+          connect_to = connect_to.merge( success: :pass_fast ) if options[:pass_fast]
+          connect_to = connect_to.merge( failure: :fail_fast ) if options[:fail_fast]
+          connect_to = connect_to.merge( fail_fast: :fail_fast, pass_fast: :pass_fast ) if options[:fast_track]
 
-          # {
-          #   :success => "End.success",
-          #   :failure => "End.success"
-          # }
+          [ magnetic_to, connect_to ]
         end
 
-        # Called in DSL::fail
-        def connect_to_for_fail(options)
-          target = "End.fail_fast"
+        def seqargs_for_pass(options)
+          magnetic_to, connect_to = super
 
-          step_options = {}
-          step_options = step_options.merge( fail_fast: target ) # always add edge to fail_fast?
+          connect_to = connect_to.merge( success: :pass_fast, failure: :pass_fast )     if options[:pass_fast]
+          connect_to = connect_to.merge( fail_fast: :fail_fast, pass_fast: :pass_fast ) if options[:fast_track]
 
-          step_options = step_options.merge( failure: target, success: target ) if options[:fail_fast]
-
-          super.merge(step_options)
+          [ magnetic_to, connect_to ]
         end
 
-        # Called in DSL::step
-        def connect_to_for_step(options)
-          step_options = {
-            success: connect_to_for_pass(options)[:success],
-            failure: connect_to_for_fail(options)[:failure],
-            pass_fast: "End.pass_fast",
-            fail_fast: "End.fail_fast", # always add edge to fail_fast?
-          }
+        def seqargs_for_fail(options)
+          magnetic_to, connect_to = super
 
-          super.merge(step_options)
+          connect_to = connect_to.merge( failure: :fail_fast, success: :fail_fast )     if options[:fail_fast]
+          connect_to = connect_to.merge( fail_fast: :fail_fast, pass_fast: :pass_fast ) if options[:fast_track]
+
+          [ magnetic_to, connect_to ]
         end
-
       end
     end
 

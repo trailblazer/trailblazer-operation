@@ -68,11 +68,12 @@ module Trailblazer
 
         def recompile_activity(dependencies)
           sequence = dependencies.to_a
+
           circuit_hash = Activity::Schema::Magnetic.(sequence)
 
           outputs = circuit_hash.find_all { |task, connections| connections.empty? }.collect { |task, connections| [ task, role: task.instance_variable_get(:@name) ] }.to_h
 
-          # raise outputs.inspect
+          pp outputs.inspect
 
           Activity.new(circuit_hash, outputs)
         end
