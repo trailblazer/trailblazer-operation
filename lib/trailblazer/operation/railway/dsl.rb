@@ -57,6 +57,7 @@ module Trailblazer
           type:                 type,
           task_builder:         TaskBuilder,
 
+          # compute (for the user_options passed in) the magnetic_to, and the connect_to tuples.
           railway_step: send("seqargs_for_#{type}", user_options),
 
 
