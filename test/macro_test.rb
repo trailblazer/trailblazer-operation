@@ -13,7 +13,7 @@ class MacroTest < Minitest::Spec
 
   class Create < Trailblazer::Operation
     step :a
-    step( task: MacroB, node_data: { id: :MacroB }, outputs: { "Allgood" => { role: :success }, "Fail!" => { role: :failure }, "Winning" => { role: :pass_fast } } )
+    step( {task: MacroB, node_data: { id: :MacroB }, outputs: { "Allgood" => { role: :success }, "Fail!" => { role: :failure }, "Winning" => { role: :pass_fast } }}, fast_track: true )
     step :c
 
     def a(options, **); options[:a] = true end
@@ -32,7 +32,7 @@ class MacroTest < Minitest::Spec
     macro = { task: MacroB, node_data: { id: :MacroB }, outputs: { "Allgood" => { role: :success }, "Fail!" => { role: :failure }, "Winning" => { role: :pass_fast } } }
 
     step :a
-    step macro, outputs: { "Allgood" => { role: :failure }, "Fail!" => { role: :success }, "Winning" => { role: :fail_fast } }
+    step macro, outputs: { "Allgood" => { role: :failure }, "Fail!" => { role: :success }, "Winning" => { role: :fail_fast } }, fast_track: true
     step :c
 
     def a(options, **); options[:a] = true end
