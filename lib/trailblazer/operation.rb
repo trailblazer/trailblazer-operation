@@ -22,6 +22,10 @@ require "trailblazer/operation/railway/fast_track"
 require "trailblazer/operation/task_wrap"
 require "trailblazer/operation/trace"
 
+
+    require "trailblazer/activity/schema/magnetic"
+    require "trailblazer/activity/schema/dependencies"
+
 module Trailblazer
   # The Trailblazer-style operation.
   # Note that you don't have to use our "opinionated" version with result object, skills, etc.
@@ -33,8 +37,8 @@ module Trailblazer
     extend Skill::Accessors        # ::[] and ::[]=
 
     include Railway                # ::call, ::step, ...
-    include Railway::FastTrack
-    include Railway::TaskWrap
+    # include Railway::FastTrack
+    # include Railway::TaskWrap
 
     # we want the skill dependency-mechanism.
     # extend Skill::Call             # ::call(params: .., current_user: ..)

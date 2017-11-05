@@ -58,9 +58,28 @@ module Trailblazer
         "End.success"
       end
 
+      def Output(signal, color)
+        Trailblazer::Activity::Schema::Output.new(signal, color)
+      end
+
+      def seqargs_for_step(options)
+                      # Output semantic => magnetic color/polarization
+        [ [:success], { success: :success, failure: :failure } ]
+      end
+
+      def seqargs_for_pass(options)
+        [ [:success], { success: :success, failure: :success } ]
+      end
+
+      # [:red], { success: :red, failure: :red }
+      def seqargs_for_fail(options)
+        [ [:failure], { success: :failure, failure: :failure } ]
+      end
+
       # An unaware step task usually has two outputs, one end event for success and one for failure.
       # Note that macros have to define their outputs when inserted and don't need a default config.
       def default_task_outputs(options)
+        # generic Outputs data structure.
         { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }}
       end
 
@@ -70,13 +89,17 @@ module Trailblazer
         defaults = {
           type:                 type,
           task_builder:         TaskBuilder,
-          connect_to:           send("connect_to_for_#{type}", user_options),
-          insert_before:        send("insert_before_for_#{type}", user_options),
+          # connect_to:           send("connect_to_for_#{type}", user_options),
+          # insert_before:        send("insert_before_for_#{type}", user_options),
+
+          railway_step: send("seqargs_for_#{type}", user_options),
+
+
           outputs:              default_task_outputs(user_options),
-          alteration:           Insert,
+          # alteration:           Insert,
         }
 
-        _element( proc, user_options, defaults )
+        _element( proc, user_options, defaults ) # DSL::Magnetic::Processor
       end
 
 
@@ -86,11 +109,34 @@ module Trailblazer
 
       # step Validate, no_key_err: "End.fail_fast"
 
+      module Magnetic
+        module Processor
+          def self.call(id, options)
+            magnetic_to, connect_to = options[:railway_step]
+
+            outputs = role_to_plus_pole( options[:outputs], connect_to )
+
+            # raise outputs.inspect
+            [
+              [ magnetic_to, options[:task], outputs ]
+            ]
+          end
+
+          def self.role_to_plus_pole(outputs, connect_to)
+            outputs.collect do |signal, role:raise|
+              color = connect_to[ role ] or raise "Couldn't map output role #{role.inspect} for #{connect_to.inspect}"
+
+              Activity::Schema::Output.new(signal, color)
+            end
+          end
+        end
+      end
+
 
       # DECOUPLED FROM any "local" config, except for __activity__, etc.
       # @param user_options Hash this is only used for non-alteration options, such as :before.
       # @return { ..., runner_options: {}, }
-      def _element(proc, user_options, alteration:raise, type:nil, task_builder:raise, **defaults)
+      def _element(proc, user_options, type:nil, task_builder:raise, **defaults)
         heritage.record(type, proc, user_options) # FIXME.
 
         id, macro_alteration_options, seq_options = Normalize.(proc, user_options, task_builder: task_builder, type: type)
@@ -100,9 +146,12 @@ module Trailblazer
         effective_options = ::Declarative::Variables.merge(defaults, user_options)
 
         # alteration == Insert, Attach, Connect, etc.
-        wirings = alteration.(id, effective_options )
+        # wirings = alteration.(id, effective_options )
 
-        add_element!( wirings, seq_options.merge(id: id) )
+        sequence_adds = Magnetic::Processor.( id, effective_options )
+
+
+        add_element!( sequence_adds, seq_options.merge(id: id) )
 
         # RETURN WHAT WE COMPUTED HERE. not sure about the API, yet.
         effective_options
@@ -112,26 +161,33 @@ module Trailblazer
       # params wirings Array
       # params sequence_options Hash containing where to insert in the Sequence (:before, :replace, etc.)
       # semi-public
-      def add_element!(wirings, id:raise, **sequence_options)
-        self["__activity__"] = recompile_activity_for_wirings!(id, wirings, sequence_options)
+      def add_element!(sequence_adds, id:raise, **sequence_options)
+
+
+        sequence_adds.each do |instruction|
+          self["__sequence__"].add(id, instruction)
+        end
+
+
+        self["__activity__"] = recompile_activity( self["__sequence__"] )
       end
 
-      # @private
-      def recompile_activity_for_wirings!(id, wirings, sequence_options)
-        sequence = self["__sequence__"]
+      # # @private
+      # def recompile_activity_for_wirings!(id, wirings, sequence_options)
+      #   sequence = self["__sequence__"]
 
-        # Insert wirings as one element into {Sequence} while respecting :append, :replace, before, etc.
-        sequence.insert!(id, wirings, sequence_options) # The sequence is now an up-to-date representation of our operation's steps.
+      #   # Insert wirings as one element into {Sequence} while respecting :append, :replace, before, etc.
+      #   sequence.insert!(id, wirings, sequence_options) # The sequence is now an up-to-date representation of our operation's steps.
 
-        # This op's graph are the initial wirings (different ends, etc) + the steps we added.
-        activity = recompile_activity( self["__wirings__"] + sequence.to_a )
-      end
+      #   # This op's graph are the initial wirings (different ends, etc) + the steps we added.
+      #   activity = recompile_activity( self["__sequence__"] + sequence.to_a )
+      # end
 
-      # This is called per "step"/task insertion.
-      # @private
-      def recompile_activity(wirings)
-        Trailblazer::Activity.from_wirings(wirings)
-      end
+      # # This is called per "step"/task insertion.
+      # # @private
+      # def recompile_activity(wirings)
+      #   Trailblazer::Activity.from_wirings(wirings)
+      # end
 
       # Receives the user's step `proc` and the user options. Computes id, seq options, the actual task to add to the graph, etc.
       # This function does not care about any alteration-specific user options, such as :insert_before.

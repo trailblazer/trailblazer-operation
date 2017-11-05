@@ -24,12 +24,11 @@ module Trailblazer
         def initialize_activity! # TODO: rename to circuit, or make it Activity?
           heritage.record :initialize_activity!
 
-          self["__wirings__"] = []
-          self["__wirings__"] += initial_activity
+          dependencies = self["__sequence__"] = Activity::Schema::Magnetic::Dependencies.new
 
-          self["__sequence__"] = Sequence.new # the `Sequence` instance is the only mutable/persisted object in this class.
+          initialize_ends!(dependencies)
 
-          self["__activity__"] = recompile_activity( initial_activity ) # almost empty NOOP circuit. (only needed for empty operations)
+          self["__activity__"] = recompile_activity( dependencies ) # almost empty NOOP circuit. (only needed for empty operations)
         end
 
         # Low-level `Activity` call interface. Runs the circuit.
@@ -42,7 +41,6 @@ module Trailblazer
           immutable_options = Trailblazer::Context::ContainerChain.new([options, self.skills]) # TODO: make this a separate feature, non-default.
 
           ctx = Trailblazer::Context(immutable_options)
-          puts "@@@@@__call__ #{ctx.object_id.inspect}"
 
           signal, args = self["__activity__"].( [ ctx, *args ], **circuit_options.merge( exec_context: new ) )
 
@@ -63,14 +61,20 @@ module Trailblazer
 
         private
 
-        def initial_activity
-          end_for_success = End::Success.new(:success)
-          end_for_failure = End::Failure.new(:failure)
+        def initialize_ends!(dependencies)
+          dependencies.add( "End.failure",  [ [:failure], End::Failure.new(:failure), [] ], group: :end )
+          dependencies.add( "End.success",  [ [:success], End::Success.new(:success), [] ], group: :end )
+        end
 
-          [
-            [ :attach!, target: [ end_for_success, type: :event, id: "End.success", role: :success ], edge: [ Circuit::Right, type: :railway ] ],
-            [ :attach!, target: [ end_for_failure, type: :event, id: "End.failure", role: :failure ], edge: [ Circuit::Left, type: :railway ] ],
-          ]
+        def recompile_activity(dependencies)
+          sequence = dependencies.to_a
+          circuit_hash = Activity::Schema::Magnetic.(sequence)
+
+          outputs = circuit_hash.find_all { |task, connections| connections.empty? }.collect { |task, connections| [ task, role: task.instance_variable_get(:@name) ] }.to_h
+
+          # raise outputs.inspect
+
+          Activity.new(circuit_hash, outputs)
         end
       end
 
