@@ -56,8 +56,6 @@ module Trailblazer
         defaults = {
           type:                 type,
           task_builder:         TaskBuilder,
-          # connect_to:           send("connect_to_for_#{type}", user_options),
-          # insert_before:        send("insert_before_for_#{type}", user_options),
 
           railway_step: send("seqargs_for_#{type}", user_options),
 
@@ -82,7 +80,6 @@ module Trailblazer
 
             outputs = role_to_plus_pole( options[:outputs], connect_to )
 
-            # raise outputs.inspect
             [
               [ magnetic_to, options[:task], outputs ]
             ]

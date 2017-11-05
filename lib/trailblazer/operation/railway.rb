@@ -12,9 +12,6 @@ module Trailblazer
         includer.extend DSL
         includer.extend DSL::DeprecatedMacro # TODO: remove in 2.2.
 
-        includer.extend Attach   # ::attach
-        includer.extend Connect  # ::connect
-        includer.extend Insert   # ::insert
         includer.extend Merge    # ::Merge
 
         includer.initialize_activity!
@@ -72,8 +69,6 @@ module Trailblazer
           circuit_hash = Activity::Schema::Magnetic.(sequence)
 
           outputs = circuit_hash.find_all { |task, connections| connections.empty? }.collect { |task, connections| [ task, role: task.instance_variable_get(:@name) ] }.to_h
-
-          pp outputs.inspect
 
           Activity.new(circuit_hash, outputs)
         end

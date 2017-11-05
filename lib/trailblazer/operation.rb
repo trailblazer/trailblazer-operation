@@ -11,9 +11,6 @@ require "trailblazer/operation/result"
 require "trailblazer/operation/railway"
 
 require "trailblazer/operation/railway/dsl"
-require "trailblazer/operation/railway/insert"
-require "trailblazer/operation/railway/attach"
-require "trailblazer/operation/railway/connect"
 require "trailblazer/operation/railway/merge"
 
 require "trailblazer/operation/railway/task_builder"
