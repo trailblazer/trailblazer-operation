@@ -25,6 +25,11 @@ module Trailblazer
 
       private
 
+      # Builds a custom end event.
+      def End(name)
+        Class.new(Circuit::End).new(name)
+      end
+
       def Output(signal, color)
         Trailblazer::Activity::Schema::Output.new(signal, color)
       end
@@ -76,8 +81,8 @@ module Trailblazer
 
       module Magnetic
         module Processor
-          def self.call(id, options)
-            magnetic_to, connect_to = options[:railway_step]
+          def self.call(id, railway_step:raise, **options)
+            magnetic_to, connect_to = railway_step
 
             outputs = role_to_plus_pole( options[:outputs], connect_to )
 
@@ -103,11 +108,31 @@ module Trailblazer
       def _element(proc, user_options, type:nil, task_builder:raise, **defaults)
         heritage.record(type, proc, user_options) # FIXME.
 
-        id, macro_alteration_options, seq_options = Normalize.(proc, user_options, task_builder: task_builder, type: type)
+
+        id, macro_alteration_options, seq_options, dsl_options = Normalize.(proc, user_options, task_builder: task_builder, type: type)
+
+        pp dsl_options
 
         # TODO: test how macros can now use defaults, too.
         defaults          = ::Declarative::Variables.merge(defaults, macro_alteration_options)
         effective_options = ::Declarative::Variables.merge(defaults, user_options)
+
+        adds = dsl_options.collect do |key, value|
+          if (signal, cfg = effective_options[:outputs].find { |signal, role:raise| key == role }) # find out if a DSL argument is an output role...
+            if value.kind_of?(Circuit::End)
+              [ value.instance_variable_get(:@name), [ [cfg[:role]], value, [] ], group: :end ] # add the new End with magnetic_to the railway step's particular output.
+
+
+              [  ]
+              else
+                raise
+            end
+            # raise value.inspect
+            # raise cfg.inspect
+
+          end
+        end
+        pp adds
 
         # FIXME: this is of course experimental.
         @__debug ||= {}
@@ -135,19 +160,18 @@ module Trailblazer
       end
 
       # Receives the user's step `proc` and the user options. Computes id, seq options, the actual task to add to the graph, etc.
-      # This function does not care about any alteration-specific user options, such as :insert_before.
       class Normalize
         def self.call(proc, user_options, task_builder:raise, type:raise)
           # these are the macro's (or steps) configurations, like :outputs or :id.
           macro_alteration_options = normalize_macro_options(proc, task_builder)
 
           # this id computation is specific to the step/pass/fail API and not add_task!'s job.
-          node_data, id = normalize_node_data( macro_alteration_options[:node_data], user_options, type )
-          seq_options   = normalize_sequence_options(id, user_options)
+          node_data, id            = normalize_node_data( macro_alteration_options[:node_data], user_options, type )
+          seq_options, dsl_options = normalize_sequence_options(id, user_options)
 
           macro_alteration_options = macro_alteration_options.merge( node_data: node_data ) # TODO: DEEP MERGE node_data in case there's data from user
 
-          return id, macro_alteration_options, seq_options
+          return id, macro_alteration_options, seq_options, dsl_options
         end
 
         private
@@ -176,8 +200,10 @@ module Trailblazer
 
         # Normalizes :override.
         # DSL::step/pass specific.
-        def self.normalize_sequence_options(id, override:nil, before:nil, after:nil, replace:nil, delete:nil, **user_options)
-          override ? { replace: id }.freeze : { before: before, after: after, replace: replace, delete: delete }.freeze
+        def self.normalize_sequence_options(id, override:nil, before:nil, after:nil, replace:nil, delete:nil, **user_dsl_options)
+          seq_options = override ? { replace: id }.freeze : { before: before, after: after, replace: replace, delete: delete }.freeze
+
+          return seq_options, user_dsl_options
         end
       end
     end # DSL
