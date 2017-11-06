@@ -55,6 +55,47 @@ class WireTest < Minitest::Spec
     result.event.must_equal Create.outputs.keys[0]
   end
 
+  #---
+  #- step with Merge
+  class CreateWithDefaults < Trailblazer::Operation
+    step ->(options, **) { options["a"] = 1 }
+    step ->(options, **) { options["b"] = 2 }, name: "b"
+
+    step( { task: D,
+      outputs: Merge( ExceptionFromD => { role: :exception } ), # any outputs and their polarization, generic.
+      id: :d,
+      },
+      :exception => MyEnd = End("End.ExceptionFromD_happened")
+    )
+
+    fail ->(options, **) { options["f"] = 4 }, id: "f"
+    step ->(options, **) { options["c"] = 3 }, id: "c"
+  end
+
+  # normal flow as D sits on the Right track.
+  it do
+    result = CreateWithDefaults.({}, "D_return" => Circuit::Right)
+
+    result.inspect("a", "b", "c", "D", "f").must_equal %{<Result:true [1, 2, 3, [1, 2, nil], nil] >}
+    result.event.must_equal CreateWithDefaults.outputs.keys[1]
+  end
+
+  # ends on MyEnd, without hitting fail.
+  it do
+    result = CreateWithDefaults.({}, "D_return" => ExceptionFromD)
+
+    result.event.must_equal CreateWithDefaults::MyEnd
+    result.inspect("a", "b", "c", "D", "f").must_equal %{<Result:false [1, 2, nil, [1, 2, nil], nil] >}
+  end
+
+  # normal flow to left track.
+  it do
+    result = CreateWithDefaults.({}, "D_return" => Circuit::Left)
+
+    result.inspect("a", "b", "c", "D", "f").must_equal %{<Result:false [1, 2, nil, [1, 2, nil], 4] >}
+    result.event.must_equal CreateWithDefaults.outputs.keys[0]
+  end
+
 #   # B is {Step}, we use ::attach and ::insert.
 #   class B < Trailblazer::Operation
 #     # here, D has a step interface!

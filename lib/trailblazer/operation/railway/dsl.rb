@@ -122,10 +122,8 @@ module Trailblazer
         railway_step_options = [
           id,
           effective_options[:task],
-
           magnetic_to,
           connect_to.merge(connect_to_adds),
-
           effective_options[:outputs],
           seq_options
         ]
