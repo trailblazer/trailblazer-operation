@@ -3,19 +3,6 @@ module Trailblazer
     # WARNING: The API here is still in a state of flux since we want to provide a simple yet flexible solution.
     # This is code executed at compile-time and can be slow.
     # @note `__sequence__` is a private concept, your custom DSL code should not rely on it.
-
-
-    # DRAFT
-    #  direction: "(output) signal"
-    #
-
-    # options merging
-    #  1. Defaults_from_DSL.merge user_options
-    #  2. macro_options.merge ( 1. )
-
-    # document ## Outputs
-    #   task/acti has outputs, role_to_target says which task output goes to what next task in the composing acti.
-
     module DSL
       def pass(proc, options={}); add_step_or_task_from_railway!(proc, options, type: :pass ); end
       def fail(proc, options={}); add_step_or_task_from_railway!(proc, options, type: :fail ); end
@@ -60,25 +47,14 @@ module Trailblazer
       # It provides sensible defaults such as :default_task_outputs or :insert_before.
       def add_step_or_task_from_railway!(proc, user_options, type:raise)
         defaults = {
-          type:                 type,
-          task_builder:         TaskBuilder,
-
-          # compute (for the user_options passed in) the magnetic_to, and the connect_to tuples.
-          railway_step: send("seqargs_for_#{type}", user_options),
-
-
-          outputs:              default_task_outputs(user_options),
+          type:              type,
+          task_builder:      TaskBuilder,
+          railway_step_args: send("seqargs_for_#{type}", user_options), # [ [magnetic_to], [ {role: magnetic_to/color} ]]
+          outputs:           default_task_outputs(user_options),
         }
 
         _element( proc, user_options, defaults ) # DSL::Magnetic::Processor
       end
-
-
-      # { task: bla, outputs: bla } # macro
-      # ActivityInterface # activity
-      # lambda # step
-
-      # step Validate, no_key_err: "End.fail_fast"
 
       module Magnetic
         module Processor
@@ -87,7 +63,8 @@ module Trailblazer
           def self.call(adds)
             adds.collect do |(id, task, magnetic_to, connect_to, outputs, seq_options)|
               outputs = role_to_plus_pole( outputs, connect_to )
-                [ id, [ magnetic_to, task, outputs ], seq_options ] # instruction for Sequence#add.
+
+              [ id, [ magnetic_to, task, outputs ], seq_options ] # instruction for Sequence#add.
             end
           end
 
@@ -117,8 +94,9 @@ module Trailblazer
         dsl_options = normalize_dsl_options(dsl_options, effective_options[:outputs]) # { success: .., exception:, .. }
         adds, connect_to_adds = process_dsl_options(dsl_options) # instructions and connections for { :success => End(:exception) }
 
-        magnetic_to, connect_to = effective_options[:railway_step]
+        magnetic_to, connect_to = effective_options[:railway_step_args]
 
+# puts "@@@@@ #{seq_options.inspect}"
         railway_step_options = [
           id,
           effective_options[:task],
@@ -129,6 +107,9 @@ module Trailblazer
         ]
 
         sequence_adds = Magnetic::Processor.( [railway_step_options] + adds )
+# puts "yo"
+#         pp sequence_adds
+
         add_elements!( sequence_adds )
 
 
@@ -219,8 +200,10 @@ module Trailblazer
 
         # Normalizes :override.
         # DSL::step/pass specific.
-        def self.normalize_sequence_options(id, override:nil, before:nil, after:nil, replace:nil, delete:nil, **user_dsl_options)
+        def self.normalize_sequence_options(id, override:nil, before:nil, after:nil, replace:nil, delete:nil, group:nil, **user_dsl_options)
           seq_options = override ? { replace: id }.freeze : { before: before, after: after, replace: replace, delete: delete }.freeze
+
+          seq_options = seq_options.merge(group: group) unless group.nil?
 
           return seq_options, user_dsl_options
         end
