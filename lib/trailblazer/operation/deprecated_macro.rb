@@ -19,7 +19,7 @@ module Trailblazer
             [ direction, [options, *args] ]
           end
 
-          super({ task: __proc, node_data: node_data }, *args)
+          super({ task: __proc }.merge(node_data), *args)
         end
       end # DeprecatedMacro
     end

@@ -30,7 +30,7 @@ class StepTest < Minitest::Spec
     step Callable
     step Implementation.method(:c)
     step :d
-    step( { task: MyMacro, node_data: { id: "MyMacro" } } ) # doesn't provide `runner_options` and `outputs`.
+    step( { task: MyMacro, id: "MyMacro" } ) # doesn't provide `runner_options` and `outputs`.
 
     def d(options, d:nil, **)
       options["d"] = d
@@ -118,9 +118,9 @@ class StepTest < Minitest::Spec
     # MyMacro3 = ->(options, flow_options) { options["a"] << :b; [ Trailblazer::Circuit::Right, options, flow_options ] }
 
     step :a!
-    step( { task: MyMacro1, node_data: { id: "add"} })
+    step( { task: MyMacro1, id: "add" })
     puts "yo"
-    step( { task: MyMacro2, node_data: { id: "add"} }, replace: "add")
+    step( { task: MyMacro2, id: "add" }, replace: "add")
     # step [ MyMacro3, {id: "add"}, {} ], override: true
 
     def a!(options, **);   options["a"] = []; end
@@ -178,8 +178,8 @@ class StepTest < Minitest::Spec
   class Index < Trailblazer::Operation
     step :validate!, id: "my validate"
     step :persist!
-    step( { task: MyMacro, node_data: { id: "I win!" } })
-    step( { task: MyMacro, node_data: { id: "I win!" } }, id: "No, I do!")
+    step( { task: MyMacro, id: "I win!" })
+    step( { task: MyMacro, id: "I win!" }, id: "No, I do!")
   end
 
   it { Trailblazer::Operation::Inspect.(Index).must_equal %{[>my validate,>persist!,>I win!,>No, I do!]} }
