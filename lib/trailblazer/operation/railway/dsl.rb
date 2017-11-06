@@ -83,15 +83,12 @@ module Trailblazer
       module Magnetic
         module Processor
           # outputs: { signal => semantic } # given by task/user.
-          def self.call(id, railway_step, adds)
-            id, task, (magnetic_to, connect_to), outputs, seq_options = railway_step
-
-            outputs = role_to_plus_pole( outputs, connect_to )
-
-            [
-              [ id, [ magnetic_to, task, outputs ], seq_options ] # instruction for Sequence#add.
-            ] +
-            adds
+          # translate the DSL language to magnetic.
+          def self.call(adds)
+            adds.collect do |(id, task, magnetic_to, connect_to, outputs, seq_options)|
+              outputs = role_to_plus_pole( outputs, connect_to )
+                [ id, [ magnetic_to, task, outputs ], seq_options ] # instruction for Sequence#add.
+            end
           end
 
           def self.role_to_plus_pole(outputs, connect_to)
@@ -117,24 +114,23 @@ module Trailblazer
         defaults          = ::Declarative::Variables.merge(defaults, macro_alteration_options)
         effective_options = ::Declarative::Variables.merge(defaults, user_options)
 
-        adds, connect_to_adds = process_dsl_options(dsl_options, effective_options[:outputs]) # instructions and connections for { :success => End(:exception) }
+        dsl_options = normalize_dsl_options(dsl_options, effective_options[:outputs]) # { success: .., exception:, .. }
+        adds, connect_to_adds = process_dsl_options(dsl_options) # instructions and connections for { :success => End(:exception) }
 
         magnetic_to, connect_to = effective_options[:railway_step]
-        effective_options[:railway_step] = [ magnetic_to, connect_to.merge(connect_to_adds) ]
 
         railway_step_options = [
           id,
           effective_options[:task],
-          effective_options[:railway_step],
+
+          magnetic_to,
+          connect_to.merge(connect_to_adds),
+
           effective_options[:outputs],
           seq_options
         ]
 
-
-        sequence_adds = Magnetic::Processor.( id, railway_step_options, adds )
-
-pp sequence_adds
-
+        sequence_adds = Magnetic::Processor.( [railway_step_options] + adds )
         add_elements!( sequence_adds )
 
 
@@ -149,23 +145,26 @@ pp sequence_adds
 
       #DSL
       # { :success => End(:exception) }
-      def process_dsl_options(dsl_options, outputs)
-        connect_to = {}
-
+      def process_dsl_options(dsl_options)
         adds = dsl_options.collect do |key, task|
-          if (signal, cfg = outputs.find { |signal, role:raise| key == role }) # find out if a DSL argument is an output role...
-            connect_to[ cfg[:role] ] = cfg[:role]
-
-            if task.kind_of?(Circuit::End)
-              [ task.instance_variable_get(:@name), [ [cfg[:role]], task, [] ], group: :end ]  # Sequence.add statement.
-               # add the new End with magnetic_to the railway step's particular output.
-            else
-              raise
-            end
+          if task.kind_of?(Circuit::End)
+            [ task.instance_variable_get(:@name), task, [key], {}, [], group: :end ]  # Sequence.add AST.
+          else
+            raise
           end
         end
 
+        output_roles = dsl_options.keys
+        connect_to   = ::Hash[ output_roles.zip(output_roles) ] # { exception: :exception }, map semantic to color.
+
         return adds.compact, connect_to
+      end
+
+      # Extract all DSL-specific options, such as
+      #   { success: End(:my_success) }
+      def normalize_dsl_options(options, outputs)
+        dsl_keys    = outputs.values.collect { |v| v[:role] } # [:success, :failure, :exception]
+        dsl_options = options.select { |k,v| dsl_keys.include?(k) }
       end
 
       # This method is generic for any kind of insertion/attach/connect.
@@ -177,7 +176,6 @@ pp sequence_adds
           # pp instruction
           self["__sequence__"].add(*instruction)
         end
-
 
         self["__activity__"] = recompile_activity( self["__sequence__"] )
       end
