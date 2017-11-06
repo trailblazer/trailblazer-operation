@@ -68,6 +68,8 @@ module Trailblazer
 
           circuit_hash = Activity::Schema::Magnetic.(sequence)
 
+          # pp circuit_hash
+
           outputs = circuit_hash.find_all { |task, connections| connections.empty? }.collect { |task, connections| [ task, role: task.instance_variable_get(:@name) ] }.to_h
 
           Activity.new(circuit_hash, outputs)

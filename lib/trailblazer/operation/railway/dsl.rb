@@ -26,8 +26,9 @@ module Trailblazer
       private
 
       # Builds a custom end event.
-      def End(name)
-        Class.new(Circuit::End).new(name)
+      # TODO: TEST to pass class.
+      def End(name, end_class = End::Failure)
+        Class.new(end_class).new(name)
       end
 
       def Output(signal, color)
@@ -81,14 +82,15 @@ module Trailblazer
 
       module Magnetic
         module Processor
-          def self.call(id, railway_step:raise, **options)
-            magnetic_to, connect_to = railway_step
+          def self.call(id, railway_step, adds)
+            id, task, (magnetic_to, connect_to), outputs, seq_options = railway_step
 
-            outputs = role_to_plus_pole( options[:outputs], connect_to )
+            outputs = role_to_plus_pole( outputs, connect_to )
 
             [
-              [ id, [ magnetic_to, options[:task], outputs ] ]
-            ]
+              [ id, [ magnetic_to, task, outputs ], seq_options ] # instruction for Sequence#add.
+            ] +
+            adds
           end
 
           def self.role_to_plus_pole(outputs, connect_to)
@@ -108,39 +110,44 @@ module Trailblazer
       def _element(proc, user_options, type:nil, task_builder:raise, **defaults)
         heritage.record(type, proc, user_options) # FIXME.
 
-
         id, macro_alteration_options, seq_options, dsl_options = Normalize.(proc, user_options, task_builder: task_builder, type: type)
-
-        pp dsl_options
 
         # TODO: test how macros can now use defaults, too.
         defaults          = ::Declarative::Variables.merge(defaults, macro_alteration_options)
         effective_options = ::Declarative::Variables.merge(defaults, user_options)
 
+        connect_to_adds = {}
         adds = dsl_options.collect do |key, value|
           if (signal, cfg = effective_options[:outputs].find { |signal, role:raise| key == role }) # find out if a DSL argument is an output role...
             if value.kind_of?(Circuit::End)
+                connect_to_adds.merge!( cfg[:role] => cfg[:role] )
               [ value.instance_variable_get(:@name), [ [cfg[:role]], value, [] ], group: :end ] # add the new End with magnetic_to the railway step's particular output.
-
-
-              [  ]
-              else
-                raise
+            else
+              raise
             end
-            # raise value.inspect
-            # raise cfg.inspect
-
           end
         end
-        pp adds
 
         # FIXME: this is of course experimental.
         @__debug ||= {}
         @__debug[id] = effective_options[:node_data]
 
-        sequence_adds = Magnetic::Processor.( id, effective_options )
+        magnetic_to, connect_to = effective_options[:railway_step]
+        effective_options[:railway_step] = [ magnetic_to, connect_to.merge(connect_to_adds) ]
 
-        add_element!( sequence_adds, seq_options )
+        railway_step_options = [
+          id,
+          effective_options[:task],
+          effective_options[:railway_step],
+          effective_options[:outputs],
+          seq_options
+        ]
+
+
+
+        sequence_adds = Magnetic::Processor.( id, railway_step_options, adds.compact )
+
+        add_elements!( sequence_adds )
 
         # RETURN WHAT WE COMPUTED HERE. not sure about the API, yet.
         effective_options
@@ -150,9 +157,10 @@ module Trailblazer
       # params wirings Array
       # params sequence_options Hash containing where to insert in the Sequence (:before, :replace, etc.)
       # semi-public
-      def add_element!(sequence_adds, **sequence_options)
+      def add_elements!(sequence_adds)
         sequence_adds.each do |instruction|
-          self["__sequence__"].add(*instruction, sequence_options)
+          # pp instruction
+          self["__sequence__"].add(*instruction)
         end
 
 
@@ -166,7 +174,7 @@ module Trailblazer
           macro_alteration_options = normalize_macro_options(proc, task_builder)
 
           # this id computation is specific to the step/pass/fail API and not add_task!'s job.
-          node_data, id            = normalize_node_data( macro_alteration_options[:node_data], user_options, type )
+          node_data, id            = normalize_node_data( macro_alteration_options, user_options, type )
           seq_options, dsl_options = normalize_sequence_options(id, user_options)
 
           macro_alteration_options = macro_alteration_options.merge( node_data: node_data ) # TODO: DEEP MERGE node_data in case there's data from user
@@ -182,7 +190,7 @@ module Trailblazer
           else # user step.
             {
               task:      task_builder.(proc, Circuit::Right, Circuit::Left),
-              node_data: { id: proc },
+              id: proc,
               # outputs: proc.outputs,
             }
           # TODO: allow every step to have runner_options, etc
