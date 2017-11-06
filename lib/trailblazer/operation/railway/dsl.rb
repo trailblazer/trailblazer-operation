@@ -82,6 +82,7 @@ module Trailblazer
 
       module Magnetic
         module Processor
+          # outputs: { signal => semantic } # given by task/user.
           def self.call(id, railway_step, adds)
             id, task, (magnetic_to, connect_to), outputs, seq_options = railway_step
 
@@ -116,21 +117,7 @@ module Trailblazer
         defaults          = ::Declarative::Variables.merge(defaults, macro_alteration_options)
         effective_options = ::Declarative::Variables.merge(defaults, user_options)
 
-        connect_to_adds = {}
-        adds = dsl_options.collect do |key, value|
-          if (signal, cfg = effective_options[:outputs].find { |signal, role:raise| key == role }) # find out if a DSL argument is an output role...
-            if value.kind_of?(Circuit::End)
-                connect_to_adds.merge!( cfg[:role] => cfg[:role] )
-              [ value.instance_variable_get(:@name), [ [cfg[:role]], value, [] ], group: :end ] # add the new End with magnetic_to the railway step's particular output.
-            else
-              raise
-            end
-          end
-        end
-
-        # FIXME: this is of course experimental.
-        @__debug ||= {}
-        @__debug[id] = effective_options[:node_data]
+        adds, connect_to_adds = process_dsl_options(dsl_options, effective_options[:outputs]) # instructions and connections for { :success => End(:exception) }
 
         magnetic_to, connect_to = effective_options[:railway_step]
         effective_options[:railway_step] = [ magnetic_to, connect_to.merge(connect_to_adds) ]
@@ -144,13 +131,41 @@ module Trailblazer
         ]
 
 
+        sequence_adds = Magnetic::Processor.( id, railway_step_options, adds )
 
-        sequence_adds = Magnetic::Processor.( id, railway_step_options, adds.compact )
+pp sequence_adds
 
         add_elements!( sequence_adds )
 
+
+
+        # FIXME: this is of course experimental.
+        @__debug ||= {}
+        @__debug[id] = effective_options[:node_data]
+
         # RETURN WHAT WE COMPUTED HERE. not sure about the API, yet.
         effective_options
+      end
+
+      #DSL
+      # { :success => End(:exception) }
+      def process_dsl_options(dsl_options, outputs)
+        connect_to = {}
+
+        adds = dsl_options.collect do |key, task|
+          if (signal, cfg = outputs.find { |signal, role:raise| key == role }) # find out if a DSL argument is an output role...
+            connect_to[ cfg[:role] ] = cfg[:role]
+
+            if task.kind_of?(Circuit::End)
+              [ task.instance_variable_get(:@name), [ [cfg[:role]], task, [] ], group: :end ]  # Sequence.add statement.
+               # add the new End with magnetic_to the railway step's particular output.
+            else
+              raise
+            end
+          end
+        end
+
+        return adds.compact, connect_to
       end
 
       # This method is generic for any kind of insertion/attach/connect.
