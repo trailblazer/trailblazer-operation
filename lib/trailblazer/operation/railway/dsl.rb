@@ -87,7 +87,7 @@ module Trailblazer
             outputs = role_to_plus_pole( options[:outputs], connect_to )
 
             [
-              [ magnetic_to, options[:task], outputs ]
+              [ id, [ magnetic_to, options[:task], outputs ] ]
             ]
           end
 
@@ -140,7 +140,7 @@ module Trailblazer
 
         sequence_adds = Magnetic::Processor.( id, effective_options )
 
-        add_element!( sequence_adds, seq_options.merge(id: id) )
+        add_element!( sequence_adds, seq_options )
 
         # RETURN WHAT WE COMPUTED HERE. not sure about the API, yet.
         effective_options
@@ -150,9 +150,9 @@ module Trailblazer
       # params wirings Array
       # params sequence_options Hash containing where to insert in the Sequence (:before, :replace, etc.)
       # semi-public
-      def add_element!(sequence_adds, id:raise, **sequence_options)
+      def add_element!(sequence_adds, **sequence_options)
         sequence_adds.each do |instruction|
-          self["__sequence__"].add(id, instruction, sequence_options)
+          self["__sequence__"].add(*instruction, sequence_options)
         end
 
 
