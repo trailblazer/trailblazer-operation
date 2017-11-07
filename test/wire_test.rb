@@ -2,6 +2,7 @@ require "test_helper"
 # require "trailblazer/developer"
 
 class WireTest < Minitest::Spec
+  Circuit = Trailblazer::Circuit
   ExceptionFromD = Class.new               # custom signal
 
   D = ->((options, *args), *) do
@@ -29,7 +30,7 @@ class WireTest < Minitest::Spec
   end
 
   # myend ==> d
-  it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?wire_test.rb/, "").must_equal %{[>#<Proc::19 (lambda)>,>b,>d,<<f,>c]} }
+  it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?wire_test.rb/, "").must_equal %{[>#<Proc::18 (lambda)>,>b,>d,<<f,>c]} }
 
   # normal flow as D sits on the Right track.
   it do

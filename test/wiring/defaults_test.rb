@@ -116,4 +116,28 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
   it { Update.({}, a_return: false, b_return: false, c_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :b, :c, :d]] >} }
   # a => b => c => false
   it { Update.({}, a_return: false, b_return: false, c_return: false, data: []).inspect(:data).must_equal %{<Result:false [[:a, :b, :c]] >} }
+
+  #---
+  # failure steps reference End.success and not just the polarization. This won't call #d in failure=>success case.
+  class Delete < Trailblazer::Operation
+    step :a
+    fail :b, :success => "End.success"
+    fail :c, :success => "End.success"
+    pass :d
+
+    Test.step(self, :a, :b, :c)
+
+    def d(options, data:, **)
+      data << :d
+    end
+  end
+
+  # a => true
+  it { Delete.({}, a_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :d]] >} }
+  # b => true
+  it { Delete.({}, a_return: false, b_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :b]] >} }
+  # c => true
+  it { Delete.({}, a_return: false, b_return: false, c_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :b, :c]] >} }
+  # a => b => c => false
+  it { Delete.({}, a_return: false, b_return: false, c_return: false, data: []).inspect(:data).must_equal %{<Result:false [[:a, :b, :c]] >} }
 end

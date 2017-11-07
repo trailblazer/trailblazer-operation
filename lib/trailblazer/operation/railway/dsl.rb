@@ -125,17 +125,21 @@ module Trailblazer
       #DSL
       # { :success => End(:exception) }
       def process_dsl_options(dsl_options)
+        connect_to = {}
+
         adds = dsl_options.collect do |key, task|
           if task.kind_of?(Circuit::End)
+            connect_to[key] = key
             [ task.instance_variable_get(:@name), task, [key], {}, [], group: :end ]  # Sequence.add AST.
+          elsif task.is_a?(String) # let's say this means an existing step
+            new_edge = "#{key}-#{task}"
+            connect_to[key] = new_edge
+            [ task, nil, [new_edge], {}, [], { group: :end } ] # fixme: static group
           else
-            # [  ]
-            # raise
+            connect_to[key] = key
+            nil
           end
         end
-
-        output_roles = dsl_options.keys
-        connect_to   = ::Hash[ output_roles.zip(output_roles) ] # { :exception => :exception }, map semantic to color.
 
         return adds.compact, connect_to
       end
@@ -157,6 +161,8 @@ module Trailblazer
           # pp instruction
           self["__sequence__"].add(*instruction)
         end
+
+        pp self["__sequence__"]
 
         self["__activity__"] = recompile_activity( self["__sequence__"] )
       end
