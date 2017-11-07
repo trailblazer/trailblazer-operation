@@ -2,8 +2,6 @@ require "test_helper"
 # require "trailblazer/developer"
 
 class WireTest < Minitest::Spec
-  Circuit = Trailblazer::Circuit
-
   ExceptionFromD = Class.new               # custom signal
 
   D = ->((options, *args), *) do

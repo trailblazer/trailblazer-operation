@@ -129,18 +129,20 @@ module Trailblazer
           if task.kind_of?(Circuit::End)
             [ task.instance_variable_get(:@name), task, [key], {}, [], group: :end ]  # Sequence.add AST.
           else
-            raise
+            # [  ]
+            # raise
           end
         end
 
         output_roles = dsl_options.keys
-        connect_to   = ::Hash[ output_roles.zip(output_roles) ] # { exception: :exception }, map semantic to color.
+        connect_to   = ::Hash[ output_roles.zip(output_roles) ] # { :exception => :exception }, map semantic to color.
 
         return adds.compact, connect_to
       end
 
-      # Extract all DSL-specific options, such as
+      # Extract all DSL-specific options, from the user's options such as
       #   { success: End(:my_success) }
+      # This works by only selecting tuples where the key is an output semantic name (e.g. :success).
       def normalize_dsl_options(options, outputs)
         dsl_keys    = outputs.values.collect { |v| v[:role] } # [:success, :failure, :exception]
         dsl_options = options.select { |k,v| dsl_keys.include?(k) }
