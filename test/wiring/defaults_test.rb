@@ -98,13 +98,10 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
   # it { Trailblazer::Developer::Client.push( operation: Create, name: "ushi" ) }
 
 
-  class Update < Trailblazer::Operation
-    step :a
-    fail :b, :success => :success #{}"End.success"
-    fail :c, :success => :success
+  #---
+  # with => :success, steps can still be added before End.success and they will be executed.
+  class Update < Create
     pass :d
-
-    Test.step(self, :a, :b, :c)
 
     def d(options, data:, **)
       data << :d
