@@ -12,8 +12,8 @@ module Trailblazer
 
         def initialize_ends!(dependencies)
           super
-          dependencies.add( "End.fail_fast", [ [:fail_fast], Class.new(End::Failure).new(:fail_fast), [] ], group: :end )
-          dependencies.add( "End.pass_fast", [ [:pass_fast], Class.new(End::Success).new(:pass_fast), [] ], group: :end )
+          dependencies.add( "End.fail_fast", [ [:fail_fast], Class.new(End::Failure).new(:fail_fast), {}, {} ], group: :end )
+          dependencies.add( "End.pass_fast", [ [:pass_fast], Class.new(End::Success).new(:pass_fast), {}, {} ], group: :end )
         end
 
         def default_task_outputs(options)

@@ -21,7 +21,7 @@ module Trailblazer
         def initialize_activity! # TODO: rename to circuit, or make it Activity?
           heritage.record :initialize_activity!
 
-          dependencies = self["__sequence__"] = Activity::Schema::Magnetic::Dependencies.new
+          dependencies = self["__sequence__"] = Activity::Magnetic::Alterations.new
 
           initialize_ends!(dependencies)
 
@@ -58,15 +58,14 @@ module Trailblazer
 
         private
 
-        def initialize_ends!(dependencies)
-          dependencies.add( "End.failure",  [ [:failure], End::Failure.new(:failure), [] ], group: :end )
-          dependencies.add( "End.success",  [ [:success], End::Success.new(:success), [] ], group: :end )
+        def initialize_ends!(alterations)
+          alterations.add( "End.failure", [ [:failure], End::Failure.new(:failure), {}, {} ], group: :end )
+          alterations.add( "End.success", [ [:success], End::Success.new(:success), {}, {} ], group: :end )
         end
 
-        def recompile_activity(dependencies)
-          sequence = dependencies.to_a
-
-          circuit_hash = Activity::Schema::Magnetic.(sequence)
+        def recompile_activity(alterations)
+          tripletts = Trailblazer::Activity::Magnetic::ConnectionFinalizer.( alterations.to_a )
+          pp circuit_hash = Trailblazer::Activity::Schema::Magnetic.( tripletts )
 
           # pp circuit_hash
 

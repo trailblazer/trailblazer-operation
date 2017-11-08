@@ -39,8 +39,8 @@ module Trailblazer
       # An unaware step task usually has two outputs, one end event for success and one for failure.
       # Note that macros have to define their outputs when inserted and don't need a default config.
       def default_task_outputs(options)
-        # generic Outputs data structure.
-        { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }}
+        # generic data structure: signal => semantic
+        { Circuit::Right => :success, Circuit::Left => :failure }
       end
 
       # Normalizations specific to the Operation's standard DSL, as pass/fail/step.
@@ -73,33 +73,17 @@ module Trailblazer
 
 
 
-
-        adds = process_dsl_options(id, dsl_options) # instructions and connections for { :success => End(:exception) }
-        adds = adds.flatten(1)
-
-
         magnetic_to, connect_to = effective_options[:railway_step_args]
 
-        railway_step_options = [
-          id,
-          effective_options[:task],
-          magnetic_to,
-          connect_to,
-          effective_options[:outputs],
-          seq_options
-        ]
+        alterations = self["__sequence__"]
 
-         # puts ([railway_step_options] + adds).inspect
+        alterations.add( id, [ magnetic_to, effective_options[:task], connect_to, effective_options[:outputs] ], seq_options )
 
-        sequence_adds = Magnetic::Processor.( [railway_step_options] + adds )
-puts :yo
-         pp sequence_adds
+        process_dsl_options(id, dsl_options, alterations) # instructions and connections for { :success => End(:exception) }
 
-        add_elements!( sequence_adds )
+        pp alterations
 
-
-
-
+        self["__activity__"] = recompile_activity( alterations )
 
 
 
@@ -113,29 +97,18 @@ puts :yo
 
       #DSL
       # { :success => End(:exception) }
-      def process_dsl_options(id, dsl_options)
-        # connect_to = {}
-
+      def process_dsl_options(id, dsl_options, alterations)
         dsl_options.collect do |key, task|
           if task.kind_of?(Circuit::End)
-            # connect_to[key] = key
-            [
-              [ id, nil, [], { key => key }, [], {} ], # upsert: add new output polarization to {step task}.
-              [ task.instance_variable_get(:@name), task, [key], {}, [], group: :end ],  # Sequence.add the new end (TODO: also add new tasks).
-            ]
+            alterations.magnetic_to( id, { key => key } )
+            alterations.add( task.instance_variable_get(:@name), [ [key], task, {}, {} ], group: :end  )
           elsif task.is_a?(String) # let's say this means an existing step
             new_edge = "#{key}-#{task}"
-            # connect_to[key] = new_edge
-            [
-              [ id, nil, [], { key => new_edge }, [], {} ], # upsert: add new output polarization to {step task}.
-              [ task, nil, [new_edge], {}, [], {} ] # this is extends existing. because Dependencies knows it.
-            ]
+
+            alterations.connect_to(  id, { key => new_edge } )
+            alterations.magnetic_to( task, [new_edge] )
           else # only an additional plus polarization going to the right (outgoing)
-            # connect_to[key] = key
-            # nil
-            [
-              [ id, nil, [], { key => key }, thismustmergethe new connectto {} ], # upsert: add new output polarization to {step task}.
-            ]
+            alterations.connect_to(  id, { key => key } )
           end
         end
       end
@@ -144,7 +117,7 @@ puts :yo
       #   { success: End(:my_success) }
       # This works by only selecting tuples where the key is an output semantic name (e.g. :success).
       def normalize_dsl_options(options, outputs)
-        dsl_keys    = outputs.values.collect { |v| v[:role] } # [:success, :failure, :exception]
+        dsl_keys    = outputs.values # [:success, :failure, :exception]
         dsl_options = options.select { |k,v| dsl_keys.include?(k) }
       end
 
