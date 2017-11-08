@@ -81,7 +81,7 @@ module Trailblazer
 
         process_dsl_options(id, dsl_options, alterations) # instructions and connections for { :success => End(:exception) }
 
-        pp alterations
+        # pp alterations
 
         self["__activity__"] = recompile_activity( alterations )
 
@@ -119,21 +119,6 @@ module Trailblazer
       def normalize_dsl_options(options, outputs)
         dsl_keys    = outputs.values # [:success, :failure, :exception]
         dsl_options = options.select { |k,v| dsl_keys.include?(k) }
-      end
-
-      # This method is generic for any kind of insertion/attach/connect.
-      # params wirings Array
-      # params sequence_options Hash containing where to insert in the Sequence (:before, :replace, etc.)
-      # semi-public
-      def add_elements!(sequence_adds)
-        sequence_adds.each do |instruction|
-          # pp instruction
-          self["__sequence__"].add(*instruction)
-        end
-
-        # pp self["__sequence__"]
-
-        self["__activity__"] = recompile_activity( self["__sequence__"] )
       end
 
       # Receives the user's step `proc` and the user options. Computes id, seq options, the actual task to add to the graph, etc.

@@ -142,7 +142,7 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
   it { Delete.({}, a_return: false, b_return: false, c_return: false, data: []).inspect(:data).must_equal %{<Result:false [[:a, :b, :c]] >} }
 
   #---
-  # failure steps reference End.success and not just the polarization. This won't call #d in failure=>success case.
+  #
   class Connect < Trailblazer::Operation
     step :a
     step :b, :success => "d"
