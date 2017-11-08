@@ -56,28 +56,6 @@ module Trailblazer
         _element( proc, user_options, defaults ) # DSL::Magnetic::Processor
       end
 
-      module Magnetic
-        module Processor
-          # outputs: { signal => semantic } # given by task/user.
-          # translate the DSL language to magnetic.
-          def self.call(adds)
-            adds.collect do |(id, task, magnetic_to, connect_to, outputs, seq_options)|
-              outputs = role_to_plus_pole( outputs, connect_to )
-
-              [ id, [ magnetic_to, task, outputs ], seq_options ] # instruction for Sequence#add.
-            end
-          end
-
-          def self.role_to_plus_pole(outputs, connect_to)
-            outputs.collect do |signal, role:raise|
-              color = connect_to[ role ] or raise "Couldn't map output role #{role.inspect} for #{connect_to.inspect}"
-
-              Activity::Schema::Output.new(signal, color)
-            end
-          end
-        end
-      end
-
 
       # DECOUPLED FROM any "local" config, except for __activity__, etc.
       # @param user_options Hash this is only used for non-alteration options, such as :before.
@@ -91,26 +69,37 @@ module Trailblazer
         defaults          = ::Declarative::Variables.merge(defaults, macro_alteration_options)
         effective_options = ::Declarative::Variables.merge(defaults, user_options)
 
-        dsl_options = normalize_dsl_options(dsl_options, effective_options[:outputs]) # { success: .., exception:, .. }
-        adds, connect_to_adds = process_dsl_options(dsl_options) # instructions and connections for { :success => End(:exception) }
+        dsl_options       = normalize_dsl_options(dsl_options, effective_options[:outputs]) # { success: .., exception:, .. }
+
+
+
+
+        adds = process_dsl_options(id, dsl_options) # instructions and connections for { :success => End(:exception) }
+        adds = adds.flatten(1)
+
 
         magnetic_to, connect_to = effective_options[:railway_step_args]
 
-# puts "@@@@@ #{seq_options.inspect}"
         railway_step_options = [
           id,
           effective_options[:task],
           magnetic_to,
-          connect_to.merge(connect_to_adds),
+          connect_to,
           effective_options[:outputs],
           seq_options
         ]
 
+         # puts ([railway_step_options] + adds).inspect
+
         sequence_adds = Magnetic::Processor.( [railway_step_options] + adds )
-# puts "yo"
-#         pp sequence_adds
+puts :yo
+         pp sequence_adds
 
         add_elements!( sequence_adds )
+
+
+
+
 
 
 
@@ -124,24 +113,31 @@ module Trailblazer
 
       #DSL
       # { :success => End(:exception) }
-      def process_dsl_options(dsl_options)
-        connect_to = {}
+      def process_dsl_options(id, dsl_options)
+        # connect_to = {}
 
-        adds = dsl_options.collect do |key, task|
+        dsl_options.collect do |key, task|
           if task.kind_of?(Circuit::End)
-            connect_to[key] = key
-            [ task.instance_variable_get(:@name), task, [key], {}, [], group: :end ]  # Sequence.add AST.
+            # connect_to[key] = key
+            [
+              [ id, nil, [], { key => key }, [], {} ], # upsert: add new output polarization to {step task}.
+              [ task.instance_variable_get(:@name), task, [key], {}, [], group: :end ],  # Sequence.add the new end (TODO: also add new tasks).
+            ]
           elsif task.is_a?(String) # let's say this means an existing step
             new_edge = "#{key}-#{task}"
-            connect_to[key] = new_edge
-            [ task, nil, [new_edge], {}, [], { group: :end } ] # fixme: static group
-          else
-            connect_to[key] = key
-            nil
+            # connect_to[key] = new_edge
+            [
+              [ id, nil, [], { key => new_edge }, [], {} ], # upsert: add new output polarization to {step task}.
+              [ task, nil, [new_edge], {}, [], {} ] # this is extends existing. because Dependencies knows it.
+            ]
+          else # only an additional plus polarization going to the right (outgoing)
+            # connect_to[key] = key
+            # nil
+            [
+              [ id, nil, [], { key => key }, thismustmergethe new connectto {} ], # upsert: add new output polarization to {step task}.
+            ]
           end
         end
-
-        return adds.compact, connect_to
       end
 
       # Extract all DSL-specific options, from the user's options such as
@@ -162,7 +158,7 @@ module Trailblazer
           self["__sequence__"].add(*instruction)
         end
 
-        pp self["__sequence__"]
+        # pp self["__sequence__"]
 
         self["__activity__"] = recompile_activity( self["__sequence__"] )
       end
