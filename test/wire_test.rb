@@ -19,7 +19,7 @@ class WireTest < Minitest::Spec
     step ->(options, **) { options["b"] = 2 }, name: "b"
 
     step( { task: D,
-      outputs: { Circuit::Right => { role: :success }, Circuit::Left => { role: :failure }, ExceptionFromD => { role: :exception } }, # any outputs and their polarization, generic.
+      outputs: { Circuit::Right => :success, Circuit::Left => :failure, ExceptionFromD => :exception }, # any outputs and their polarization, generic.
       id: :d,
       },
       :exception => MyEnd = End("End.ExceptionFromD_happened")
