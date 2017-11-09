@@ -15,7 +15,7 @@ module Trailblazer
 
     def call(operation, options={ style: :line })
       # TODO: better introspection API.
-      railway = operation["__sequence__"].instance_variable_get(:@groups)[:main]
+      railway = operation["__sequence__"].instance_variable_get(:@groups).instance_variable_get(:@groups)[:main]
       debug   = operation.instance_variable_get(:@__debug)
 
       rows = railway.each_with_index.collect do |element, i|
