@@ -155,4 +155,13 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
       data << :d
     end
   end
+
+  # a => true
+  it { Connect.({}, a_return: true, b_return: true,data: []).inspect(:data).must_equal %{<Result:true [[:a, :b, :d]] >} }
+  # b => true
+  it { Connect.({}, a_return: false, b_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :b]] >} }
+  # c => true
+  it { Connect.({}, a_return: false, b_return: false, c_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :b, :c]] >} }
+  # a => b => c => false
+  it { Connect.({}, a_return: false, b_return: false, c_return: false, data: []).inspect(:data).must_equal %{<Result:false [[:a, :b, :c]] >} }
 end
