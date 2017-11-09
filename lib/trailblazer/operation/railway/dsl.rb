@@ -71,11 +71,13 @@ module Trailblazer
 
         dsl_options       = normalize_dsl_options(dsl_options, effective_options[:outputs]) # { success: .., exception:, .. }
 
-
-
         magnetic_to, connect_to = effective_options[:railway_step_args]
 
         alterations = self["__sequence__"]
+
+        # still ::step specific code
+        skip_magnetic_to = effective_options[:skip_input] || nil
+        magnetic_to = magnetic_to - [skip_magnetic_to]
 
         alterations.add( id, [ magnetic_to, effective_options[:task], connect_to, effective_options[:outputs] ], seq_options )
 
