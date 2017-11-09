@@ -169,8 +169,8 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
   # |---------|
   # |         V
   # a    c----d --
-  # |    ^\    \
-  # |   /  V
+  # |\   ^\    \
+  # | \ /  V
   # |__f____g----E.f
   class Post < Trailblazer::Operation
     step :a, :success => "d", id: "a"
