@@ -110,7 +110,7 @@ module Trailblazer
     #
     # The Normalizer sits in the `@builder`, which receives all DSL calls from the Operation subclass.
     class Normalizer
-      def self.call(task, options)
+      def self.call(task, options, sequence_options)
         wrapped_task, options =
           if task.is_a?(::Hash) # macro.
             [ task[:task], task ]
@@ -124,7 +124,12 @@ module Trailblazer
             id:         task, # TODO. :name, macro
           }.merge(options)
 
-        return wrapped_task, options
+
+        # handle :override
+        options, locals  = Activity::Magnetic::Builder.normalize(options, [:override])
+        sequence_options = sequence_options.merge( replace: task ) if locals[:override]
+
+        return wrapped_task, options, sequence_options
       end
 
       def self.InitialPlusPoles
