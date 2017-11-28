@@ -37,13 +37,13 @@ class StepTest < Minitest::Spec
     end
   end
 
+  it do
+    puts Cct(Create.instance_variable_get(:@process))
+  end
+
   it { Create.({}, a: 1, b: 2, c: 3, d: 4, e: 5).inspect("a", "b", "c", "d", "e").must_equal "<Result:true [1, 2, 3, 4, 5] >" }
 
   it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?step_test.rb/, "").must_equal %{[>#<Proc::29 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>MyMacro]} }
-  # poor test to make sure we pass debug information to Activity.
-
-  # it { puts Create["__activity__"].to_fields.last.inspect }
-  it { skip; Create["__activity__"].graph.find_all(:d).first[:id].must_equal :d }
 
   #---
   #- :before, :after, :replace, :delete, :override
