@@ -7,26 +7,6 @@ module Trailblazer
   class Operation
     # End event: All subclasses of End:::Success are interpreted as "success"?
     module Railway
-      def self.included(includer)
-        includer.extend ClassMethods # ::call, ::inititalize_pipetree!
-        includer.extend DSL
-        includer.extend DSL::DeprecatedMacro # TODO: remove in 2.2.
-
-        includer.extend Merge    # ::Merge
-
-        includer.initialize_activity!
-      end
-
-      module ClassMethods
-
-        # This method gets overridden by PublicCall#call which will provide the Skills object.
-        # @param options [Skill,Hash] all dependencies and runtime-data for this call
-        # @return see #__call__
-        def call(*args)
-          __call__( args )
-        end
-      end
-
       # @param options Context
       # @param end_event The last emitted signal in a circuit is usually the end event.
       def self.Result(end_event, options, *)
