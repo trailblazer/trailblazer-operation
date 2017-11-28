@@ -41,7 +41,7 @@ class Trailblazer::Operation
 
 
 
-      last_signal, (options, flow_options) = super( [ctx, {}] ) # Railway::call # DISCUSS: this could be ::call_with_context.
+      last_signal, (options, flow_options) = __call__( [ctx, {}] ) # Railway::call # DISCUSS: this could be ::call_with_context.
 
       # Result is successful if the activity ended with an End event derived from Railway::End::Success.
       Railway::Result(last_signal, options, flow_options)

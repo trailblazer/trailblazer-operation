@@ -42,6 +42,7 @@ module Trailblazer
 
     module Process
       def inherited(inheriter)
+        super
         inheriter.initialize_activity_dsl!
         inheriter.recompile_process!
       end
@@ -63,34 +64,10 @@ module Trailblazer
         @outputs
       end
 
-      def call(args, circuit_options={})
+      # Call the actual {Process} with the options prepared in PublicCall.
+      def __call__(args, circuit_options={})
         @process.( args, circuit_options.merge( exec_context: new ) )
       end
-    end
-
-    module Call
-    # Low-level `Activity` call interface. Runs the circuit.
-        #
-        # @param options [Hash, Skill] options to be passed to the first task. These are usually the "runtime options".
-        # @param flow_options [Hash] arbitrary flow control options.
-        # @return direction, options, flow_options
-        def __call__( (options, *args), **circuit_options )
-          # add the local operation's class dependencies to the skills.
-          immutable_options = Trailblazer::Context::ContainerChain.new([options, self.skills]) # TODO: make this a separate feature, non-default.
-
-          ctx = Trailblazer::Context(immutable_options)
-
-          signal, args = self["__activity__"].( [ ctx, *args ], **circuit_options.merge( exec_context: new ) )
-
-          [ signal, args ]
-        end
-
-        # This method gets overridden by PublicCall#call which will provide the Skills object.
-        # @param options [Skill,Hash] all dependencies and runtime-data for this call
-        # @return see #__call__
-        def call(*args)
-          __call__( args )
-        end
     end
 
     extend Process # make ::call etc. class methods on Operation.
@@ -105,6 +82,8 @@ module Trailblazer
       def_delegators :@builder, :Output, :Path#, :task
 
       def step(*args, &block)
+        heritage.record :step, *args, &block
+
         cfg = @builder.step(*args, &block)
         recompile_process!
         cfg
