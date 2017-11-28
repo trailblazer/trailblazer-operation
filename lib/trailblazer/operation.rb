@@ -47,7 +47,12 @@ module Trailblazer
       end
 
       def initialize_activity_dsl!
-        @builder = Activity::Magnetic::Builder::FastTrack.new( Normalizer, {} )
+        builder_options = {
+          track_end:   Railway::End::Success.new(:success),
+          failure_end: Railway::End::Failure.new(:failure),
+        }
+
+        @builder = Activity::Magnetic::Builder::FastTrack.new( Normalizer, builder_options )
       end
 
       def recompile_process!

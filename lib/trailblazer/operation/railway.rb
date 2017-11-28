@@ -18,60 +18,12 @@ module Trailblazer
       end
 
       module ClassMethods
-        def initialize_activity! # TODO: rename to circuit, or make it Activity?
-          heritage.record :initialize_activity!
-
-          dependencies = self["__sequence__"] = Activity::Magnetic::Alterations.new
-
-          initialize_ends!(dependencies)
-
-          self["__activity__"] = recompile_activity( dependencies ) # almost empty NOOP circuit. (only needed for empty operations)
-        end
-
-        # Low-level `Activity` call interface. Runs the circuit.
-        #
-        # @param options [Hash, Skill] options to be passed to the first task. These are usually the "runtime options".
-        # @param flow_options [Hash] arbitrary flow control options.
-        # @return direction, options, flow_options
-        def __call__( (options, *args), **circuit_options )
-          # add the local operation's class dependencies to the skills.
-          immutable_options = Trailblazer::Context::ContainerChain.new([options, self.skills]) # TODO: make this a separate feature, non-default.
-
-          ctx = Trailblazer::Context(immutable_options)
-
-          signal, args = self["__activity__"].( [ ctx, *args ], **circuit_options.merge( exec_context: new ) )
-
-          [ signal, args ]
-        end
 
         # This method gets overridden by PublicCall#call which will provide the Skills object.
         # @param options [Skill,Hash] all dependencies and runtime-data for this call
         # @return see #__call__
         def call(*args)
           __call__( args )
-        end
-
-        # {Activity} interface. Returns outputs from {Activity#outputs}.
-         def outputs
-          self["__activity__"].outputs
-        end
-
-        private
-
-        def initialize_ends!(alterations)
-          alterations.add( "End.failure", [ [:failure], End::Failure.new(:failure), {}, {} ], group: :end )
-          alterations.add( "End.success", [ [:success], End::Success.new(:success), {}, {} ], group: :end )
-        end
-
-        def recompile_activity(alterations)
-          tripletts = Trailblazer::Activity::Magnetic::ConnectionFinalizer.( alterations.to_a )
-          pp circuit_hash = Trailblazer::Activity::Schema::Magnetic.( tripletts )
-
-          # pp circuit_hash
-
-          outputs = circuit_hash.find_all { |task, connections| connections.empty? }.collect { |task, connections| [ task, role: task.instance_variable_get(:@name) ] }.to_h
-
-          Activity.new(circuit_hash, outputs)
         end
       end
 
