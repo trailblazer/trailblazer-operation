@@ -28,7 +28,7 @@ module Trailblazer
 
     extend Skill::Accessors        # ::[] and ::[]=
 
-    # include Railway::TaskWrap
+
 
     # we want the skill dependency-mechanism.
     # extend Skill::Call             # ::call(params: .., current_user: ..)
@@ -87,6 +87,9 @@ module Trailblazer
         _element(:fail, *args, &block)
       end
 
+      # @private
+      #
+      # This method might be removed in favor for a better DSL hooks mechanism.
       def _element(type, *args, &block)
         heritage.record(type, *args, &block)
 
@@ -97,6 +100,8 @@ module Trailblazer
     end
 
     extend DSL
+
+    include Railway::TaskWrap
 
     # The {Normalizer} is called for every DSL call (step/pass/fail etc.) and normalizes/defaults
     # the user options, such as setting `:id`, connecting the task's outputs or wrapping the user's
