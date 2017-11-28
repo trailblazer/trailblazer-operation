@@ -10,9 +10,6 @@ require "trailblazer/operation/deprecated_macro" # TODO: remove in 2.2.
 require "trailblazer/operation/result"
 require "trailblazer/operation/railway"
 
-require "trailblazer/operation/railway/dsl"
-require "trailblazer/operation/railway/merge"
-
 require "trailblazer/operation/railway/task_builder"
 require "trailblazer/operation/railway/fast_track"
 require "trailblazer/operation/task_wrap"
@@ -31,7 +28,6 @@ module Trailblazer
 
     extend Skill::Accessors        # ::[] and ::[]=
 
-    # include Railway                # ::call, ::step, ...
     # include Railway::TaskWrap
 
     # we want the skill dependency-mechanism.
@@ -75,34 +71,32 @@ module Trailblazer
 
     # DSL part
     # delegate as much as possible to Builder
-    class << self
+    module DSL
       extend Forwardable
       def_delegators :@builder, :Output, :Path
 
       def step(*args, &block)
-        heritage.record :step, *args, &block
-
-        cfg = @builder.step(*args, &block)
-        recompile_process!
-        cfg
+        _element(:step, *args, &block)
       end
 
       def pass(*args, &block)
-        heritage.record :pass, *args, &block
-
-        cfg = @builder.pass(*args, &block)
-        recompile_process!
-        cfg
+        _element(:pass, *args, &block)
       end
 
       def fail(*args, &block)
-        heritage.record :fail, *args, &block
+        _element(:fail, *args, &block)
+      end
 
-        cfg = @builder.fail(*args, &block)
+      def _element(type, *args, &block)
+        heritage.record(type, *args, &block)
+
+        cfg = @builder.send(type, *args, &block) # e.g. @builder.step
         recompile_process!
         cfg
       end
     end
+
+    extend DSL
 
     # The {Normalizer} is called for every DSL call (step/pass/fail etc.) and normalizes/defaults
     # the user options, such as setting `:id`, connecting the task's outputs or wrapping the user's

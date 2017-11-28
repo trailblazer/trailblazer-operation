@@ -153,7 +153,7 @@ class StepTest < Minitest::Spec
   end
 
   # FIXME: we have all fast track ends here.
-  it { skip; Ii["__activity__"].circuit.instance_variable_get(:@map).size.must_equal 6 }
+  it { skip;Ii["__activity__"].circuit.instance_variable_get(:@map).size.must_equal 6 }
 
   #---
   #-
