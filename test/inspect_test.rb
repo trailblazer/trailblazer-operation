@@ -5,15 +5,17 @@ class InspectTest < Minitest::Spec
   # Test: #to_table
   class Create < Trailblazer::Operation
     step :decide!
-    success :wasnt_ok!
-    success :was_ok!
-    failure :return_true!
-    failure :return_false!
+    pass :wasnt_ok!
+    pass :was_ok!
+    fail :return_true!
+    fail :return_false!
     step :finalize!
   end
 
   #---
   #- to_table
+
+  # pp Create.instance_variable_get(:@builder)
 
   it do
     Trailblazer::Operation::Inspect.call(Create).must_equal %{[>decide!,>>wasnt_ok!,>>was_ok!,<<return_true!,<<return_false!,>finalize!]}

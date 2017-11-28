@@ -8,20 +8,33 @@ module Trailblazer
   # Operation-specific circuit rendering. This is optimized for a linear railway circuit.
   #
   # @private
-  # This is absolutely not to be copied or used for introspection as the API will definitely change
-  # here. Instead of going through the sequence, we have to traverse the actual circuit graph instead.
+  #
+  # NOTE: this is absolutely to be considered as prototyping and acts more like a test helper ATM as
+  # Inspect is not a mission-critical part.
   module Operation::Inspect
     module_function
 
     def call(operation, options={ style: :line })
       # TODO: better introspection API.
-      railway = operation["__sequence__"].instance_variable_get(:@groups).instance_variable_get(:@groups)[:main]
-      debug   = operation.instance_variable_get(:@__debug)
+
+      adds = operation.instance_variable_get(:@builder).instance_variable_get(:@adds)
+      alterations = Activity::Magnetic::Builder::Finalizer.adds_to_alterations(adds)
+      # DISCUSS: any other way to retrieve the Alterations?
+
+      # pp alterations
+      railway = alterations.instance_variable_get(:@groups).instance_variable_get(:@groups)[:main]
 
       rows = railway.each_with_index.collect do |element, i|
-        introspect = debug[ element[:id] ]
+        magnetic_to, task, plus_poles = element[:configuration]
 
-        [ i, [ introspect[:created_by], introspect[:id] ] ]
+        created_by =
+          if magnetic_to == [:failure]
+            :fail
+          else
+            plus_poles[0][:color] == plus_poles[1][:color] ? :pass : :step
+          end
+
+        [ i, [ created_by, element[:id] ] ]
       end
 
       return inspect_line(rows) if options[:style] == :line
