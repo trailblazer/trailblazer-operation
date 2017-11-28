@@ -41,10 +41,11 @@ module Trailblazer
 
 
     module Process
-      def inherited(inheriter)
-        super
-        inheriter.initialize_activity_dsl!
-        inheriter.recompile_process!
+      def initialize_builder!
+        heritage.record :initialize_builder!
+
+        initialize_activity_dsl!
+        recompile_process!
       end
 
       def initialize_activity_dsl!
@@ -71,6 +72,7 @@ module Trailblazer
     end
 
     extend Process # make ::call etc. class methods on Operation.
+
     extend PublicCall              # ::call(params, { current_user: .. })
     extend Trace                   # ::trace
 
@@ -90,12 +92,16 @@ module Trailblazer
       end
 
       def pass(*args, &block)
+        heritage.record :pass, *args, &block
+
         cfg = @builder.pass(*args, &block)
         recompile_process!
         cfg
       end
 
       def fail(*args, &block)
+        heritage.record :fail, *args, &block
+
         cfg = @builder.fail(*args, &block)
         recompile_process!
         cfg
@@ -127,6 +133,8 @@ module Trailblazer
         )
       end
     end
+
+    initialize_builder!
   end
 end
 

@@ -2,8 +2,6 @@ module Trailblazer
   # Operations is simply a thin API to define, inherit and run circuits by passing the options object.
   # It encourages the linear railway style (http://trb.to/gems/workflow/circuit.html#operation) but can
   # easily be extend for more complex workflows.
-
-      # FIXME: rename pipetree, deprecate ["__pipetree__"].inspect
   class Operation
     # End event: All subclasses of End:::Success are interpreted as "success"?
     module Railway

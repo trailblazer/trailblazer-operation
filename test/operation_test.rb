@@ -59,6 +59,22 @@ class DeclarativeApiTest < Minitest::Spec
   it { Update.(decide: true).inspect("a", "b", "c").must_equal %{<Result:true [false, true, nil] >} }
   it { Update.(decide: false).inspect("a", "b", "c").must_equal %{<Result:false [false, false, true] >} }
 
+  #---
+  #- inheritance
+  class Upsert < Update
+    step ->(options, **) { options["d"] = 1 }
+  end
+
+  class Unset < Upsert
+    step ->(options, **) { options["e"] = 2 }
+  end
+
+  it "allows to inherit" do
+    Upsert.(decide: true).inspect("a", "b", "c", "d", "e").must_equal %{<Result:true [false, true, nil, 1, nil] >}
+    Unset. (decide: true).inspect("a", "b", "c", "d", "e").must_equal %{<Result:true [false, true, nil, 1, 2] >}
+  end
+
+  # skills_test ?
 
   #---
   #- Operation[] and Operation[]=
