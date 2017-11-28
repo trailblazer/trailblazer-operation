@@ -8,10 +8,10 @@ class DeclarativeApiTest < Minitest::Spec
   # * do they deviate properly?
   class Create < Trailblazer::Operation
     step :decide!
-    success :wasnt_ok!
-    success :was_ok!
-    failure :return_true!
-    failure :return_false!
+    pass :wasnt_ok!
+    pass :was_ok!
+    fail :return_true!
+    fail :return_false!
 
     def decide!(options, decide:raise, **)
       options["a"] = true
