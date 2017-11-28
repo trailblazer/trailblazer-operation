@@ -14,14 +14,34 @@ class Trailblazer::Operation
     def call(params={}, options={}, *containers)
       options = options.merge("params" => params) # options will be passed to all steps/activities.
 
+
+
+
+
+
+
+
+
+
+
+
       # generate the skill hash that embraces runtime options plus potential containers, the so called Runtime options.
       # This wrapping is supposed to happen once in the entire system.
 
-      hash_transformer = ->(containers) { options.to_hash } # FIXME: don't transform any containers into kw args.
+      hash_transformer = ->(containers) { containers[0].to_hash } # FIXME: don't transform any containers into kw args.
 
       immutable_options = Trailblazer::Context::ContainerChain.new( [options, *containers], to_hash: hash_transformer ) # Runtime options, immutable.
 
-      last_signal, (options, flow_options) = super( immutable_options, {} ) # Railway::call # DISCUSS: this could be ::call_with_context.
+
+
+      ctx = Trailblazer::Context(immutable_options)
+
+
+
+
+
+
+      last_signal, (options, flow_options) = super( [ctx, {}] ) # Railway::call # DISCUSS: this could be ::call_with_context.
 
       # Result is successful if the activity ended with an End event derived from Railway::End::Success.
       Railway::Result(last_signal, options, flow_options)
