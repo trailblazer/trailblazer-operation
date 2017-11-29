@@ -1,5 +1,7 @@
 require "test_helper"
 
+require "trailblazer/operation/inject" # an optional feature.com.
+
 class TaskWrapTest < Minitest::Spec
   MyMacro = ->( (options, *args), *) do
     options["MyMacro.contract"] = options[:contract]
@@ -15,7 +17,7 @@ class TaskWrapTest < Minitest::Spec
 
       runner_options: {
         merge: Trailblazer::Activity::Magnetic::Builder::Path.plan do
-          task Trailblazer::Activity::Wrap::Inject::ReverseMergeDefaults.new( contract: "MyDefaultContract" ),
+          task Trailblazer::Operation::Wrap::Inject::ReverseMergeDefaults.new( contract: "MyDefaultContract" ),
             id:     "inject.my_default",
             before: "task_wrap.call_task"
         end
@@ -68,7 +70,7 @@ class TaskWrapTest < Minitest::Spec
       id:             "AnotherMacro",
       runner_options: {
         merge: Trailblazer::Activity::Magnetic::Builder::Path.plan do
-          task Trailblazer::Activity::Wrap::Inject::ReverseMergeDefaults.new( another_contract: "AnotherDefaultContract" ), id: "inject.my_default",
+          task Trailblazer::Operation::Wrap::Inject::ReverseMergeDefaults.new( another_contract: "AnotherDefaultContract" ), id: "inject.my_default",
           before: "task_wrap.call_task"
         end
       }
