@@ -112,7 +112,8 @@ class NestedFastTrackTest < Minitest::Spec
   end
 
   class Update < Trailblazer::Operation
-    step task: Trailblazer::Activity::Subprocess( Edit, call: :__call__ ), id: "Subprocess/", plus_poles: Edit.outputs,
+    step task: Trailblazer::Activity::Subprocess( Edit, call: :__call__ ), id: "Subprocess/",
+      plus_poles: Trailblazer::Activity::Magnetic::DSL::PlusPoles::from_outputs( Edit.outputs ),
       fast_track: true
     step :b
     fail :f
