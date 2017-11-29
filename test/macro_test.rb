@@ -13,7 +13,7 @@ class MacroTest < Minitest::Spec
 
   class Create < Trailblazer::Operation
     step :a
-    step( {task: MacroB, id: :MacroB, outputs: { "Allgood" => { role: :success }, "Fail!" => { role: :failure }, "Winning" => { role: :pass_fast } }}, fast_track: true )
+    step( {task: MacroB, id: :MacroB, plus_poles: { "Allgood" => { role: :success }, "Fail!" => { role: :failure }, "Winning" => { role: :pass_fast } }}, fast_track: true )
     step :c
 
     def a(options, **); options[:a] = true end
@@ -27,12 +27,12 @@ class MacroTest < Minitest::Spec
   # MacroB returns Winning and is wired to the :pass_fast edge.
   it { Create.( {}, MacroB_return: "Winning" ).inspect(:a, :B, :c).must_equal %{<Result:true [true, true, nil] >} }
 
-  #- user overrides :outputs
+  #- user overrides :plus_poles
   class Update < Trailblazer::Operation
-    macro = { task: MacroB, id: :MacroB, outputs: { "Allgood" => { role: :success }, "Fail!" => { role: :failure }, "Winning" => { role: :pass_fast } } }
+    macro = { task: MacroB, id: :MacroB, plus_poles: { "Allgood" => { role: :success }, "Fail!" => { role: :failure }, "Winning" => { role: :pass_fast } } }
 
     step :a
-    step macro, outputs: { "Allgood" => { role: :failure }, "Fail!" => { role: :success }, "Winning" => { role: :fail_fast } }, fast_track: true
+    step macro, plus_poles: { "Allgood" => { role: :failure }, "Fail!" => { role: :success }, "Winning" => { role: :fail_fast } }, fast_track: true
     step :c
 
     def a(options, **); options[:a] = true end

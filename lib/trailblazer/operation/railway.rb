@@ -3,7 +3,7 @@ module Trailblazer
   # It encourages the linear railway style (http://trb.to/gems/workflow/circuit.html#operation) but can
   # easily be extend for more complex workflows.
   class Operation
-    # End event: All subclasses of End:::Success are interpreted as "success"?
+    # End event: All subclasses of End:::Success are interpreted as "success".
     module Railway
       # @param options Context
       # @param end_event The last emitted signal in a circuit is usually the end event.

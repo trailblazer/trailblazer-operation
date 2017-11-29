@@ -217,3 +217,4 @@ class StepWithDeprecatedMacroTest < Minitest::Spec # TODO: remove me in 2.2.
   it { Create.().inspect("x", "y").must_equal %{<Result:true [StepWithDeprecatedMacroTest::Create, StepWithDeprecatedMacroTest::Create] >} }
 end
 
+# TODO: test failure and success aliases properly.

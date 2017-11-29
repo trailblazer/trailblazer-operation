@@ -41,8 +41,10 @@ module Trailblazer
 
       def initialize_activity_dsl!
         builder_options = {
-          track_end:   Railway::End::Success.new(:success),
-          failure_end: Railway::End::Failure.new(:failure),
+          track_end:     Railway::End::Success.new(:success),
+          failure_end:   Railway::End::Failure.new(:failure),
+          pass_fast_end: Railway::FastTrack::End::PassFast,
+          fail_fast_end: Railway::FastTrack::End::FailFast,
         }
 
         @builder = Activity::Magnetic::Builder::FastTrack.new( Normalizer, builder_options )
@@ -84,6 +86,9 @@ module Trailblazer
       def fail(*args, &block)
         _element(:fail, *args, &block)
       end
+
+      alias_method :success, :pass
+      alias_method :failure, :fail
 
       # @private
       #
