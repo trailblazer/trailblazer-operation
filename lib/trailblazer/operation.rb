@@ -26,8 +26,6 @@ module Trailblazer
 
     extend Skill::Accessors        # ::[] and ::[]=
 
-
-
     # we want the skill dependency-mechanism.
     # extend Skill::Call             # ::call(params: .., current_user: ..)
 
@@ -43,8 +41,8 @@ module Trailblazer
         builder_options = {
           track_end:     Railway::End::Success.new(:success),
           failure_end:   Railway::End::Failure.new(:failure),
-          pass_fast_end: Railway::FastTrack::End::PassFast,
-          fail_fast_end: Railway::FastTrack::End::FailFast,
+          pass_fast_end: Railway::End::PassFast,
+          fail_fast_end: Railway::End::FailFast,
         }
 
         @builder = Activity::Magnetic::Builder::FastTrack.new( Normalizer, builder_options )
