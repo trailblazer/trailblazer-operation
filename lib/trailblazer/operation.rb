@@ -113,9 +113,16 @@ module Trailblazer
       def self.call(task, options, sequence_options)
         wrapped_task, options =
           if task.is_a?(::Hash) # macro.
-            [ task[:task], task ]
+
+            [
+              task[:task],
+              task.merge(options) # Note that the user options are merged over the macro options.
+            ]
           else # user step
-            [ Railway::TaskBuilder.(task), options ]
+            [
+              Railway::TaskBuilder.(task),
+              options
+            ]
           end
 
         options =

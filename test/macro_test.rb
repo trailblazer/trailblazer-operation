@@ -5,6 +5,7 @@ require "test_helper"
 # macro [ task, {name}, { alteration: }, {task_outputs} ] # for eg. nested
 
 class MacroTest < Minitest::Spec
+  PlusPoles = Trailblazer::Activity::Magnetic::DSL::PlusPoles
   MacroB = ->(( options, *args ), **) do
     options[:B] = true # we were here!
 
@@ -13,7 +14,7 @@ class MacroTest < Minitest::Spec
 
   class Create < Trailblazer::Operation
     step :a
-    step( {task: MacroB, id: :MacroB, plus_poles: { "Allgood" => { role: :success }, "Fail!" => { role: :failure }, "Winning" => { role: :pass_fast } }}, fast_track: true )
+    step( task: MacroB, id: :MacroB, plus_poles: PlusPoles.from_outputs("Allgood" => :success, "Fail!" => :failure, "Winning" => :pass_fast) )
     step :c
 
     def a(options, **); options[:a] = true end
@@ -29,10 +30,10 @@ class MacroTest < Minitest::Spec
 
   #- user overrides :plus_poles
   class Update < Trailblazer::Operation
-    macro = { task: MacroB, id: :MacroB, plus_poles: { "Allgood" => { role: :success }, "Fail!" => { role: :failure }, "Winning" => { role: :pass_fast } } }
+    macro = { task: MacroB, id: :MacroB, plus_poles: PlusPoles.from_outputs("Allgood" => :success, "Fail!" => :failure, "Winning" => :pass_fast)  }
 
     step :a
-    step macro, plus_poles: { "Allgood" => { role: :failure }, "Fail!" => { role: :success }, "Winning" => { role: :fail_fast } }, fast_track: true
+    step macro, plus_poles: PlusPoles.from_outputs("Allgood" => :failure, "Fail!" => :success, "Winning" => :fail_fast)
     step :c
 
     def a(options, **); options[:a] = true end
