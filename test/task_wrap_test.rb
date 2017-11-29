@@ -11,16 +11,14 @@ class TaskWrapTest < Minitest::Spec
     # step [ MyMacro, { name: "MyMacro" }, { dependencies: { "contract" => :external_maybe } }]
     step(
       task: MyMacro,
-      node_data: { id: "MyMacro" },
+      id: "MyMacro",
 
       runner_options: {
-        alteration: [
-          [ :insert_before!, "task_wrap.call_task",
-            node: [ Trailblazer::Activity::Wrap::Inject::ReverseMergeDefaults.new( contract: "MyDefaultContract" ), id: "inject.reverse_merge_defaults.{:contract=>MyDefaultContract}" ],
-            incoming: Proc.new{ true },
-            outgoing: [ Trailblazer::Circuit::Right, {} ]
-          ],
-        ]
+        merge: Trailblazer::Activity::Magnetic::Builder::Path.plan do
+          task Trailblazer::Activity::Wrap::Inject::ReverseMergeDefaults.new( contract: "MyDefaultContract" ),
+            id:     "inject.my_default",
+            before: "task_wrap.call_task"
+        end
       }
 
     )
@@ -63,20 +61,16 @@ class TaskWrapTest < Minitest::Spec
 
           [ Trailblazer::Circuit::Right, *o ]
         },
-        node_data: { id: "Create" }
+      id: "Create"
     )
     step(
-      task:       AnotherMacro,
-      node_data:  { id: "AnotherMacro" },
-
+      task:           AnotherMacro,
+      id:             "AnotherMacro",
       runner_options: {
-        alteration: [
-          [ :insert_before!, "task_wrap.call_task",
-            node: [ Trailblazer::Activity::Wrap::Inject::ReverseMergeDefaults.new( another_contract: "AnotherDefaultContract" ), id: "inject.reverse_merge_defaults.{:another_contract=>AnotherDefaultContract}" ],
-            incoming: Proc.new{ true },
-            outgoing: [ Trailblazer::Circuit::Right, {} ]
-          ],
-        ]
+        merge: Trailblazer::Activity::Magnetic::Builder::Path.plan do
+          task Trailblazer::Activity::Wrap::Inject::ReverseMergeDefaults.new( another_contract: "AnotherDefaultContract" ), id: "inject.my_default",
+          before: "task_wrap.call_task"
+        end
       }
     )
   end

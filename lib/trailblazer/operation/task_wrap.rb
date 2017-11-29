@@ -52,17 +52,22 @@ module Trailblazer
         # TODO: this override is hard to follow, we should have a pipeline circuit in DSL to add behavior.
         # @private
         def _element(*args)
-          super.tap do |runner_options:nil, task:raise, **ignored|
-            runner_options and apply_wirings_from_runner_options!( task, runner_options )
-          end
-        end # TODO: do this with a circuit :)
+          returned = super # TODO: do this with a circuit :)
+
+          adds, task, local_options, _ = returned
+          runner_options = local_options[:runner_options]
+
+          runner_options and apply_adds_from_runner_options!( task, runner_options )
+
+          returned
+        end
 
         # Extend the static wrap for a specific task, at compile time.
-        def apply_wirings_from_runner_options!(task, alteration:raise, **ignored)
+        def apply_adds_from_runner_options!(task, merge:raise, **ignored)
           static_wrap = self["__static_task_wraps__"][task]
 
           # macro might want to apply changes to the static task_wrap (e.g. Inject)
-          self["__static_task_wraps__"][task] = Activity.merge( static_wrap, alteration )
+          self["__static_task_wraps__"][task] = Activity::Magnetic::Builder.merge( static_wrap, merge )
         end
       end
     end # TaskWrap

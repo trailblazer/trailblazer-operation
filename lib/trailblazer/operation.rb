@@ -2,6 +2,7 @@ require "forwardable"
 require "declarative"
 
 require "trailblazer/activity"
+require "trailblazer/activity/magnetic"
 require "trailblazer/activity/wrap"
 
 require "trailblazer/operation/public_call"      # TODO: Remove in 3.0.
@@ -14,9 +15,6 @@ require "trailblazer/operation/railway/task_builder"
 require "trailblazer/operation/railway/fast_track"
 require "trailblazer/operation/task_wrap"
 require "trailblazer/operation/trace"
-
-
-require "trailblazer/activity/magnetic"
 
 module Trailblazer
   # The Trailblazer-style operation.
@@ -122,7 +120,6 @@ module Trailblazer
             plus_poles: InitialPlusPoles(),
             id:         task, # TODO. :name, macro
           }.merge(options)
-
 
         # handle :override
         options, locals  = Activity::Magnetic::Builder.normalize(options, [:override])
