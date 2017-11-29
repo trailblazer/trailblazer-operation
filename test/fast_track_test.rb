@@ -112,8 +112,8 @@ class NestedFastTrackTest < Minitest::Spec
   end
 
   class Update < Trailblazer::Operation
-    step( { task: Trailblazer::Activity::Subprocess( Edit, call: :__call__ ), node_data: { id: "Subprocess/" }, outputs: Edit.outputs },
-      fast_track: true )
+    step task: Trailblazer::Activity::Subprocess( Edit, call: :__call__ ), id: "Subprocess/", plus_poles: Edit.outputs,
+      fast_track: true
     step :b
     fail :f
 
