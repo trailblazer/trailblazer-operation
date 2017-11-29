@@ -26,17 +26,12 @@ module Trailblazer
       end
 
       def self.arguments_for_call(operation, (options, flow_options), **circuit_args)
-        activity    = operation["__activity__"]
         wrap_static = operation["__static_task_wraps__"]
 
         # override:
         flow_options = flow_options.merge(bla:1
           # introspection: Activity::Introspection.new(activity) # TODO: don't create this at run-time! TODO; don't do this here!
         )
-        # reverse_merge:
-
-        # FIXME: SPEED THIS UP!
-        # wrap_runtime = ::Declarative::Variables.merge(::Hash.new([]), options[:])
 
         circuit_args = {
           runner:        Activity::Wrap::Runner,
@@ -45,7 +40,7 @@ module Trailblazer
           wrap_static:  wrap_static,
         }
 
-        [ [ options, flow_options ], circuit_args ]
+        return [ options, flow_options ], circuit_args
       end
 
       module DSL
