@@ -6,8 +6,8 @@ module Trailblazer
     def self.pass_fast!; Activity::Magnetic::Builder::FastTrack::PassFast end
 
     module End
-      FailFast = Class.new(Operation::Railway::End::Failure).new(:fail_fast)
-      PassFast = Class.new(Operation::Railway::End::Success).new(:pass_fast)
+      FailFast = Class.new(Operation::Railway::End::Failure)
+      PassFast = Class.new(Operation::Railway::End::Success)
     end
   end
 end

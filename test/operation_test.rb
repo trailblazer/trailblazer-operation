@@ -74,6 +74,15 @@ class DeclarativeApiTest < Minitest::Spec
     Unset. (decide: true).inspect("a", "b", "c", "d", "e").must_equal %{<Result:true [false, true, nil, 1, 2] >}
   end
 
+  describe "::outputs" do
+    class Edit < Trailblazer::Operation
+      step :a
+      step :b, fast_track: true
+    end
+
+    it { Edit.outputs.inspect.gsub(/0x\w+/, "").must_equal %{{#<Trailblazer::Operation::Railway::End::Success: @name=:success, @options={:semantic=>:success}>=>:success, #<Trailblazer::Operation::Railway::End::Failure: @name=:failure, @options={:semantic=>:failure}>=>:failure, #<Trailblazer::Operation::Railway::End::PassFast: @name=:pass_fast, @options={:semantic=>:pass_fast}>=>:pass_fast, #<Trailblazer::Operation::Railway::End::FailFast: @name=:fail_fast, @options={:semantic=>:fail_fast}>=>:fail_fast}} }
+  end
+
   # skills_test ?
 
   #---

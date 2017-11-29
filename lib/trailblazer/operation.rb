@@ -39,10 +39,10 @@ module Trailblazer
 
       def initialize_activity_dsl!
         builder_options = {
-          track_end:     Railway::End::Success.new(:success),
-          failure_end:   Railway::End::Failure.new(:failure),
-          pass_fast_end: Railway::End::PassFast,
-          fail_fast_end: Railway::End::FailFast,
+          track_end:     Railway::End::Success.new(:success, semantic: :success),
+          failure_end:   Railway::End::Failure.new(:failure, semantic: :failure),
+          pass_fast_end: Railway::End::PassFast.new(:pass_fast, semantic: :pass_fast),
+          fail_fast_end: Railway::End::FailFast.new(:fail_fast, semantic: :fail_fast),
         }
 
         @builder = Activity::Magnetic::Builder::FastTrack.new( Normalizer, builder_options )
