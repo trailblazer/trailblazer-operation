@@ -8,16 +8,16 @@ class TraceTest < Minitest::Spec
   end
 
   class Create < Trailblazer::Operation
-    step ->(options, a_return:, **) { options[:a] = a_return }, name: "Create.task.a"
-    step( { task: MyNested, node_data: {} },                    name: "MyNested")
-    step ->(options, **) { options[:c] = true }, name: "Create.task.c"
+    step ->(options, a_return:, **) { options[:a] = a_return }, id: "Create.task.a"
+    step task: MyNested, id: "MyNested"
+    step ->(options, **) { options[:c] = true }, id: "Create.task.c"
     step ->(options, params:, **) { params.any? }, id: "Create.task.params"
   end
   # raise Create["__task_wraps__"].inspect
 
   class B < Trailblazer::Operation
-    step ->(options, **) { options[:b] = true }, name: "B.task.b"
-    step ->(options, **) { options[:e] = true }, name: "B.task.e"
+    step ->(options, **) { options[:b] = true }, id: "B.task.b"
+    step ->(options, **) { options[:e] = true }, id: "B.task.e"
   end
 
   it "allows using low-level Activity::Trace" do
