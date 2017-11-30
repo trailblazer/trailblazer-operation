@@ -7,7 +7,9 @@ module Trailblazer
       # @returns ADDS
       def self.Defaults(default_dependencies)
         Activity::Magnetic::Builder::Path.plan do
-          task ReverseMergeDefaults.new( default_dependencies ), id: "ReverseMergeDefaults#{default_dependencies}", before: "task_wrap.call_task"
+          task ReverseMergeDefaults.new( default_dependencies ),
+            id:     "ReverseMergeDefaults#{default_dependencies}",
+            before: "task_wrap.call_task"
         end
       end
 

@@ -6,11 +6,23 @@ require "test_helper"
 
 class MacroTest < Minitest::Spec
   PlusPoles = Trailblazer::Activity::Magnetic::DSL::PlusPoles
+
   MacroB = ->(( options, *args ), **) do
     options[:B] = true # we were here!
 
     [ options[:MacroB_return], [ options, *args ] ]
   end
+
+  it "raises exception when macro doesn't provide :id" do
+    assert_raises do
+
+      Class.new(Trailblazer::Operation) do
+        step( task: "<some macro>" )
+      end
+
+    end.message.must_equal %{No :id given for <some macro>}
+  end
+
 
   class Create < Trailblazer::Operation
     step :a

@@ -115,7 +115,6 @@ class StepTest < Minitest::Spec
 
     step :a!
     step( { task: MyMacro1, id: "add" })
-    puts "yo"
     step( { task: MyMacro2, id: "add" }, replace: "add")
     # step [ MyMacro3, {id: "add"}, {} ], override: true
 
@@ -124,6 +123,15 @@ class StepTest < Minitest::Spec
 
   it { Trailblazer::Operation::Inspect.(G).must_equal %{[>a!,>add]} }
   it { G.().inspect("a").must_equal %{<Result:true [[:b]] >} }
+
+  # override: true in inherited class with macro
+  class Go < G
+    MyMacro = ->((options, flow_options), *) { options["a"] << :m; [ Trailblazer::Circuit::Right, options, flow_options ] }
+    step task: MyMacro, override: true, id: "add"
+  end
+
+  it { Trailblazer::Operation::Inspect.(Go).must_equal %{[>a!,>add]} }
+  it { Go.().inspect("a").must_equal %{<Result:true [[:m]] >} }
 
   #- with inheritance
   class H < Trailblazer::Operation
@@ -159,13 +167,13 @@ class StepTest < Minitest::Spec
   #-
   # not existent :name
   it do
-    err = assert_raises Trailblazer::Activity::Schema::Sequence::IndexError  do
-      class E < Trailblazer::Operation
+    assert_raises Trailblazer::Activity::Schema::Sequence::IndexError  do
+
+      Class.new(Trailblazer::Operation) do
         step :a, before: "I don't exist!"
       end
-    end
 
-    err.inspect.must_equal "#<Trailblazer::Activity::Schema::Sequence::IndexError: I don't exist!>"
+    end.inspect.must_equal "#<Trailblazer::Activity::Schema::Sequence::IndexError: I don't exist!>"
   end
 
   #---
