@@ -150,8 +150,8 @@ module Trailblazer
 
       def self.InitialPlusPoles
         Activity::Magnetic::DSL::PlusPoles.new.merge(
-          Activity::Magnetic.Output(Circuit::Right, :success) => nil,
-          Activity::Magnetic.Output(Circuit::Left,  :failure) => nil,
+          Activity.Output(Circuit::Right, :success) => nil,
+          Activity.Output(Circuit::Left,  :failure) => nil,
         )
       end
     end
