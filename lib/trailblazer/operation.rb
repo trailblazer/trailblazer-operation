@@ -1,9 +1,16 @@
 require "forwardable"
 require "declarative"
 
+# trailblazer-context
+require "trailblazer/option"
+require "trailblazer/context"
+require "trailblazer/container_chain"
+
 require "trailblazer/activity"
 require "trailblazer/activity/magnetic"
 require "trailblazer/activity/wrap"
+
+require "trailblazer/operation/variable_mapping"
 
 require "trailblazer/operation/public_call"      # TODO: Remove in 3.0.
 require "trailblazer/operation/skill"
@@ -49,7 +56,7 @@ module Trailblazer
       end
 
       def recompile_process!
-        @process, @outputs = Activity::Magnetic::Builder::FastTrack.finalize( @builder.instance_variable_get(:@adds) )
+        @process, @outputs = Activity::Recompile.( @builder )
       end
 
       def outputs
@@ -150,8 +157,8 @@ module Trailblazer
 
       def self.InitialPlusPoles
         Activity::Magnetic::DSL::PlusPoles.new.merge(
-          Activity.Output(Circuit::Right, :success) => nil,
-          Activity.Output(Circuit::Left,  :failure) => nil,
+          Activity.Output(Activity::Right, :success) => nil,
+          Activity.Output(Activity::Left,  :failure) => nil,
         )
       end
     end

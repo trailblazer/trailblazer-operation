@@ -80,7 +80,13 @@ class DeclarativeApiTest < Minitest::Spec
       step :b, fast_track: true
     end
 
-    it { Edit.outputs.inspect.gsub(/0x\w+/, "").must_equal %{{#<Trailblazer::Operation::Railway::End::Success: @name=:success, @options={:semantic=>:success}>=>:success, #<Trailblazer::Operation::Railway::End::Failure: @name=:failure, @options={:semantic=>:failure}>=>:failure, #<Trailblazer::Operation::Railway::End::PassFast: @name=:pass_fast, @options={:semantic=>:pass_fast}>=>:pass_fast, #<Trailblazer::Operation::Railway::End::FailFast: @name=:fail_fast, @options={:semantic=>:fail_fast}>=>:fail_fast}} }
+    it do
+      Activity::Introspect.Outputs(Edit.outputs).must_equal %{success=> (#<Trailblazer::Operation::Railway::End::Success:>, success)
+failure=> (#<Trailblazer::Operation::Railway::End::Failure:>, failure)
+pass_fast=> (#<Trailblazer::Operation::Railway::End::PassFast:>, pass_fast)
+fail_fast=> (#<Trailblazer::Operation::Railway::End::FailFast:>, fail_fast)}
+    end
+
   end
 
   # skills_test ?
