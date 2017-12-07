@@ -28,7 +28,7 @@ class CallTest < Minitest::Spec
       result.success?.must_equal true
 
       result.event.must_be_instance_of Trailblazer::Operation::Railway::End::Success
-      result.event.must_equal Update.outputs.keys[1]
+      result.event.must_equal Update.outputs[:success].signal
     end
 
     # operation failure
@@ -39,7 +39,7 @@ class CallTest < Minitest::Spec
       result.failure?.must_equal true
 
       result.event.must_be_instance_of Trailblazer::Operation::Railway::End::Failure
-      result.event.must_equal Update.outputs.keys[0]
+      result.event.must_equal Update.outputs[:failure].signal
     end
 
   end
