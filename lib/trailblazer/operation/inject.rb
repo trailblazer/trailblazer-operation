@@ -26,7 +26,7 @@ module Trailblazer
 
           @defaults.each { |k, v| ctx[k] ||= v }
 
-          return Circuit::Right, [ wrap_ctx, original_args ]
+          return Activity::Right, [ wrap_ctx, original_args ]
         end
       end
     end # Inject

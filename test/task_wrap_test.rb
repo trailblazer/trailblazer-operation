@@ -5,7 +5,7 @@ require "trailblazer/operation/inject" # an optional feature.com.
 class TaskWrapTest < Minitest::Spec
   MyMacro = ->( (options, *args), *) do
     options["MyMacro.contract"] = options[:contract]
-    [ Trailblazer::Circuit::Right, [options, *args] ]
+    [ Trailblazer::Activity::Right, [options, *args] ]
   end
 
   class Create < Trailblazer::Operation
@@ -53,7 +53,7 @@ class TaskWrapTest < Minitest::Spec
   #- Nested task_wraps should not override the outer.
   AnotherMacro = ->( (options, *args), *) do
     options["AnotherMacro.another_contract"] = options[:another_contract]
-    [ Trailblazer::Circuit::Right, [options, *args] ]
+    [ Trailblazer::Activity::Right, [options, *args] ]
   end
 
   class Update < Trailblazer::Operation
@@ -61,7 +61,7 @@ class TaskWrapTest < Minitest::Spec
       task: ->( (options, *args), * ) {
           _d, *o = Create.__call__( [ options, *args ] )
 
-          [ Trailblazer::Circuit::Right, *o ]
+          [ Trailblazer::Activity::Right, *o ]
         },
       id: "Create"
     )
