@@ -28,11 +28,6 @@ module Trailblazer
       def self.arguments_for_call(operation, (options, flow_options), **circuit_args)
         wrap_static = operation["__static_task_wraps__"]
 
-        # override:
-        flow_options = flow_options.merge(bla:1
-          # introspection: Activity::Introspection.new(activity) # TODO: don't create this at run-time! TODO; don't do this here!
-        )
-
         circuit_args = {
           runner:        Activity::Wrap::Runner,
                   # FIXME: this sucks, why do we even need to pass an empty runtime there?
