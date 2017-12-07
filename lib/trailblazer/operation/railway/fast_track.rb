@@ -1,7 +1,7 @@
 module Trailblazer
   module Operation::Railway
-    def self.fail!     ; Circuit::Left  end
-    def self.pass!     ; Circuit::Right end
+    def self.fail!     ; Activity::Left  end
+    def self.pass!     ; Activity::Right end
     def self.fail_fast!; Activity::Magnetic::Builder::FastTrack::FailFast end
     def self.pass_fast!; Activity::Magnetic::Builder::FastTrack::PassFast end
 

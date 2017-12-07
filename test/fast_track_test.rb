@@ -102,6 +102,8 @@ end
 #-
 class NestedFastTrackTest < Minitest::Spec
   #- The ::step DSL method automatically connects the nested's End.fail_fast/End.pass_fast to Update's End.fail_fast/End.pass_fast.
+  #
+  # Edit has fast-tracked steps, so it has outputs :success/:failure/:pass_fast/:fail_fast.
   class Edit < Trailblazer::Operation
     step :a, fast_track: true # task is connected to End.pass_fast and End.fail_fast.
 
@@ -111,13 +113,7 @@ class NestedFastTrackTest < Minitest::Spec
     end
   end
 
-  class Update < Trailblazer::Operation
-    step task: Trailblazer::Activity::Subprocess( Edit, call: :__call__ ), id: "Subprocess/",
-      plus_poles: Trailblazer::Activity::Magnetic::DSL::PlusPoles::from_outputs( Edit.outputs ),
-      fast_track: true
-    step :b
-    fail :f
-
+  module Steps
     def b(options, a:, **)
       options["b"] = a+1
     end
@@ -127,21 +123,75 @@ class NestedFastTrackTest < Minitest::Spec
     end
   end
 
-  # Edit returns End.success
-  it { Update.({}, edit_return: true).inspect("a", "b", "f").must_equal %{<Result:true [1, 2, nil] >} }
-  # Edit returns End.failure
-  it { Update.({}, edit_return: false).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, 3] >} }
+  describe "Nested, fast_track: true and all its outputs given" do
+    let(:update) do
+      Class.new(Trailblazer::Operation) do
+        step task: Trailblazer::Activity::Subprocess( Edit, call: :__call__ ), id: "Subprocess/",
+          plus_poles: Trailblazer::Activity::Magnetic::DSL::PlusPoles::from_outputs( Edit.outputs ),
+          fast_track: true
+        step :b
+        fail :f
 
-  # Edit returns End.pass_fast
-  it { Update.({}, edit_return: Trailblazer::Operation::Railway.pass_fast!).inspect("a", "b", "f").must_equal %{<Result:true [1, nil, nil] >} }
+        include Steps
+      end
+    end
 
-  # Edit returns End.fail_fast
-  it { Update.({}, edit_return: Trailblazer::Operation::Railway.fail_fast!).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, nil] >} }
+    # Edit returns End.success
+    it { update.({}, edit_return: true).inspect("a", "b", "f").must_equal %{<Result:true [1, 2, nil] >} }
+    # Edit returns End.failure
+    it { update.({}, edit_return: false).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, 3] >} }
+    # Edit returns End.pass_fast
+    it { update.({}, edit_return: Trailblazer::Operation::Railway.pass_fast!).inspect("a", "b", "f").must_equal %{<Result:true [1, nil, nil] >} }
+    # Edit returns End.fail_fast
+    it { update.({}, edit_return: Trailblazer::Operation::Railway.fail_fast!).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, nil] >} }
+  end
 
-  # it do
-  #   require "trailblazer/developer"
-  #   puts Trailblazer::Developer::Client.push( operation: Update, name: "Update/#{Time.now}" )
+  describe "Nested, no :fast_track option but all its outputs given" do
+    let(:update) do
+      Class.new(Trailblazer::Operation) do
+        step task: Trailblazer::Activity::Subprocess( Edit, call: :__call__ ), id: "Subprocess/",
+          plus_poles: Trailblazer::Activity::Magnetic::DSL::PlusPoles::from_outputs( Edit.outputs ) # all outputs given means it "works"
+        step :b
+        fail :f
 
-  # end
+        include Steps
+      end
+    end
+
+    # Edit returns End.success
+    it { update.({}, edit_return: true).inspect("a", "b", "f").must_equal %{<Result:true [1, 2, nil] >} }
+    # Edit returns End.failure
+    it { update.({}, edit_return: false).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, 3] >} }
+    # Edit returns End.pass_fast
+    it { update.({}, edit_return: Trailblazer::Operation::Railway.pass_fast!).inspect("a", "b", "f").must_equal %{<Result:true [1, nil, nil] >} }
+    # Edit returns End.fail_fast
+    it { update.({}, edit_return: Trailblazer::Operation::Railway.fail_fast!).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, nil] >} }
+  end
+
+  describe "2.0 behavior: no :fast_track option, all outputs given, but we rewire fast_track" do
+    let(:update) do
+      Class.new(Trailblazer::Operation) do
+        step({task: Trailblazer::Activity::Subprocess( Edit, call: :__call__ ), id: "Subprocess/",
+                  plus_poles: Trailblazer::Activity::Magnetic::DSL::PlusPoles::from_outputs( Edit.outputs )},
+          {Output(:pass_fast) => :success, Output(:fail_fast) => :failure} )# manually rewire the fast-track outputs to "conventional" railway ends.
+
+        step :b
+        fail :f
+
+        include Steps
+      end
+    end
+
+    # it { puts Trailblazer::Activity::Introspect.Cct(update.instance_variable_get(:@process)) }
+    it { puts Trailblazer::Activity::Magnetic::Introspect.seq( update.instance_variable_get(:@builder) ) }
+    # Edit returns End.success
+    it { update.({}, edit_return: true).inspect("a", "b", "f").must_equal %{<Result:true [1, 2, nil] >} }
+    # Edit returns End.failure
+    it { update.({}, edit_return: false).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, 3] >} }
+    # Edit returns End.pass_fast, but behaves like :success.
+    it { update.({}, edit_return: Trailblazer::Operation::Railway.pass_fast!).inspect("a", "b", "f").must_equal %{<Result:true [1, 2, nil] >} }
+    # Edit returns End.fail_fast, but behaves like :failure.
+    it { update.({}, edit_return: Trailblazer::Operation::Railway.fail_fast!).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, 3] >} }
+  end
 end
 
