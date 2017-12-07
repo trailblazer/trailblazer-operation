@@ -26,7 +26,7 @@ class MacroTest < Minitest::Spec
 
   class Create < Trailblazer::Operation
     step :a
-    step( task: MacroB, id: :MacroB, plus_poles: PlusPoles.from_outputs("Allgood" => :success, "Fail!" => :failure, "Winning" => :pass_fast) )
+    step( task: MacroB, id: :MacroB, plus_poles: Test.plus_poles_for("Allgood" => :success, "Fail!" => :failure, "Winning" => :pass_fast) )
     step :c
 
     def a(options, **); options[:a] = true end
@@ -42,10 +42,10 @@ class MacroTest < Minitest::Spec
 
   #- user overrides :plus_poles
   class Update < Trailblazer::Operation
-    macro = { task: MacroB, id: :MacroB, plus_poles: PlusPoles.from_outputs("Allgood" => :success, "Fail!" => :failure, "Winning" => :pass_fast)  }
+    macro = { task: MacroB, id: :MacroB, plus_poles: Test.plus_poles_for("Allgood" => :success, "Fail!" => :failure, "Winning" => :pass_fast)  }
 
     step :a
-    step macro, plus_poles: PlusPoles.from_outputs("Allgood" => :failure, "Fail!" => :success, "Winning" => :fail_fast)
+    step macro, plus_poles: Test.plus_poles_for("Allgood" => :failure, "Fail!" => :success, "Winning" => :fail_fast)
     step :c
 
     def a(options, **); options[:a] = true end
