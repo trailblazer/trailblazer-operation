@@ -21,7 +21,7 @@ class TraceTest < Minitest::Spec
   end
 
   it "allows using low-level Activity::Trace" do
-    operation = ->(*args) { puts "@@@@@ #{args.last.inspect}"; Create.__call__(*args) }
+    # operation = ->(*args) { puts "@@@@@ #{args.last.inspect}"; Create.__call__(*args) }
 
     stack, _ = Trailblazer::Activity::Trace.(
       operation,

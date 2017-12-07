@@ -33,6 +33,7 @@ module Trailblazer
 
     extend Skill::Accessors        # ::[] and ::[]=
 
+
     # we want the skill dependency-mechanism.
     # extend Skill::Call             # ::call(params: .., current_user: ..)
 
@@ -62,6 +63,8 @@ module Trailblazer
       def outputs
         @outputs
       end
+
+      include Activity::Interface
 
       # Call the actual {Process} with the options prepared in PublicCall.
       def __call__(args, circuit_options={})
