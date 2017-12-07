@@ -79,8 +79,8 @@ require "test_helper"
 class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
   class Create < Trailblazer::Operation
     step :a
-    fail :b, :success => :success #{}"End.success"
-    fail :c, :success => :success
+    fail :b, Output(:success) => :success #{}"End.success"
+    fail :c, Output(:success) => :success
 
     Test.step(self, :a, :b, :c)
   end
@@ -121,8 +121,8 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
   # failure steps reference End.success and not just the polarization. This won't call #d in failure=>success case.
   class Delete < Trailblazer::Operation
     step :a
-    fail :b, :success => "End.success"
-    fail :c, :success => "End.success"
+    fail :b, Output(:success) => "End.success"
+    fail :c, Output(:success) => "End.success"
     pass :d
 
     Test.step(self, :a, :b, :c)
@@ -147,8 +147,8 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
   # |_____|_|_______ E.f
   class Connect < Trailblazer::Operation
     step :a
-    step :b, :success => "d"
-    step :c, skip_input: :success # otherwise :success will be an open input!
+    step :b, Output(:success) => "d"
+    step :c, magnetic_to: [] # otherwise :success will be an open input!
     pass :d, id: "d"
 
     Test.step(self, :a, :b, :c)
@@ -157,6 +157,8 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
       data << :d
     end
   end
+
+  it { puts Trailblazer::Activity::Magnetic::Introspect.seq( Connect.instance_variable_get(:@builder) ) }
 
   # a => true
   it { Connect.({}, a_return: true, b_return: true,data: []).inspect(:data).must_equal %{<Result:true [[:a, :b, :d]] >} }
@@ -173,9 +175,9 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
   # | \ /  V
   # |__f____g----E.f
   class Post < Trailblazer::Operation
-    step :a, :success => "d", id: "a"
-    fail :f, :success => "c"
-    step :c, skip_input: :success, id: "c" # otherwise :success will be an open input!
+    step :a, Output(:success) => "d", id: "a"
+    fail :f, Output(:success) => "c"
+    step :c, magnetic_to: [], id: "c" # otherwise :success will be an open input!
     fail :g
     step :d, id: "d"
 
