@@ -32,8 +32,6 @@ module Trailblazer
     extend Declarative::Heritage::DSL
 
     extend Skill::Accessors        # ::[] and ::[]=
-
-
     # we want the skill dependency-mechanism.
     # extend Skill::Call             # ::call(params: .., current_user: ..)
 
@@ -54,6 +52,7 @@ module Trailblazer
         }
 
         @builder = Activity::Magnetic::Builder::FastTrack.new( Normalizer, builder_options )
+        @debug = {}
       end
 
       def recompile_process!
@@ -104,9 +103,15 @@ module Trailblazer
       def _element(type, *args, &block)
         heritage.record(type, *args, &block)
 
-        cfg = @builder.send(type, *args, &block) # e.g. @builder.step
+# TODO: merge with Activity
+        adds, *options = @builder.send(type, *args, &block) # e.g. @builder.step
         recompile_process!
-        cfg
+        add_introspection!(adds, *options)
+        return adds, *options
+      end
+
+             def add_introspection!(adds, task, local_options, *)
+        @debug[task] = { id: local_options[:id] }.freeze
       end
     end
 
