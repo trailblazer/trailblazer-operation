@@ -127,6 +127,8 @@ module Trailblazer
               task[:task],
               task.merge(options) # Note that the user options are merged over the macro options.
             ]
+          elsif task.is_a?(Array) # TODO remove in 2.2
+            Operation::DeprecatedMacro.( *task )
           else # user step
             [
               Railway::TaskBuilder.(task),

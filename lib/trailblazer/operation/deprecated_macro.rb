@@ -1,27 +1,19 @@
 # TODO: REMOVE IN 2.2.
 module Trailblazer
-  module Operation::Railway
-    module DSL
-      # Allows old macros with the `(input, options)` signature.
-      module DeprecatedMacro
-        def _element(proc, *args)
-          return super unless proc.is_a?(Array)
+  module Operation::DeprecatedMacro
+    # Allows old macros with the `(input, options)` signature.
+    def self.call(proc, options={})
+      warn %{[Trailblazer] Macros with API (input, options) are deprecated. Please use the "Task API" signature (options, flow_options) or use a simpler Callable. (#{proc})}
 
-          _proc, node_data = *proc
-          node_data = node_data.merge( id: node_data[:name] ) if node_data[:name]
+      wrapped_proc = ->( (options, flow_options), **circuit_options ) do
+        result = proc.(circuit_options[:exec_context], options) # run the macro, with the deprecated signature.
 
-          warn %{[Trailblazer] Macros with API (input, options) are deprecated. Please use the "Task API" signature (direction, options, flow_options) or use a simpler Callable. (#{proc})}
-          __proc = ->((options, flow_options), **circuit_options) do
-            result    = _proc.(circuit_options[:exec_context], options) # run the macro, with the deprecated signature.
+        direction = Operation::Railway::TaskBuilder.binary_direction_for(result, Activity::Right, Activity::Left)
 
-            direction = TaskBuilder.binary_direction_for(result, Circuit::Right, Circuit::Left)
+        return direction, [options, flow_options]
+      end
 
-            [ direction, [options, *args] ]
-          end
-
-          super({ task: __proc }.merge(node_data), *args)
-        end
-      end # DeprecatedMacro
+      return wrapped_proc, options
     end
   end
 end
