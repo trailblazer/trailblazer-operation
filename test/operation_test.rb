@@ -94,6 +94,8 @@ fail_fast=> (#<Trailblazer::Operation::Railway::End::FailFast:>, fail_fast)}
   #---
   #- Operation[] and Operation[]=
   class Index < Trailblazer::Operation
+    extend ClassDependencies
+
     self["model.class"] = Module
 
     step ->(options, **) { options["a"] = options["model.class"] }

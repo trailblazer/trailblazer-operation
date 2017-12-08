@@ -32,7 +32,7 @@ module Trailblazer
     extend Declarative::Heritage::Inherited
     extend Declarative::Heritage::DSL
 
-    extend Skill::Accessors        # ::[] and ::[]=
+    extend Skill::Accessors        # ::[] and ::[]= # TODO: fade out this usage.
     # we want the skill dependency-mechanism.
     # extend Skill::Call             # ::call(params: .., current_user: ..)
 
