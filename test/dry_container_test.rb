@@ -11,6 +11,10 @@ class DryContainerTest < Minitest::Spec
   class Create < Trailblazer::Operation
   end
 
+  it "allows 2.2 call style" do
+    Create.({}, my_container)["user_repository"].must_equal Object
+  end
+
   it { Create.({}, {}, my_container)["user_repository"].must_equal Object }
   it { Create.({}, {}, my_container)["contract.create"].must_equal Array }
   # also allows our own options PLUS containers.

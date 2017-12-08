@@ -24,7 +24,7 @@ class Trailblazer::Operation
     private
     # Compile a Context object to be passed into the Activity::call.
     def self.options_for_public_call(params={}, options=nil, *containers)
-      options, *containers = Deprecations.accept_positional_options(params, options, *containers)
+      options, *containers = Deprecations.accept_positional_options(params, options, *containers) # TODO: make this optional for "power users".
 
       # generate the skill hash that embraces runtime options plus potential containers, the so called Runtime options.
       # This wrapping is supposed to happen once in the entire system.
