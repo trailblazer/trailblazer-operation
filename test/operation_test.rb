@@ -89,17 +89,10 @@ fail_fast=> (#<Trailblazer::Operation::Railway::End::FailFast:>, fail_fast)}
 
   end
 
+
+
   # skills_test ?
 
   #---
-  #- Operation[] and Operation[]=
-  class Index < Trailblazer::Operation
-    extend ClassDependencies
 
-    self["model.class"] = Module
-
-    step ->(options, **) { options["a"] = options["model.class"] }
-  end
-
-  it { Index.({}).inspect("a", "model.class").must_equal %{<Result:true [Module, Module] >} }
 end
