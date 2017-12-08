@@ -6,7 +6,7 @@ module Trailblazer
     #
     # The Normalizer sits in the `@builder`, which receives all DSL calls from the Operation subclass.
     module Normalizer
-      def self.call(task, options, sequence_options)
+      def self.call(task, options, unknown_options, sequence_options)
         wrapped_task, options =
           if task.is_a?(::Hash) # macro.
             [
@@ -22,7 +22,7 @@ module Trailblazer
             ]
           end
 
-        options = deprecate_name(options) # TODO remove in 2.2
+        options, unknown_options = deprecate_name(options, unknown_options) # TODO remove in 2.2
 
         raise "No :id given for #{wrapped_task}" unless options[:id]
 
@@ -31,7 +31,7 @@ module Trailblazer
 
         options, locals, sequence_options = override(task, options, sequence_options) # :override
 
-        return wrapped_task, options, sequence_options
+        return wrapped_task, options, unknown_options, sequence_options
       end
 
       # Merge user options over defaults.
@@ -56,13 +56,17 @@ module Trailblazer
         )
       end
 
-      def self.deprecate_name(options) # TODO remove in 2.2
+      def self.deprecate_name(options, unknown_options) # TODO remove in 2.2
+        unknown_options, deprecated_options = Activity::Magnetic::Builder.normalize(unknown_options, [:name])
+
+        options = options.merge( name: deprecated_options[:name] ) if deprecated_options[:name]
+
         options, locals = Activity::Magnetic::Builder.normalize(options, [:name])
         if locals[:name]
           warn "[Trailblazer] The :name option for #step, #success and #failure has been renamed to :id."
           options = options.merge(id: locals[:name])
         end
-        return options
+        return options, unknown_options
       end
     end
   end
