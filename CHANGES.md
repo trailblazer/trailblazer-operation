@@ -12,6 +12,8 @@ lots of work on the DSL specific parts.
         step :my_validate!, fast_track: true
         ```
 
+params:, rest: ..
+
 ## 0.1.0
 
 inspect: failure is << and success is >>

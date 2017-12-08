@@ -8,7 +8,7 @@ class Trailblazer::Operation
     #   #=> Result<Context...>
     #
     # In workflows/Nested compositions, this method is not used anymore and it might probably
-    # get removed in future versions of TRB. Currently, we use Activity::__call__ as an alternative.
+    # get removed in future versions of TRB. Currently, we use Operation::__call__ as an alternative.
     #
     # @return Operation::Railway::Result binary result object
     def call(*args)
@@ -23,11 +23,8 @@ class Trailblazer::Operation
 
     private
     # Compile a Context object to be passed into the Activity::call.
-    def self.options_for_public_call(params={}, options={}, *containers)
-      # Merge the first argument to the public Create.() into the second.
-      #
-      # TODO: deprecate and remove the first form. This was a mistake.
-      options = options.merge("params" => params) # options will be passed to all steps/activities.
+    def self.options_for_public_call(params={}, options=nil, *containers)
+      options, *containers = Deprecations.accept_positional_options(params, options, *containers)
 
       # generate the skill hash that embraces runtime options plus potential containers, the so called Runtime options.
       # This wrapping is supposed to happen once in the entire system.
@@ -37,6 +34,22 @@ class Trailblazer::Operation
       immutable_options = Trailblazer::Context::ContainerChain.new( [options, *containers], to_hash: hash_transformer ) # Runtime options, immutable.
 
       ctx = Trailblazer::Context(immutable_options)
+    end
+
+    module Deprecations
+      # Merge the first argument to the public Create.() into the second.
+      #
+      # DISCUSS: this is experimental since we can never know whether the call is the old or new API.
+      def self.accept_positional_options( params, options, *containers )
+        if options.nil? # only one hash passed in, could be 2.2 style.
+          [ {"params" => params} ]
+        elsif options.is_a?(Hash) # deprecated 2.0 since 2nd arg is not a DRY/... container (this test sucks, of course)
+          warn "[Trailblazer] Passing two positional arguments to `Operation.( params, current_user: .. )` is deprecated. Please use one hash like `Operation.( params: params, current_user: .. )`"
+          [ options.merge("params" => params), *containers ]
+        else
+          [ params, options, *containers ]
+        end
+      end
     end
   end
 end
