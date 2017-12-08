@@ -13,14 +13,13 @@ class Trailblazer::Activity
 
       # `original_args` are the actual args passed to the wrapped task: [ [options, ..], circuit_options ]
       #
-      def call((wrap_ctx, original_args), **circuit_options)
+      def call( (wrap_ctx, original_args), **circuit_options )
         # let user compute new ctx for the wrapped task.
-        input_ctx = apply_filter(*original_args)
-
+        input_ctx = apply_filter(*original_args) # FIXME: THIS SHOULD ALWAYS BE A _NEW_ Context.
         # TODO: make this unnecessary.
         # wrap user's hash in Context if it's not one, already (in case user used options.merge).
         # DISCUSS: should we restrict user to .merge and options.Context?
-        input_ctx = Trailblazer.Context({}, input_ctx) unless input_ctx.instance_of?(Trailblazer::Context)
+        input_ctx = Trailblazer.Context(input_ctx) if !input_ctx.instance_of?(Trailblazer::Context) || input_ctx==original_args[0][0]
 
         wrap_ctx = wrap_ctx.merge( vm_original_args: original_args )
 
@@ -47,15 +46,15 @@ class Trailblazer::Activity
       end
 
       # Runs the user filter and replaces the ctx in `wrap_ctx[:result_args]` with the filtered one.
-      def call((wrap_ctx, original_args), **circuit_options)
+      def call( (wrap_ctx, original_args), **circuit_options )
         (original_ctx, original_flow_options), original_circuit_options = original_args
 
-        returned_ctx, _ = wrap_ctx[:result_args] # this is the context returned from `call`ing the task.
+        returned_ctx, _ = wrap_ctx[:result_args] # this is the Context returned from `call`ing the task.
 
         # returned_ctx is the Context object from the nested operation. In <=2.1, this might be a completely different one
         # than "ours" we created in Input. We now need to compile a list of all added values. This is time-intensive and should
         # be optimized by removing as many Context creations as possible (e.g. the one adding self[] stuff in Operation.__call__).
-        _, mutable_data = returned_ctx.decompose # FIXME: this is a weak assumption. What if the task returns a deeply nested Context?
+        _, mutable_data = returned_ctx.decompose # DISCUSS: this is a weak assumption. What if the task returns a deeply nested Context?
 
         # let user compute the output.
         output = apply_filter(mutable_data, original_flow_options, original_circuit_options)
