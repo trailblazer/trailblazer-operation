@@ -74,25 +74,21 @@ class DeclarativeApiTest < Minitest::Spec
     Unset. (decide: true).inspect("a", "b", "c", "d", "e").must_equal %{<Result:true [false, true, nil, 1, 2] >}
   end
 
-  describe "::outputs" do
+  describe "Activity::Interface" do
     class Edit < Trailblazer::Operation
       step :a
       step :b, fast_track: true
     end
 
-    it do
+    it "provides #outputs" do
       Activity::Introspect.Outputs(Edit.outputs).must_equal %{success=> (#<Trailblazer::Operation::Railway::End::Success:>, success)
 failure=> (#<Trailblazer::Operation::Railway::End::Failure:>, failure)
 pass_fast=> (#<Trailblazer::Operation::Railway::End::PassFast:>, pass_fast)
 fail_fast=> (#<Trailblazer::Operation::Railway::End::FailFast:>, fail_fast)}
     end
 
+    it "is an Interface" do
+      Edit.is_a?( Activity::Interface ).must_equal true
+    end
   end
-
-
-
-  # skills_test ?
-
-  #---
-
 end
