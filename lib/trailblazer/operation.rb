@@ -72,11 +72,6 @@ module Trailblazer
       end
     end
 
-    extend Process # make ::call etc. class methods on Operation.
-
-    extend PublicCall              # ::call(params, { current_user: .. })
-    extend Trace                   # ::trace
-
     # DSL part
     # delegate as much as possible to Builder
     module DSL
@@ -116,11 +111,14 @@ module Trailblazer
       end
     end
 
+    extend Process # make ::call etc. class methods on Operation.
+
+    extend PublicCall              # ::call(params, { current_user: .. })
+    extend Trace                   # ::trace
+
     extend DSL
 
     include Railway::TaskWrap
-
-
 
     initialize_builder!
   end
