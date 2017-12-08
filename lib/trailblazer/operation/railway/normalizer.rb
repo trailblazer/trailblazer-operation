@@ -22,9 +22,12 @@ module Trailblazer
             ]
           end
 
+        options = deprecate_name(options) # TODO remove in 2.2
+
         raise "No :id given for #{wrapped_task}" unless options[:id]
 
         options = defaultize(task, options) # :plus_poles
+
 
         options, locals, sequence_options = override(task, options, sequence_options) # :override
 
@@ -51,6 +54,15 @@ module Trailblazer
           Activity.Output(Activity::Right, :success) => nil,
           Activity.Output(Activity::Left,  :failure) => nil,
         )
+      end
+
+      def self.deprecate_name(options) # TODO remove in 2.2
+        options, locals = Activity::Magnetic::Builder.normalize(options, [:name])
+        if locals[:name]
+          warn "[Trailblazer] The :name option for #step, #success and #failure has been renamed to :id."
+          options = options.merge(id: locals[:name])
+        end
+        return options
       end
     end
   end
