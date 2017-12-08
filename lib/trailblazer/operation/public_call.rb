@@ -42,7 +42,7 @@ class Trailblazer::Operation
       # DISCUSS: this is experimental since we can never know whether the call is the old or new API.
       def self.accept_positional_options( params, options, *containers )
         if options.nil? # only one hash passed in, could be 2.2 style.
-          [ {"params" => params} ]
+          params.is_a?(Hash)&&params.has_key?(:params) ? [params] : [ {"params" => params} ] # this sucks and is wrong #FIXME.
         elsif options.is_a?(Hash) # deprecated 2.0 since 2nd arg is not a DRY/... container (this test sucks, of course)
           warn "[Trailblazer] Passing two positional arguments to `Operation.( params, current_user: .. )` is deprecated. Please use one hash like `Operation.( params: params, current_user: .. )`"
           [ options.merge("params" => params), *containers ]
