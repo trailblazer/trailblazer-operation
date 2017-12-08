@@ -50,14 +50,13 @@ class TraceTest < Minitest::Spec
     result = Create.trace({ x: 1 }, options={ a_return: true })
     result.wtf?.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- #<Trailblazer::Activity::Start:>
 |-- Create.task.a
-|-- #<Proc:.rb:4 (lambda)>
-|   |-- Start.default
+|-- MyNested
+|   |-- #<Trailblazer::Activity::Start:>
 |   |-- B.task.b
 |   |-- B.task.e
-|   |-- End.success
-|   `-- #<Proc:.rb:4 (lambda)>
+|   `-- #<Trailblazer::Operation::Railway::End::Success:>
 |-- Create.task.c
 |-- Create.task.params
-`-- End.success}
+`-- #<Trailblazer::Operation::Railway::End::Success:>}
   end
 end

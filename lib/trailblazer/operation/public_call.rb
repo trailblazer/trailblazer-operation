@@ -11,19 +11,23 @@ class Trailblazer::Operation
     # get removed in future versions of TRB. Currently, we use Activity::__call__ as an alternative.
     #
     # @return Operation::Railway::Result binary result object
-    def call(params={}, options={}, *containers)
+    def call(*args)
+      ctx = PublicCall.options_for_public_call(*args)
+
+      # call the activity.
+      last_signal, (options, flow_options) = __call__( [ctx, {}] ) # Railway::call # DISCUSS: this could be ::call_with_context.
+
+      # Result is successful if the activity ended with an End event derived from Railway::End::Success.
+      Railway::Result(last_signal, options, flow_options)
+    end
+
+    private
+    # Compile a Context object to be passed into the Activity::call.
+    def self.options_for_public_call(params={}, options={}, *containers)
+      # Merge the first argument to the public Create.() into the second.
+      #
+      # TODO: deprecate and remove the first form. This was a mistake.
       options = options.merge("params" => params) # options will be passed to all steps/activities.
-
-
-
-
-
-
-
-
-
-
-
 
       # generate the skill hash that embraces runtime options plus potential containers, the so called Runtime options.
       # This wrapping is supposed to happen once in the entire system.
@@ -32,19 +36,7 @@ class Trailblazer::Operation
 
       immutable_options = Trailblazer::Context::ContainerChain.new( [options, *containers], to_hash: hash_transformer ) # Runtime options, immutable.
 
-
-
       ctx = Trailblazer::Context(immutable_options)
-
-
-
-
-
-
-      last_signal, (options, flow_options) = __call__( [ctx, {}] ) # Railway::call # DISCUSS: this could be ::call_with_context.
-
-      # Result is successful if the activity ended with an End event derived from Railway::End::Success.
-      Railway::Result(last_signal, options, flow_options)
     end
   end
 end
