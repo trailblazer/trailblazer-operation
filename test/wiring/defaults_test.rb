@@ -28,10 +28,10 @@ require "test_helper"
   # end
 
 #   # normal flow as D sits on the Right track.
-#   it { C.({}, "D_return" => Circuit::Right).inspect("a", "b", "c", "D", "f").must_equal %{<Result:true [1, 2, 3, [1, 2, nil], nil] >} }
+#   it { C.( "D_return" => Circuit::Right).inspect("a", "b", "c", "D", "f").must_equal %{<Result:true [1, 2, 3, [1, 2, nil], nil] >} }
 #   # ends on MyEnd, without hitting fail.
-#   it { C.({}, "D_return" => C::ExceptionFromD).inspect("a", "b", "c", "D", "f").must_equal %{<Result:false [1, 2, nil, [1, 2, nil], nil] >} } # todo: HOW TO CHECK End instance?
-#   it { C.({}, "D_return" => Circuit::Left).inspect("a", "b", "c", "D", "f").must_equal %{<Result:false [1, 2, nil, [1, 2, nil], 4] >} } # todo: HOW TO CHECK End instance?
+#   it { C.( "D_return" => C::ExceptionFromD).inspect("a", "b", "c", "D", "f").must_equal %{<Result:false [1, 2, nil, [1, 2, nil], nil] >} } # todo: HOW TO CHECK End instance?
+#   it { C.( "D_return" => Circuit::Left).inspect("a", "b", "c", "D", "f").must_equal %{<Result:false [1, 2, nil, [1, 2, nil], 4] >} } # todo: HOW TO CHECK End instance?
 #   it do
 #       step1 = C["__sequence__"][0].instructions[0].last[:node][0]
 #       step2 = C["__sequence__"][1].instructions[0].last[:node][0]
@@ -65,7 +65,7 @@ require "test_helper"
 #       # pp schema
 
 #       C["__activity__"] = circuit # this is so wrong
-#       C.({}, "D_return" => Circuit::Right).inspect("a", "b", "c", "D", "f").must_equal %{<Result:true [1, 2, 3, [1, 2, nil], nil] >}
+#       C.( "D_return" => Circuit::Right).inspect("a", "b", "c", "D", "f").must_equal %{<Result:true [1, 2, 3, [1, 2, nil], nil] >}
 
 #     end
 # end
@@ -86,13 +86,13 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
   end
 
   # a => true
-  it { Create.({}, a_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a]] >} }
+  it { Create.( a_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a]] >} }
   # b => true
-  it { Create.({}, a_return: false, b_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :b]] >} }
+  it { Create.( a_return: false, b_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :b]] >} }
   # c => true
-  it { Create.({}, a_return: false, b_return: false, c_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :b, :c]] >} }
+  it { Create.( a_return: false, b_return: false, c_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :b, :c]] >} }
   # a => b => c => false
-  it { Create.({}, a_return: false, b_return: false, c_return: false, data: []).inspect(:data).must_equal %{<Result:false [[:a, :b, :c]] >} }
+  it { Create.( a_return: false, b_return: false, c_return: false, data: []).inspect(:data).must_equal %{<Result:false [[:a, :b, :c]] >} }
 
 #   # require "trailblazer/developer"
 #   # it { Trailblazer::Developer::Client.push( operation: Create, name: "ushi" ) }
@@ -109,13 +109,13 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
   end
 
   # a => true
-  it { Update.({}, a_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :d]] >} }
+  it { Update.( a_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :d]] >} }
   # b => true
-  it { Update.({}, a_return: false, b_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :b, :d]] >} }
+  it { Update.( a_return: false, b_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :b, :d]] >} }
   # c => true
-  it { Update.({}, a_return: false, b_return: false, c_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :b, :c, :d]] >} }
+  it { Update.( a_return: false, b_return: false, c_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :b, :c, :d]] >} }
   # a => b => c => false
-  it { Update.({}, a_return: false, b_return: false, c_return: false, data: []).inspect(:data).must_equal %{<Result:false [[:a, :b, :c]] >} }
+  it { Update.( a_return: false, b_return: false, c_return: false, data: []).inspect(:data).must_equal %{<Result:false [[:a, :b, :c]] >} }
 
   #---
   # failure steps reference End.success and not just the polarization. This won't call #d in failure=>success case.
@@ -133,13 +133,13 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
   end
 
   # a => true
-  it { Delete.({}, a_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :d]] >} }
+  it { Delete.( a_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :d]] >} }
   # b => true
-  it { Delete.({}, a_return: false, b_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :b]] >} }
+  it { Delete.( a_return: false, b_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :b]] >} }
   # c => true
-  it { Delete.({}, a_return: false, b_return: false, c_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :b, :c]] >} }
+  it { Delete.( a_return: false, b_return: false, c_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :b, :c]] >} }
   # a => b => c => false
-  it { Delete.({}, a_return: false, b_return: false, c_return: false, data: []).inspect(:data).must_equal %{<Result:false [[:a, :b, :c]] >} }
+  it { Delete.( a_return: false, b_return: false, c_return: false, data: []).inspect(:data).must_equal %{<Result:false [[:a, :b, :c]] >} }
 
   #---
   #       |----|
@@ -161,11 +161,11 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
   it { puts Trailblazer::Activity::Magnetic::Introspect.seq( Connect.instance_variable_get(:@builder) ) }
 
   # a => true
-  it { Connect.({}, a_return: true, b_return: true,data: []).inspect(:data).must_equal %{<Result:true [[:a, :b, :d]] >} }
+  it { Connect.( a_return: true, b_return: true,data: []).inspect(:data).must_equal %{<Result:true [[:a, :b, :d]] >} }
   # a => false
-  it { Connect.({}, a_return: false, data: []).inspect(:data).must_equal %{<Result:false [[:a]] >} }
+  it { Connect.( a_return: false, data: []).inspect(:data).must_equal %{<Result:false [[:a]] >} }
   # b => false
-  it { Connect.({}, a_return: true, b_return: false, data: []).inspect(:data).must_equal %{<Result:false [[:a, :b]] >} }
+  it { Connect.( a_return: true, b_return: false, data: []).inspect(:data).must_equal %{<Result:false [[:a, :b]] >} }
 
   #---
   # |---------|
@@ -187,11 +187,11 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
   pp Post["__sequence__"]
 
   # a => true
-  it { Post.({}, a_return: true, d_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :d]] >} }
+  it { Post.( a_return: true, d_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :d]] >} }
   # a => false
-  it { Post.({}, a_return: false, f_return: false, g_return: nil, data: []).inspect(:data).must_equal %{<Result:false [[:a, :f, :g]] >} }
+  it { Post.( a_return: false, f_return: false, g_return: nil, data: []).inspect(:data).must_equal %{<Result:false [[:a, :f, :g]] >} }
   # a => false, f => true
-  it { Post.({}, a_return: false, f_return: true, c_return: true, d_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :f, :c, :d]] >} }
+  it { Post.( a_return: false, f_return: true, c_return: true, d_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :f, :c, :d]] >} }
   # a => false, f => true, c => false
-  it { Post.({}, a_return: false, f_return: true, c_return: false, g_return: true, data: []).inspect(:data).must_equal %{<Result:false [[:a, :f, :c, :g]] >} }
+  it { Post.( a_return: false, f_return: true, c_return: false, g_return: true, data: []).inspect(:data).must_equal %{<Result:false [[:a, :f, :c, :g]] >} }
 end

@@ -14,9 +14,9 @@ class FastTrackTest < Minitest::Spec
   # require "trailblazer/diagram/bpmn"
   # puts Trailblazer::Diagram::BPMN.to_xml(Create["pipetree"])
 
-  # it { Create.({}, "fail_fast" => true, "dont_fail" => true ).inspect("x", "a", "b", "y").must_equal %{<Result:true [true, nil, nil, true] >} }
-  # it { Create.({}, "fail_fast" => true                  ).inspect("x", "a", "b", "y").must_equal %{<Result:false [nil, true, nil, nil] >} }
-  # it { Create.({}, "fail_fast" => false                 ).inspect("x", "a", "b", "y").must_equal %{<Result:false [nil, true, nil, nil] >} }
+  # it { Create.("fail_fast" => true, "dont_fail" => true ).inspect("x", "a", "b", "y").must_equal %{<Result:true [true, nil, nil, true] >} }
+  # it { Create.("fail_fast" => true                  ).inspect("x", "a", "b", "y").must_equal %{<Result:false [nil, true, nil, nil] >} }
+  # it { Create.("fail_fast" => false                 ).inspect("x", "a", "b", "y").must_equal %{<Result:false [nil, true, nil, nil] >} }
 
   # #success passes fast.
   class Retrieve < Trailblazer::Operation
@@ -24,8 +24,8 @@ class FastTrackTest < Minitest::Spec
     fail ->(options, **) { options["b"] = true }
     step ->(options, **) { options["y"] = true }
   end
-  it { Retrieve.({}, "dont_fail" => true  ).inspect("x", "b", "y").must_equal %{<Result:true [true, nil, nil] >} }
-  it { Retrieve.({}, "dont_fail" => false ).inspect("x", "b", "y").must_equal %{<Result:true [false, nil, nil] >} }
+  it { Retrieve.("dont_fail" => true  ).inspect("x", "b", "y").must_equal %{<Result:true [true, nil, nil] >} }
+  it { Retrieve.("dont_fail" => false ).inspect("x", "b", "y").must_equal %{<Result:true [false, nil, nil] >} }
 
   # #step fails fast if option set and returns false.
   class Update < Trailblazer::Operation
@@ -35,7 +35,7 @@ class FastTrackTest < Minitest::Spec
     step ->(options, *) { options["y"] = true }
   end
 
-  it { Update.({}, "dont_fail" => true).inspect("x", "a", "b", "y").must_equal %{<Result:true [true, true, nil, true] >} }
+  it { Update.("dont_fail" => true).inspect("x", "a", "b", "y").must_equal %{<Result:true [true, true, nil, true] >} }
   it { Update.({}                     ).inspect("x", "a", "b", "y").must_equal %{<Result:false [true, nil, nil, nil] >} }
 
   # #step passes fast if option set and returns true.
@@ -46,7 +46,7 @@ class FastTrackTest < Minitest::Spec
     step ->(options, *) { options["y"] = true }
   end
 
-  it { Delete.({}, "dont_fail" => true).inspect("x", "a", "b", "y").must_equal %{<Result:true [true, true, nil, nil] >} }
+  it { Delete.("dont_fail" => true).inspect("x", "a", "b", "y").must_equal %{<Result:true [true, true, nil, nil] >} }
   it { Delete.({}                     ).inspect("x", "a", "b", "y").must_equal %{<Result:false [true, nil, true, nil] >} }
 end
 
@@ -137,13 +137,13 @@ class NestedFastTrackTest < Minitest::Spec
     end
 
     # Edit returns End.success
-    it { update.({}, edit_return: true).inspect("a", "b", "f").must_equal %{<Result:true [1, 2, nil] >} }
+    it { update.(edit_return: true).inspect("a", "b", "f").must_equal %{<Result:true [1, 2, nil] >} }
     # Edit returns End.failure
-    it { update.({}, edit_return: false).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, 3] >} }
+    it { update.(edit_return: false).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, 3] >} }
     # Edit returns End.pass_fast
-    it { update.({}, edit_return: Trailblazer::Operation::Railway.pass_fast!).inspect("a", "b", "f").must_equal %{<Result:true [1, nil, nil] >} }
+    it { update.(edit_return: Trailblazer::Operation::Railway.pass_fast!).inspect("a", "b", "f").must_equal %{<Result:true [1, nil, nil] >} }
     # Edit returns End.fail_fast
-    it { update.({}, edit_return: Trailblazer::Operation::Railway.fail_fast!).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, nil] >} }
+    it { update.(edit_return: Trailblazer::Operation::Railway.fail_fast!).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, nil] >} }
   end
 
   describe "Nested, no :fast_track option but all its outputs given" do
@@ -159,13 +159,13 @@ class NestedFastTrackTest < Minitest::Spec
     end
 
     # Edit returns End.success
-    it { update.({}, edit_return: true).inspect("a", "b", "f").must_equal %{<Result:true [1, 2, nil] >} }
+    it { update.(edit_return: true).inspect("a", "b", "f").must_equal %{<Result:true [1, 2, nil] >} }
     # Edit returns End.failure
-    it { update.({}, edit_return: false).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, 3] >} }
+    it { update.(edit_return: false).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, 3] >} }
     # Edit returns End.pass_fast
-    it { update.({}, edit_return: Trailblazer::Operation::Railway.pass_fast!).inspect("a", "b", "f").must_equal %{<Result:true [1, nil, nil] >} }
+    it { update.(edit_return: Trailblazer::Operation::Railway.pass_fast!).inspect("a", "b", "f").must_equal %{<Result:true [1, nil, nil] >} }
     # Edit returns End.fail_fast
-    it { update.({}, edit_return: Trailblazer::Operation::Railway.fail_fast!).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, nil] >} }
+    it { update.(edit_return: Trailblazer::Operation::Railway.fail_fast!).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, nil] >} }
   end
 
   describe "2.0 behavior: no :fast_track option, all outputs given, but we rewire fast_track" do
@@ -185,13 +185,13 @@ class NestedFastTrackTest < Minitest::Spec
     # it { puts Trailblazer::Activity::Introspect.Cct(update.instance_variable_get(:@process)) }
     it { puts Trailblazer::Activity::Magnetic::Introspect.seq( update.instance_variable_get(:@builder) ) }
     # Edit returns End.success
-    it { update.({}, edit_return: true).inspect("a", "b", "f").must_equal %{<Result:true [1, 2, nil] >} }
+    it { update.(edit_return: true).inspect("a", "b", "f").must_equal %{<Result:true [1, 2, nil] >} }
     # Edit returns End.failure
-    it { update.({}, edit_return: false).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, 3] >} }
+    it { update.(edit_return: false).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, 3] >} }
     # Edit returns End.pass_fast, but behaves like :success.
-    it { update.({}, edit_return: Trailblazer::Operation::Railway.pass_fast!).inspect("a", "b", "f").must_equal %{<Result:true [1, 2, nil] >} }
+    it { update.(edit_return: Trailblazer::Operation::Railway.pass_fast!).inspect("a", "b", "f").must_equal %{<Result:true [1, 2, nil] >} }
     # Edit returns End.fail_fast, but behaves like :failure.
-    it { update.({}, edit_return: Trailblazer::Operation::Railway.fail_fast!).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, 3] >} }
+    it { update.(edit_return: Trailblazer::Operation::Railway.fail_fast!).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, 3] >} }
   end
 end
 

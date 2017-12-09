@@ -18,12 +18,12 @@ class CallTest < Minitest::Spec
     #---
     # success?
     class Update < Trailblazer::Operation
-      step ->(options, **) { options["params"] }
+      step ->(options, **) { options[:result] }
     end
 
     # operation success
     it do
-      result = Update.(true)
+      result = Update.(result: true)
 
       result.success?.must_equal true
 
@@ -33,7 +33,7 @@ class CallTest < Minitest::Spec
 
     # operation failure
     it do
-      result = Update.(false)
+      result = Update.(result: false)
 
       result.success?.must_equal false
       result.failure?.must_equal true

@@ -23,8 +23,8 @@ class Trailblazer::Operation
 
     private
     # Compile a Context object to be passed into the Activity::call.
-    def self.options_for_public_call(params={}, options=nil, *containers)
-      options, *containers = Deprecations.accept_positional_options(params, options, *containers) # TODO: make this optional for "power users".
+    def self.options_for_public_call(options={}, *containers)
+      # options, *containers = Deprecations.accept_positional_options(params, options, *containers) # TODO: make this optional for "power users".
 
       # generate the skill hash that embraces runtime options plus potential containers, the so called Runtime options.
       # This wrapping is supposed to happen once in the entire system.
@@ -40,14 +40,21 @@ class Trailblazer::Operation
       # Merge the first argument to the public Create.() into the second.
       #
       # DISCUSS: this is experimental since we can never know whether the call is the old or new API.
-      def self.accept_positional_options( params, options, *containers )
-        if options.nil? # only one hash passed in, could be 2.2 style.
-          params.is_a?(Hash)&&params.has_key?(:params) ? [params] : [ {"params" => params} ] # this sucks and is wrong #FIXME.
-        elsif options.is_a?(Hash) # deprecated 2.0 since 2nd arg is not a DRY/... container (this test sucks, of course)
-          warn "[Trailblazer] Passing two positional arguments to `Operation.( params, current_user: .. )` is deprecated. Please use one hash like `Operation.( params: params, current_user: .. )`"
-          [ options.merge("params" => params), *containers ]
+      #
+      # The following situations are _not_ covered here:
+      # * You're using a Hash instance as a container.
+      # * You're using more than one container.
+      #
+      # If you do so (we're assuming you know what you're doing then), please update your `call`s.
+      def self.accept_positional_options( *args )
+        if args.size == 1 && args[0].instance_of?(Hash) # new style, you're doing it right.
+          args
+        elsif args.size == 2 && args[0].instance_of?(Hash) && !args[1].instance_of?(Hash) # new style with container, you're doing it right.
+          args
         else
-          [ params, options, *containers ]
+          warn "[Trailblazer] Passing two positional arguments to `Operation.( params, current_user: .. )` is deprecated. Please use one hash like `Operation.( params: params, current_user: .. )`"
+          params, options, *containers = args
+          [ options.merge("params" => params), *containers ]
         end
       end
     end

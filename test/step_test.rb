@@ -37,7 +37,7 @@ class StepTest < Minitest::Spec
     end
   end
 
-  it { Create.({}, a: 1, b: 2, c: 3, d: 4, e: 5).inspect("a", "b", "c", "d", "e").must_equal "<Result:true [1, 2, 3, 4, 5] >" }
+  it { Create.(a: 1, b: 2, c: 3, d: 4, e: 5).inspect("a", "b", "c", "d", "e").must_equal "<Result:true [1, 2, 3, 4, 5] >" }
 
   it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?step_test.rb/, "").must_equal %{[>#<Proc::29 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>MyMacro]} }
 
@@ -67,7 +67,7 @@ class StepTest < Minitest::Spec
   end
 
   it { Trailblazer::Operation::Inspect.(C).must_equal %{[>b!,>e!,>a!]} }
-  it { C.({}, "order"=>[]).inspect("order").must_equal %{<Result:true [["b", "e", "a"]] >} }
+  it { C.("order"=>[]).inspect("order").must_equal %{<Result:true [["b", "e", "a"]] >} }
 
   #---
   #- override: true

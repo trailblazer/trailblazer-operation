@@ -77,7 +77,7 @@ class Trailblazer::Activity
       end
 
       # "merge" Strategy
-      class CopyMutableToOriginal
+      module CopyMutableToOriginal
         # @param original Context
         # @param options  Context The object returned from a (nested) {Activity}.
         def self.call(original, mutable)
