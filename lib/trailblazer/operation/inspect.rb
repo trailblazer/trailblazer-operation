@@ -25,16 +25,18 @@ module Trailblazer
       railway = alterations.instance_variable_get(:@groups).instance_variable_get(:@groups)[:main]
 
       rows = railway.each_with_index.collect do |element, i|
-        magnetic_to, task, plus_poles = element[:configuration]
+        magnetic_to, task, plus_poles = element.configuration
 
         created_by =
           if magnetic_to == [:failure]
             :fail
+          elsif plus_poles.size > 1
+            plus_poles[0].color == plus_poles[1].color ? :pass : :step
           else
-            plus_poles[0][:color] == plus_poles[1][:color] ? :pass : :step
+            :pass # this is wrong for Nested, sometimes
           end
 
-        [ i, [ created_by, element[:id] ] ]
+        [ i, [ created_by, element.id ] ]
       end
 
       return inspect_line(rows) if options[:style] == :line

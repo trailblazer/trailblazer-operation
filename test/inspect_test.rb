@@ -30,4 +30,14 @@ class InspectTest < Minitest::Spec
  4 <<return_false!=======================
  5 ============================>finalize!}
   end
+
+  describe "step with only one plus pole (happens with Nested)" do
+    class Present < Trailblazer::Operation
+      pass :ok!, plus_poles: Trailblazer::Activity::Magnetic::DSL::PlusPoles::from_outputs( :success => Trailblazer::Activity.Output("signal", :success) )
+    end
+
+    it do
+      Trailblazer::Operation::Inspect.(Present).must_equal %{[>>ok!]}
+    end
+  end
 end
