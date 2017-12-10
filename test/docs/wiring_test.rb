@@ -250,8 +250,59 @@ describe all options :pass_fast, :fast_track and emiting signals directly, like 
   end
 end
 
+=begin
+:before, :after, :replace, :delete, :group, :id
+=end
+class WiringsDocSeqOptionsTest < Minitest::Spec
+  module Id
+    class Memo < WiringDocsTest::Memo; end
+
+    #:id
+    class Memo::Create < Trailblazer::Operation
+      step :create_model
+      step :validate, id: "validate_params"
+      step :save
+      #~id-methods
+      def create_model(options, **)
+      end
+      def validate(options, **)
+      end
+      def save(options, **)
+      end
+      #~id-methods end
+    end
+    #:id end
+
+    #:delete
+    class Memo::Create::Admin < Memo::Create
+      step nil, delete: "validate_params", id: ""
+    end
+    #:delete end
+  end
+
+  it ":id shows up in introspect" do
+    Memo = Id::Memo
+    #:id-inspect
+    Trailblazer::Operation.inspect( Memo::Create )
+    #=> [>create_model,>validate_params,>save]
+    #:id-inspect end
+
+    Trailblazer::Operation.inspect( Memo::Create ).must_equal %{[>create_model,>validate_params,>save]}
+  end
+
+  it ":delete removes step" do
+    Memo = Id::Memo
+    #:delete-inspect
+    Trailblazer::Operation.inspect( Memo::Create::Admin )
+    #=> [>create_model,>save]
+    #:delete-inspect end
+
+    Trailblazer::Operation.inspect( Memo::Create::Admin ).must_equal %{[>create_model,>save]}
+  end
+end
+
 # @see https://github.com/trailblazer/trailblazer/issues/190#issuecomment-326992255
-class WiringsDocsBlaTest < Minitest::Spec
+class WiringsDocRecoverTest < Minitest::Spec
   Memo = WiringDocsTest::Memo
 
   #:fail-success

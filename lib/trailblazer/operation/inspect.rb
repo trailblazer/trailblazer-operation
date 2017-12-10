@@ -11,6 +11,12 @@ module Trailblazer
   #
   # NOTE: this is absolutely to be considered as prototyping and acts more like a test helper ATM as
   # Inspect is not a mission-critical part.
+  Operation.module_eval do
+    def self.inspect(*args)
+      Operation::Inspect.(*args)
+    end
+  end
+
   module Operation::Inspect
     module_function
 
