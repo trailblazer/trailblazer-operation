@@ -249,3 +249,62 @@ describe all options :pass_fast, :fast_track and emiting signals directly, like 
     result[:errors].must_be_nil
   end
 end
+
+# @see https://github.com/trailblazer/trailblazer/issues/190#issuecomment-326992255
+class WiringsDocsBlaTest < Minitest::Spec
+  Memo = WiringDocsTest::Memo
+
+  #:fail-success
+  class Memo::Upload < Trailblazer::Operation
+    step :upload_to_s3
+    fail :upload_to_azure,  Output(:success) => :success
+    fail :upload_to_b2,     Output(:success) => :success
+    fail :log_problem
+    #~fail-success-methods
+    #:fail-success-s3
+    def upload_to_s3(options, s3:, **)
+      options[:s3] = s3 # the actual upload is dispatched here and result collected.
+    end
+    #:fail-success-s3 end
+
+    def upload_to_azure(options, azure:, **)
+      options[:azure] = azure
+    end
+
+    def upload_to_b2(options, b2:, **)
+      options[:b2] = b2
+    end
+
+    def log_problem(options, **)
+      options[:problem] = "All uploads failed."
+    end
+    #~fail-success-methods end
+  end
+  #:fail-success end
+
+  let(:my_image) { "beautiful landscape" }
+
+  it "works for S3" do
+    result = Memo::Upload.( image: my_image, s3: true )
+
+    [ result.success?, result[:s3], result[:azure], result[:b2], result[:problem] ].must_equal [ true, true, nil, nil, nil ]
+  end
+
+  it "works for Azure" do
+    result = Memo::Upload.( image: my_image, azure: true, s3: false )
+
+    [ result.success?, result[:s3], result[:azure], result[:b2], result[:problem] ].must_equal [ true, false, true, nil, nil ]
+  end
+
+  it "works for B2" do
+    result = Memo::Upload.( image: my_image, b2: true, azure: false, s3: false )
+
+    [ result.success?, result[:s3], result[:azure], result[:b2], result[:problem] ].must_equal [ true, false, false, true, nil ]
+  end
+
+  it "fails for all" do
+    result = Memo::Upload.( image: my_image, b2: false, azure: false, s3: false )
+
+    [ result.success?, result[:s3], result[:azure], result[:b2], result[:problem] ].must_equal [ false, false, false, false, "All uploads failed." ]
+  end
+end
