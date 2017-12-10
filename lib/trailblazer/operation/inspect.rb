@@ -1,5 +1,5 @@
 module Trailblazer
-  module Hash
+  module Hash # FIXME: REMOE=VE
     def self.inspect(hash, *keys)
       ::Hash[ keys.collect { |key| [key, hash[key]] } ].inspect
     end
@@ -11,8 +11,8 @@ module Trailblazer
   #
   # NOTE: this is absolutely to be considered as prototyping and acts more like a test helper ATM as
   # Inspect is not a mission-critical part.
-  Operation.module_eval do
-    def self.inspect(*args)
+  class Operation
+    def self.introspect(*args)
       Operation::Inspect.(*args)
     end
   end

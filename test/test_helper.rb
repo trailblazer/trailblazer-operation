@@ -34,10 +34,6 @@ module Test
   end
 end
 
-
-
-
-
 Minitest::Spec.class_eval do
 
 end

@@ -18,7 +18,7 @@ class InspectTest < Minitest::Spec
   # pp Create.instance_variable_get(:@builder)
 
   it do
-    Trailblazer::Operation::Inspect.call(Create).must_equal %{[>decide!,>>wasnt_ok!,>>was_ok!,<<return_true!,<<return_false!,>finalize!]}
+    Trailblazer::Operation.introspect(Create).must_equal %{[>decide!,>>wasnt_ok!,>>was_ok!,<<return_true!,<<return_false!,>finalize!]}
   end
 
   it do
@@ -37,7 +37,7 @@ class InspectTest < Minitest::Spec
     end
 
     it do
-      Trailblazer::Operation::Inspect.(Present).must_equal %{[>>ok!]}
+      Trailblazer::Operation.introspect(Present).must_equal %{[>>ok!]}
     end
   end
 end

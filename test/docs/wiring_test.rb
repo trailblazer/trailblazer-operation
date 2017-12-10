@@ -259,8 +259,8 @@ class WiringsDocSeqOptionsTest < Minitest::Spec
 
     #:id
     class Memo::Create < Trailblazer::Operation
-      step :create_model
-      step :validate, id: "validate_params"
+      step :create_model, id: "create_memo"
+      step :validate,     id: "validate_params"
       step :save
       #~id-methods
       def create_model(options, **)
@@ -278,26 +278,86 @@ class WiringsDocSeqOptionsTest < Minitest::Spec
       step nil, delete: "validate_params", id: ""
     end
     #:delete end
+
+    #:before
+    class Memo::Create::Authorized < Memo::Create
+      step :policy, before: "create_memo"
+      #~before-methods
+      def policy(options, **)
+      end
+      #~before-methods end
+    end
+    #:before end
+
+    #:after
+    class Memo::Create::Logging < Memo::Create
+      step :logger, after: "validate_params"
+      #~after-methods
+      def logger(options, **)
+      end
+      #~after-methods end
+    end
+    #:after end
+
+    #:replace
+    class Memo::Update < Memo::Create
+      step :find_model, replace: "create_memo", id: "update_memo"
+      #~replace-methods
+      def find_model(options, **)
+      end
+      #~replace-methods end
+    end
+    #:replace end
   end
 
   it ":id shows up in introspect" do
     Memo = Id::Memo
     #:id-inspect
-    Trailblazer::Operation.inspect( Memo::Create )
+    Trailblazer::Operation.introspect( Memo::Create )
     #=> [>create_model,>validate_params,>save]
     #:id-inspect end
 
-    Trailblazer::Operation.inspect( Memo::Create ).must_equal %{[>create_model,>validate_params,>save]}
+    Trailblazer::Operation.introspect( Memo::Create ).must_equal %{[>create_memo,>validate_params,>save]}
   end
 
   it ":delete removes step" do
     Memo = Id::Memo
     #:delete-inspect
-    Trailblazer::Operation.inspect( Memo::Create::Admin )
+    Trailblazer::Operation.introspect( Memo::Create::Admin )
     #=> [>create_model,>save]
     #:delete-inspect end
 
-    Trailblazer::Operation.inspect( Memo::Create::Admin ).must_equal %{[>create_model,>save]}
+    Trailblazer::Operation.introspect( Memo::Create::Admin ).must_equal %{[>create_memo,>save]}
+  end
+
+  it ":before inserts" do
+    Memo = Id::Memo
+    #:before-inspect
+    Trailblazer::Operation.introspect( Memo::Create::Authorized )
+    #=> [>create_model,>save]
+    #:before-inspect end
+
+    Trailblazer::Operation.introspect( Memo::Create::Authorized ).must_equal %{[>policy,>create_memo,>validate_params,>save]}
+  end
+
+  it ":after inserts" do
+    Memo = Id::Memo
+    #:after-inspect
+    Trailblazer::Operation.introspect( Memo::Create::Logging )
+    #=> [>create_memo,>validate_params,>logger,>save]
+    #:after-inspect end
+
+    Trailblazer::Operation.introspect( Memo::Create::Logging ).must_equal %{[>create_memo,>validate_params,>logger,>save]}
+  end
+
+  it ":replace inserts" do
+    Memo = Id::Memo
+    #:replace-inspect
+    Trailblazer::Operation.introspect( Memo::Update )
+    #=> [>update_memo,>validate_params,>save]
+    #:replace-inspect end
+
+    Trailblazer::Operation.introspect( Memo::Update ).must_equal %{[>update_memo,>validate_params,>save]}
   end
 end
 
