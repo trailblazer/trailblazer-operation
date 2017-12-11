@@ -48,7 +48,7 @@ class TraceTest < Minitest::Spec
 
   it "Operation::trace" do
     result = Create.trace({ "params" => { x: 1 }, a_return: true })
-    result.wtf?.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- #<Trailblazer::Activity::Start:>
+    result.wtf.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- #<Trailblazer::Activity::Start:>
 |-- Create.task.a
 |-- MyNested
 |   |-- #<Trailblazer::Activity::Start:>

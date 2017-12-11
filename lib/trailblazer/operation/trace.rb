@@ -36,12 +36,12 @@ module Trailblazer
           @stack = stack
         end
 
-        def wtf?
+        def wtf
           Activity::Trace::Present.tree(@stack)
         end
 
-        def wtf
-          puts wtf?
+        def wtf?
+          puts wtf
         end
       end
     end
