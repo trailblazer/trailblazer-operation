@@ -57,7 +57,7 @@ module Trailblazer
       end
 
       def recompile_process!
-        @process, @outputs = Activity::Recompile.( @builder )
+        @process, @outputs = Activity::Recompile.( @builder.instance_variable_get(:@adds) )
       end
 
       def outputs
