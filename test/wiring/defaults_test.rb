@@ -158,7 +158,7 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
     end
   end
 
-  it { puts Trailblazer::Activity::Magnetic::Introspect.seq( Connect.instance_variable_get(:@builder) ) }
+  it { puts Trailblazer::Activity::Magnetic::Introspect.seq( Connect ) }
 
   # a => true
   it { Connect.( a_return: true, b_return: true,data: []).inspect(:data).must_equal %{<Result:true [[:a, :b, :d]] >} }

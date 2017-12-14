@@ -183,7 +183,7 @@ class NestedFastTrackTest < Minitest::Spec
     end
 
     # it { puts Trailblazer::Activity::Introspect.Cct(update.instance_variable_get(:@process)) }
-    it { puts Trailblazer::Activity::Magnetic::Introspect.seq( update.instance_variable_get(:@builder) ) }
+    it { puts Trailblazer::Activity::Magnetic::Introspect.seq( update ) }
     # Edit returns End.success
     it { update.(edit_return: true).inspect("a", "b", "f").must_equal %{<Result:true [1, 2, nil] >} }
     # Edit returns End.failure

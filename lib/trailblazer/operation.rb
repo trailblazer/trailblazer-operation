@@ -1,5 +1,4 @@
 require "forwardable"
-require "declarative"
 
 # trailblazer-context
 require "trailblazer/option"
@@ -28,22 +27,21 @@ module Trailblazer
   # The Trailblazer-style operation.
   # Note that you don't have to use our "opinionated" version with result object, skills, etc.
   class Operation
-    # support for declarative inheriting (e.g. the circuit).
-    extend Declarative::Heritage::Inherited
-    extend Declarative::Heritage::DSL
-
     extend Skill::Accessors        # ::[] and ::[]= # TODO: fade out this usage.
-    # we want the skill dependency-mechanism.
-    # extend Skill::Call             # ::call(params: .., current_user: ..)
+
+    def self.inherited(subclass)
+      super
+      subclass.initialize!
+      heritage.(subclass)
+    end
 
     module Process
-      def initialize_builder!
-        heritage.record :initialize_builder!
-
+      def initialize!
         initialize_activity_dsl!
         recompile_process!
       end
 
+      # builder is stateless, it's up to you to save @adds somewhere.
       def initialize_activity_dsl!
         builder_options = {
           track_end:     Railway::End::Success.new(:success, semantic: :success),
@@ -52,12 +50,12 @@ module Trailblazer
           fail_fast_end: Railway::End::FailFast.new(:fail_fast, semantic: :fail_fast),
         }
 
-        @builder = Activity::Magnetic::Builder::FastTrack.new( Railway::Normalizer, builder_options )
-        @debug = {}
+        @builder, @adds = Activity::Magnetic::Builder::FastTrack.for( Railway::Normalizer, builder_options )
+        @debug          = {}
       end
 
       def recompile_process!
-        @process, @outputs = Activity::Recompile.( @builder.instance_variable_get(:@adds) )
+        @process, @outputs = Activity::Recompile.( @adds )
       end
 
       def outputs
@@ -72,55 +70,28 @@ module Trailblazer
       end
     end
 
-    # DSL part
-    # delegate as much as possible to Builder
-    module DSL
-      extend Forwardable
-      def_delegators :@builder, :Output, :Path
+    extend Process # make ::call etc. class methods on Operation.
 
-      def step(*args, &block)
-        _element(:step, *args, &block)
-      end
+    extend Activity::Heritage::Accessor
 
-      def pass(*args, &block)
-        _element(:pass, *args, &block)
-      end
-
-      def fail(*args, &block)
-        _element(:fail, *args, &block)
-      end
-
+    extend Activity::DSL # #_task
+    # delegate step, pass and fail via Operation::_task to the @builder, and save results in @adds.
+    extend Activity::DSL.def_dsl! :step
+    extend Activity::DSL.def_dsl! :pass
+    extend Activity::DSL.def_dsl! :fail
+    class << self
       alias_method :success, :pass
       alias_method :failure, :fail
 
-      # @private
-      #
-      # This method might be removed in favor for a better DSL hooks mechanism.
-      def _element(type, *args, &block)
-        heritage.record(type, *args, &block)
-
-# TODO: merge with Activity
-        adds, *options = @builder.send(type, *args, &block) # e.g. @builder.step
-        recompile_process!
-        add_introspection!(adds, *options)
-        return adds, *options
-      end
-
-             def add_introspection!(adds, task, local_options, *)
-        @debug[task] = { id: local_options[:id] }.freeze
-      end
+      extend Forwardable # TODO: test those helpers
+      def_delegators :@builder, :Path, :Output, :End #, :task
     end
-
-    extend Process # make ::call etc. class methods on Operation.
 
     extend PublicCall              # ::call(params, { current_user: .. })
     extend Trace                   # ::trace
 
-    extend DSL
 
     include Railway::TaskWrap
-
-    initialize_builder!
   end
 end
 

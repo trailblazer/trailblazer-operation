@@ -41,10 +41,10 @@ module Trailblazer
       module DSL
         # TODO: this override is hard to follow, we should have a pipeline circuit in DSL to add behavior.
         # @private
-        def _element(*args)
+        def _task(*args)
           returned = super # TODO: do this with a circuit :)
+          adds, (task, local_options) = returned
 
-          adds, task, local_options, _ = returned
           runner_options = local_options[:runner_options]
 
           runner_options and apply_adds_from_runner_options!( task, runner_options )
