@@ -33,12 +33,17 @@ class TaskWrapTest < Minitest::Spec
 
   # it { Create.__call__("adsf", options={}, {}).inspect("MyMacro.contract", "options.contract").must_equal %{} }
 
+  def inspect_hash(hash, *keys)
+    Hash[ keys.collect { |key| [key, hash[key]] } ].inspect
+  end
+
   #-
   # default gets set by Injection.
   it do
     direction, (options, _) = Create.__call__( [{}, {}] )
 
-    Trailblazer::Hash.inspect(options, "options.contract", :contract, "MyMacro.contract").
+
+    inspect_hash(options, "options.contract", :contract, "MyMacro.contract").
       must_equal %{{"options.contract"=>nil, :contract=>"MyDefaultContract", "MyMacro.contract"=>"MyDefaultContract"}}
   end
 
@@ -46,7 +51,7 @@ class TaskWrapTest < Minitest::Spec
   it do
     direction, (options, _) = Create.__call__( [ { :contract=>"MyExternalContract" }, {} ] )
 
-    Trailblazer::Hash.inspect(options, "options.contract", :contract, "MyMacro.contract").
+    inspect_hash(options, "options.contract", :contract, "MyMacro.contract").
       must_equal %{{"options.contract"=>"MyExternalContract", :contract=>"MyExternalContract", "MyMacro.contract"=>"MyExternalContract"}}
   end
 
@@ -80,7 +85,7 @@ class TaskWrapTest < Minitest::Spec
   it do
     direction, (options, _) = Update.__call__( [ {}, {} ] )
 
-    Trailblazer::Hash.inspect(options, "options.contract", :contract, "MyMacro.contract", "AnotherMacro.another_contract").
+    inspect_hash(options, "options.contract", :contract, "MyMacro.contract", "AnotherMacro.another_contract").
       must_equal %{{"options.contract"=>nil, :contract=>"MyDefaultContract", "MyMacro.contract"=>"MyDefaultContract", "AnotherMacro.another_contract"=>"AnotherDefaultContract"}}
   end
 end

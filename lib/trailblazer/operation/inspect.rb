@@ -1,10 +1,4 @@
 module Trailblazer
-  module Hash # FIXME: REMOE=VE
-    def self.inspect(hash, *keys)
-      ::Hash[ keys.collect { |key| [key, hash[key]] } ].inspect
-    end
-  end
-
   # Operation-specific circuit rendering. This is optimized for a linear railway circuit.
   #
   # @private
