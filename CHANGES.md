@@ -14,6 +14,10 @@ lots of work on the DSL specific parts.
 
 params:, rest: ..
 
+## 0.1.2
+
+* Add @mensfeld's "Macaroni" step style for a keyword-only signature for steps.
+
 ## 0.1.0
 
 inspect: failure is << and success is >>
