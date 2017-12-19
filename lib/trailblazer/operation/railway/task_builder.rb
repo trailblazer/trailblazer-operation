@@ -34,20 +34,5 @@ module Trailblazer
         [ direction, [ options, *args ], **circuit_args ]
       end
     end
-
-    module Macaroni
-      def self.call(user_proc)
-        Task.new( Trailblazer::Option.build( Macaroni::Option, user_proc ), user_proc )
-      end
-
-      class Option < Trailblazer::Option
-        #   your_code.(**options)
-        # @private
-        def self.call!(proc, options, *)
-          proc.( **options.to_hash.merge( options: options ) ) # Step interface: (options:, params:, **)
-        end
-      end
-
-    end
   end
 end
