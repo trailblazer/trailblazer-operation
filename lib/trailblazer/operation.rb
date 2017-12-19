@@ -50,7 +50,7 @@ module Trailblazer
           fail_fast_end: Railway::End::FailFast.new(:fail_fast, semantic: :fail_fast),
         }
 
-        @builder, @adds = Activity::Magnetic::Builder::FastTrack.for( Railway::Normalizer, builder_options )
+        @builder, @adds = Activity::Magnetic::Builder::FastTrack.for( build_normalizer.freeze, builder_options )
         @debug          = {}
       end
 
@@ -67,6 +67,12 @@ module Trailblazer
       # Call the actual {Process} with the options prepared in PublicCall.
       def __call__(args, circuit_options={})
         @process.( args, circuit_options.merge( exec_context: new ) )
+      end
+
+      private
+
+      def build_normalizer
+        Railway::Normalizer.new
       end
     end
 

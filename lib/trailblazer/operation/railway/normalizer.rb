@@ -5,8 +5,12 @@ module Trailblazer
     # task via {TaskBuilder} in order to translate true/false to `Right` or `Left`.
     #
     # The Normalizer sits in the `@builder`, which receives all DSL calls from the Operation subclass.
-    module Normalizer
-      def self.call(task, options, unknown_options, sequence_options)
+    class Normalizer
+      def initialize(task_builder: TaskBuilder, **options)
+        @task_builder = task_builder
+      end
+
+      def call(task, options, unknown_options, sequence_options)
         wrapped_task, options =
           if task.is_a?(::Hash) # macro.
             [
@@ -17,7 +21,7 @@ module Trailblazer
             Operation::DeprecatedMacro.( *task )
           else # user step
             [
-              TaskBuilder.(task),
+              @task_builder.(task),
               { id: task }.merge(options) # default :id
             ]
           end
@@ -35,28 +39,28 @@ module Trailblazer
       end
 
       # Merge user options over defaults.
-      def self.defaultize(task, options)
+      def defaultize(task, options)
         {
           plus_poles: InitialPlusPoles(),
         }.merge(options)
       end
 
       # Handle the :override option which is specific to Operation.
-      def self.override(task, options, sequence_options)
+      def override(task, options, sequence_options)
         options, locals  = Activity::Magnetic::Builder.normalize(options, [:override])
         sequence_options = sequence_options.merge( replace: options[:id] ) if locals[:override]
 
         return options, locals, sequence_options
       end
 
-      def self.InitialPlusPoles
+      def InitialPlusPoles
         Activity::Magnetic::DSL::PlusPoles.new.merge(
           Activity.Output(Activity::Right, :success) => nil,
           Activity.Output(Activity::Left,  :failure) => nil,
         )
       end
 
-      def self.deprecate_name(options, unknown_options) # TODO remove in 2.2
+      def deprecate_name(options, unknown_options) # TODO remove in 2.2
         unknown_options, deprecated_options = Activity::Magnetic::Builder.normalize(unknown_options, [:name])
 
         options = options.merge( name: deprecated_options[:name] ) if deprecated_options[:name]

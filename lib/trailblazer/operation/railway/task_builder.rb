@@ -5,33 +5,8 @@ module Trailblazer
     # Output direction binary: true=>Right, false=>Left.
     # Passes through all subclasses of Direction.~~~~~~~~~~~~~~~~~
     module TaskBuilder
-      class Task < Proc
-        def initialize(source_location, &block)
-          @source_location = source_location
-          super &block
-        end
-
-        def to_s
-          "<Railway::Task{#{@source_location}}>"
-        end
-
-        def inspect
-          to_s
-        end
-      end
-
-# TODO: make this class replaceable so @Mensfeld gets his own call style. :trollface:
-
-      def self.call(step, on_true=Activity::Right, on_false=Activity::Left)
-        Task.new step, &->( (options, *args), **circuit_args ) do
-          # Execute the user step with TRB's kw args.
-          result = Trailblazer::Option::KW(step).(options, **circuit_args) # circuit_args contains :exec_context.
-
-          # Return an appropriate signal which direction to go next.
-          direction = binary_direction_for(result, on_true, on_false)
-
-          [ direction, [ options, *args ], **circuit_args ]
-        end
+      def self.call(user_proc)
+        Task.new( Trailblazer::Option::KW( user_proc ), user_proc )
       end
 
       # Translates the return value of the user step into a valid signal.
@@ -39,6 +14,40 @@ module Trailblazer
       def self.binary_direction_for(result, on_true, on_false)
         result.is_a?(Class) && result < Activity::Signal ? result : (result ? on_true : on_false)
       end
+    end
+
+    class Task
+      def initialize(task, user_proc)
+        @task      = task
+        @user_proc = user_proc
+
+        freeze
+      end
+
+      def call( (options, *args), **circuit_args )
+        # Execute the user step with TRB's kw args.
+        result = @task.( options, **circuit_args ) # circuit_args contains :exec_context.
+
+        # Return an appropriate signal which direction to go next.
+        direction = TaskBuilder.binary_direction_for( result, Activity::Right, Activity::Left )
+
+        [ direction, [ options, *args ], **circuit_args ]
+      end
+    end
+
+    module Macaroni
+      def self.call(user_proc)
+        Task.new( Trailblazer::Option.build( Macaroni::Option, user_proc ), user_proc )
+      end
+
+      class Option < Trailblazer::Option
+        #   your_code.(**options)
+        # @private
+        def self.call!(proc, options, *)
+          proc.( **options.to_hash.merge( options: options ) ) # Step interface: (options:, params:, **)
+        end
+      end
+
     end
   end
 end
