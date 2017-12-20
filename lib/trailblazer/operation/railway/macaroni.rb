@@ -17,5 +17,7 @@ module Trailblazer
         end
       end
     end
+
+    KwSignature = Macaroni
   end
 end

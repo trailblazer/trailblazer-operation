@@ -23,6 +23,8 @@ require "trailblazer/operation/railway/normalizer"
 require "trailblazer/operation/task_wrap"
 require "trailblazer/operation/trace"
 
+require "trailblazer/operation/railway/macaroni"
+
 module Trailblazer
   # The Trailblazer-style operation.
   # Note that you don't have to use our "opinionated" version with result object, skills, etc.
