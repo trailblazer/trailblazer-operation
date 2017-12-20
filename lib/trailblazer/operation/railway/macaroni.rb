@@ -12,8 +12,8 @@ module Trailblazer
 
       class Option < Trailblazer::Option
         # The Option#call! method prepares the arguments.
-        def self.call!(proc, options, *)
-          proc.( **options.to_hash.merge( options: options ) )
+        def self.call!(proc, ctx, *)
+          proc.( **ctx.to_hash.merge( ctx: ctx ) )
         end
       end
     end

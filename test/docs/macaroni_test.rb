@@ -11,8 +11,8 @@ class MacaroniTaskBuilderTest < Minitest::Spec
     step :create_model, normalizer: Normalizer
     step :save,         normalizer: Normalizer
 
-    def create_model(params:, options:, **)
-      options[:model] = params[:title]
+    def create_model(params:, ctx:, **)
+      ctx[:model] = params[:title]
     end
 
     def save(model:, **)
