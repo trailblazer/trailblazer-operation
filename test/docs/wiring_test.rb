@@ -419,3 +419,55 @@ class WiringsDocRecoverTest < Minitest::Spec
     [ result.success?, result[:s3], result[:azure], result[:b2], result[:problem] ].must_equal [ false, false, false, false, "All uploads failed." ]
   end
 end
+
+class WiringsDocCustomConnectionTest < Minitest::Spec
+  Memo = Class.new(WiringDocsTest::Memo)
+
+  #:target-id
+  class Memo::Upload < Trailblazer::Operation
+    step :new?, Output(:failure) => "index"
+    step :upload
+    step :validate
+    fail :validation_error
+    step :index, id: "index"
+    #~target-id-methods
+    def new?(options, is_new:, **)
+      options[:new?] = is_new
+    end
+
+    def upload(options, **)
+      options[:upload] = true
+    end
+
+    def validate(options, validate:true, **)
+      options[:validate] = validate
+    end
+
+    def validation_error(options, **)
+      options[:validation_error] = true
+    end
+
+    def index(options, **)
+      options[:index] = true
+    end
+    #~target-id-methods end
+  end
+  #:target-id end
+
+  let(:my_image) { "beautiful landscape" }
+
+  it "works with new image" do
+    result = Memo::Upload.( image: my_image, is_new: true )
+    result.inspect(:new?, :upload, :validate, :validation_error, :index).must_equal %{<Result:true [true, true, true, nil, true] >}
+  end
+
+  it "skips everything but index for existing image" do
+    result = Memo::Upload.( image: my_image, is_new: false )
+    result.inspect(:new?, :upload, :validate, :validation_error, :index).must_equal %{<Result:true [false, nil, nil, nil, true] >}
+  end
+
+  it "fails in validation" do
+    result = Memo::Upload.( image: my_image, is_new: true, validate: false )
+    result.inspect(:new?, :upload, :validate, :validation_error, :index).must_equal %{<Result:false [true, true, false, true, nil] >}
+  end
+end
