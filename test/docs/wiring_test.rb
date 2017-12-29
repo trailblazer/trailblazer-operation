@@ -471,3 +471,89 @@ class WiringsDocCustomConnectionTest < Minitest::Spec
     result.inspect(:new?, :upload, :validate, :validation_error, :index).must_equal %{<Result:false [true, true, false, true, nil] >}
   end
 end
+
+class WiringsDocDeciderTest < Minitest::Spec
+  Memo = Class.new(WiringDocsTest::Memo)
+
+  #:decider
+  class Memo::Upsert < Trailblazer::Operation
+    step :find_model, Output(:failure) => :create_route
+    step :update
+    step :create, magnetic_to: [:create_route]
+    step :save
+    #~decm
+    def find_model(options, id:nil, **)
+      options[:model] = Memo.find(id)
+    end
+
+    def find_model(options, id:, **)
+      options[:find_model] = id
+    end
+    def update(options, **)
+      options[:update] = true
+    end
+    def create(options, **)
+      options[:create] = true
+    end
+    def save(options, **)
+      options[:save] = true
+    end
+    #~decm end
+  end
+  #:decider end
+
+  it "goes the create route" do
+    Memo::Upsert.( id: false ).inspect(:find_model, :update, :create, :save).must_equal %{<Result:true [false, nil, true, true] >}
+  end
+
+  it "goes the update route" do
+    Memo::Upsert.( id: true ).inspect(:find_model, :update, :create, :save).must_equal %{<Result:true [true, true, nil, true] >}
+  end
+end
+
+class WiringsDocEndTest < Minitest::Spec
+  Memo = Class.new(WiringDocsTest::Memo)
+
+  #:end
+  class Memo::Update < Trailblazer::Operation
+    step :find_model, Output(:failure) => End("End.model_not_found", :model_not_found)
+    step :update
+    fail :db_error
+    step :save
+    #~methods
+    def find_model(options, id:nil, **)
+      options[:model] = Memo.find(id)
+    end
+
+    def find_model(options, id:, **)
+      options[:find_model] = id
+    end
+    def update(options, update: true, **)
+      options[:update] = update
+    end
+    def db_error(options, **)
+      options[:db_error] = 1
+    end
+    def save(options, **)
+      options[:save] = true
+    end
+    #~methods end
+  end
+  #:end end
+
+  it "goes success path" do
+    Memo::Update.( id: true ).inspect(:find_model, :update, :save, :db_error).must_equal %{<Result:true [true, true, true, nil] >}
+  end
+
+  it "errors out on End.model_not_found" do
+    result = Memo::Update.( id: false )
+    result.inspect(:find_model, :update, :save, :db_error).must_equal %{<Result:false [false, nil, nil, nil] >}
+    result.event.instance_variable_get(:@options).must_equal(semantic: :model_not_found)
+  end
+
+  it "takes normal error track" do
+    result = Memo::Update.( id: true, update: false )
+    result.inspect(:find_model, :update, :save, :db_error).must_equal %{<Result:false [true, false, nil, 1] >}
+    result.event.instance_variable_get(:@options).must_equal(semantic: :failure)
+  end
+end
