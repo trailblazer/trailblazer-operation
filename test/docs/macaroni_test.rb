@@ -1,26 +1,32 @@
 require "test_helper"
 
-require "trailblazer/operation/railway/macaroni"
-
 class MacaroniTaskBuilderTest < Minitest::Spec
-  module Memo; end
+  Memo = Struct.new(:title) do
+    def save
+      self.title = title[:title].reverse
+    end
+  end
 
+  #:create
   class Memo::Create < Trailblazer::Operation
-    Normalizer = Railway::Normalizer.new( task_builder: Railway::Macaroni )
+    #~ign
+    Normalizer = Railway::Normalizer.new( task_builder: Railway::KwSignature )
 
     step :create_model, normalizer: Normalizer
     step :save,         normalizer: Normalizer
 
     def create_model(params:, ctx:, **)
-      ctx[:model] = params[:title]
+      options[:model] = Memo.new( title: params[:title] )
     end
 
-    def save(model:, **)
-      model.reverse!
+    def save( model:, ** )
+      model.save
     end
+    #~methods end
   end
+  #:create end
 
   it "allows optional macaroni call style" do
-    Memo::Create.( params: { title: "Wow!" } ).inspect(:model).must_equal %{<Result:true ["!woW"] >}
+    Memo::Create.( params: { title: "Wow!" } ).inspect(:model).must_equal %{<Result:true [#<struct MacaroniTaskBuilderTest::Memo title=\"!woW\">] >}
   end
 end

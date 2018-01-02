@@ -14,6 +14,14 @@ lots of work on the DSL specific parts.
 
 params:, rest: ..
 
+## 0.1.4
+
+* `TaskWrap.arguments_for_call` now returns the correct `circuit_options` where the `:runner` etc.'s already merged.
+
+## 0.1.3
+
+* New taskWrap API for `activity` 0.3.2.
+
 ## 0.1.2
 
 * Add @mensfeld's "Macaroni" step style for a keyword-only signature for steps.

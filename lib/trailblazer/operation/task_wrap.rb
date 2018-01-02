@@ -19,21 +19,21 @@ module Trailblazer
 
         # __call__ prepares `flow_options` and `static_wraps` for {TaskWrap::Runner}.
         def __call__(args, **circuit_args)
-          args, _circuit_args = TaskWrap.arguments_for_call(self, args, **circuit_args)
+          args, circuit_args = TaskWrap.arguments_for_call(self, args, **circuit_args)
 
-          super( args, circuit_args.merge(_circuit_args) ) # Railway::__call__
+          super( args, circuit_args ) # Railway::__call__
         end
       end
 
       def self.arguments_for_call(operation, (options, flow_options), **circuit_args)
         wrap_static = operation["__static_task_wraps__"]
 
-        circuit_args = {
+        circuit_args = circuit_args.merge(
           runner:        Activity::Wrap::Runner,
                   # FIXME: this sucks, why do we even need to pass an empty runtime there?
           wrap_runtime: circuit_args[:wrap_runtime] || ::Hash.new([]), # FIXME:this sucks. (was:) this overwrites wrap_runtime from outside.
           wrap_static:  wrap_static,
-        }
+        )
 
         return [ options, flow_options ], circuit_args
       end

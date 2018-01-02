@@ -45,11 +45,11 @@ class Trailblazer::Activity
         @strategy = strategy
       end
 
-      # Runs the user filter and replaces the ctx in `wrap_ctx[:result_args]` with the filtered one.
+      # Runs the user filter and replaces the ctx in `wrap_ctx[:return_args]` with the filtered one.
       def call( (wrap_ctx, original_args), **circuit_options )
         (original_ctx, original_flow_options), original_circuit_options = original_args
 
-        returned_ctx, _ = wrap_ctx[:result_args] # this is the Context returned from `call`ing the task.
+        returned_ctx, _ = wrap_ctx[:return_args] # this is the Context returned from `call`ing the task.
 
         # returned_ctx is the Context object from the nested operation. In <=2.1, this might be a completely different one
         # than "ours" we created in Input. We now need to compile a list of all added values. This is time-intensive and should
@@ -63,7 +63,7 @@ class Trailblazer::Activity
 
         new_ctx = @strategy.( original_ctx, output ) # here, we compute the "new" options {Context}.
 
-        wrap_ctx = wrap_ctx.merge( result_args: [new_ctx, original_flow_options] )
+        wrap_ctx = wrap_ctx.merge( return_args: [new_ctx, original_flow_options] )
 
         # and then pass on the "new" context.
         return Trailblazer::Activity::Right, [ wrap_ctx, original_args ]
