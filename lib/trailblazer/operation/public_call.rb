@@ -35,28 +35,5 @@ class Trailblazer::Operation
 
       ctx = Trailblazer::Context(immutable_options)
     end
-
-    module Deprecations
-      # Merge the first argument to the public Create.() into the second.
-      #
-      # DISCUSS: this is experimental since we can never know whether the call is the old or new API.
-      #
-      # The following situations are _not_ covered here:
-      # * You're using a Hash instance as a container.
-      # * You're using more than one container.
-      #
-      # If you do so (we're assuming you know what you're doing then), please update your `call`s.
-      def self.accept_positional_options( *args )
-        if args.size == 1 && args[0].instance_of?(Hash) # new style, you're doing it right.
-          args
-        elsif args.size == 2 && args[0].instance_of?(Hash) && !args[1].instance_of?(Hash) # new style with container, you're doing it right.
-          args
-        else
-          warn "[Trailblazer] Passing two positional arguments to `Operation.( params, current_user: .. )` is deprecated. Please use one hash like `Operation.( params: params, current_user: .. )`"
-          params, options, *containers = args
-          [ options.merge("params" => params), *containers ]
-        end
-      end
-    end
   end
 end
