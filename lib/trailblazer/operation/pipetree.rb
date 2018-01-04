@@ -86,6 +86,8 @@ class Trailblazer::Operation
       def self.insert(pipe, track, decider_class, proc, options={}) # TODO: make :name required arg.
         _proc, options = proc.is_a?(Array) ? macro!(proc, options) : step!(proc, options)
 
+        index = pipe.instance_variable_get(:@index)
+        options = options.merge(replace: options[:name]) if index.keys.include?(options[:name])
         options = options.merge(replace: options[:name]) if options[:override] # :override
         strut_class, strut_options = AddOptions.(decider_class, options)       # :fail_fast and friends.
 
