@@ -47,7 +47,7 @@ module Trailblazer
 
       # Handle the :override option which is specific to Operation.
       def override(task, options, sequence_options)
-        options, locals  = Activity::Magnetic::Builder.normalize(options, [:override])
+        options, locals  = Activity::Magnetic::Options.normalize(options, [:override])
         sequence_options = sequence_options.merge( replace: options[:id] ) if locals[:override]
 
         return options, locals, sequence_options
@@ -61,11 +61,11 @@ module Trailblazer
       end
 
       def deprecate_name(options, unknown_options) # TODO remove in 2.2
-        unknown_options, deprecated_options = Activity::Magnetic::Builder.normalize(unknown_options, [:name])
+        unknown_options, deprecated_options = Activity::Magnetic::Options.normalize(unknown_options, [:name])
 
         options = options.merge( name: deprecated_options[:name] ) if deprecated_options[:name]
 
-        options, locals = Activity::Magnetic::Builder.normalize(options, [:name])
+        options, locals = Activity::Magnetic::Options.normalize(options, [:name])
         if locals[:name]
           warn "[Trailblazer] The :name option for #step, #success and #failure has been renamed to :id."
           options = options.merge(id: locals[:name])

@@ -7,7 +7,6 @@ require "trailblazer/container_chain"
 
 require "trailblazer/activity"
 require "trailblazer/activity/magnetic"
-require "trailblazer/activity/wrap"
 
 require "trailblazer/operation/variable_mapping"
 
