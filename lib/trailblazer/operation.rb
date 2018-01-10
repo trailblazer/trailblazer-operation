@@ -19,7 +19,6 @@ require "trailblazer/operation/railway"
 require "trailblazer/operation/railway/task_builder"
 require "trailblazer/operation/railway/fast_track"
 require "trailblazer/operation/railway/normalizer"
-require "trailblazer/operation/task_wrap"
 require "trailblazer/operation/trace"
 
 require "trailblazer/operation/railway/macaroni"
@@ -96,9 +95,6 @@ module Trailblazer
 
     extend PublicCall              # ::call(params, { current_user: .. })
     extend Trace                   # ::trace
-
-
-    include Railway::TaskWrap
   end
 end
 
