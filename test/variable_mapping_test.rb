@@ -38,14 +38,14 @@ class VariableMappingTest < Minitest::Spec
 
       # add filters around Model.
       runtime[ Model ] = Activity::Magnetic::Builder::Path.plan do
-        task Activity::Wrap::Input.new( model_input ),   id: "task_wrap.input", before: "task_wrap.call_task"
-        task Activity::Wrap::Output.new( model_output ), id: "task_wrap.output", before: "End.success", group: :end
+        task Activity::TaskWrap::Input.new( model_input ),   id: "task_wrap.input", before: "task_wrap.call_task"
+        task Activity::TaskWrap::Output.new( model_output ), id: "task_wrap.output", before: "End.success", group: :end
       end
 
       # add filters around Uuid.
       runtime[ Uuid ] = Activity::Magnetic::Builder::Path.plan do
-        task Activity::Wrap::Input.new( uuid_input ),   id: "task_wrap.input", before: "task_wrap.call_task"
-        task Activity::Wrap::Output.new( uuid_output ), id: "task_wrap.output", before: "End.success", group: :end
+        task Activity::TaskWrap::Input.new( uuid_input ),   id: "task_wrap.input", before: "task_wrap.call_task"
+        task Activity::TaskWrap::Output.new( uuid_output ), id: "task_wrap.output", before: "End.success", group: :end
       end
 
       signal, (options, flow_options) = activity.(
@@ -55,8 +55,8 @@ class VariableMappingTest < Minitest::Spec
       ],
 
       wrap_runtime: runtime, # dynamic additions from the outside (e.g. tracing), also per task.
-      runner: Activity::Wrap::Runner,
-      wrap_static: Hash.new( Activity::Wrap.initial_activity ), # per activity?
+      runner: Activity::TaskWrap::Runner,
+      wrap_static: Hash.new( Activity::TaskWrap.initial_activity ), # per activity?
     )
 
     signal.must_equal activity.outputs[:success].signal
