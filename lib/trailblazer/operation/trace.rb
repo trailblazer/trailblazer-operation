@@ -2,20 +2,21 @@ module Trailblazer
   class Operation
     module Trace
       def self.call(operation, *args)
-        ctx = PublicCall.send(:options_for_public_call, *args)
+        operation, (options, flow_options), circuit_options = Trailblazer::Activity::Trace.arguments_for_call( operation, [options, {}], {} ) # only run once for the entire circuit!
 
-        # let Activity::Trace::call handle all parameters, just make sure it calls Operation.__call__
-        call_block = ->(operation, *args) { operation.__call__(*args) }
+        circuit_options = circuit_options.merge({ argumenter: [ Trailblazer::Activity::Introspect.method(:arguments_for_call), Trailblazer::Activity::TaskWrap.method(:arguments_for_call) ] })
 
-        stack, direction, options, flow_options = Activity::Trace.(
-          operation,
-          ctx,
-          &call_block # instructs Trace to use __call__.
-        )
+        # pp [flow_options, circuit_options]
 
-        result = Railway::Result(direction, options)
 
-        Result.new(result, stack)
+        last_signal, (options, flow_options) =
+          operation.__call__( # FIXME: this is the only problem.
+            [options, flow_options],
+          )
+
+        result = Railway::Result(last_signal, options)
+
+        Result.new(result, flow_options[:stack].to_a)
       end
 
       # `Operation::trace` is included for simple tracing of the flow.

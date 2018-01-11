@@ -65,10 +65,10 @@ module Trailblazer
       include Activity::Interface
 
       # Call the actual {Process} with the options prepared in PublicCall.
-      def __call__(args, circuit_options={})
+      def __call__(args, circuit_options={ argumenter: [] })
         @activity.( args, circuit_options.merge(
             exec_context: new,
-            argumenter:  [ Activity::TaskWrap.method(:arguments_for_call) ],
+            argumenter:  circuit_options[:argumenter]+[ Activity::TaskWrap.method(:arguments_for_call) ],
           )
         )
       end
@@ -104,8 +104,7 @@ module Trailblazer
     end
 
     extend PublicCall              # ::call(params, { current_user: .. })
-    # extend Trace                   # ::trace
-
+    extend Trace                   # ::trace
   end
 end
 
