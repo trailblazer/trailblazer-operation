@@ -27,6 +27,26 @@ module Trailblazer
   # The Trailblazer-style operation.
   # Note that you don't have to use our "opinionated" version with result object, skills, etc.
   class Operation
+    class Activity < Trailblazer::Activity
+      include Trailblazer::Activity::TaskWrap
+
+      def self.config
+        return Trailblazer::Activity::Magnetic::Builder::FastTrack,
+          Railway::Normalizer.new,
+          builder_options = {
+            track_end:     Railway::End::Success.new(:success, semantic: :success),
+            failure_end:   Railway::End::Failure.new(:failure, semantic: :failure),
+            pass_fast_end: Railway::End::PassFast.new(:pass_fast, semantic: :pass_fast),
+            fail_fast_end: Railway::End::FailFast.new(:fail_fast, semantic: :fail_fast),
+          }
+      end
+
+      # delegate DSL calls to the Activity's {Builder} instance.
+      extend DSL.def_dsl!(:step)
+      extend DSL.def_dsl!(:fail)
+      extend DSL.def_dsl!(:pass)
+    end
+
     extend Skill::Accessors        # ::[] and ::[]= # TODO: fade out this usage.
 
     def self.inherited(subclass)
@@ -35,66 +55,57 @@ module Trailblazer
       heritage.(subclass)
     end
 
+    def self.initialize!
+      @activity = Class.new(Activity)
+    end
+
+
     module Process
-      def initialize!
-        initialize_activity_dsl!
-        recompile_process!
-      end
-
-      # builder is stateless, it's up to you to save @adds somewhere.
-      def initialize_activity_dsl!
-        builder_options = {
-          track_end:     Railway::End::Success.new(:success, semantic: :success),
-          failure_end:   Railway::End::Failure.new(:failure, semantic: :failure),
-          pass_fast_end: Railway::End::PassFast.new(:pass_fast, semantic: :pass_fast),
-          fail_fast_end: Railway::End::FailFast.new(:fail_fast, semantic: :fail_fast),
-        }
-
-        @builder, @adds = Activity::Magnetic::Builder::FastTrack.for( build_normalizer.freeze, builder_options )
-        @debug          = {}
-      end
-
-      def recompile_process!
-        @process, @outputs = Activity::Recompile.( @adds )
-      end
-
-      def outputs
-        @outputs
-      end
 
       include Activity::Interface
 
       # Call the actual {Process} with the options prepared in PublicCall.
       def __call__(args, circuit_options={})
-        @process.( args, circuit_options.merge( exec_context: new ) )
+        @activity.( args, circuit_options.merge(
+            exec_context: new,
+            argumenter:  [ Activity::TaskWrap.method(:arguments_for_call) ],
+          )
+        )
       end
 
-      private
-
-      def build_normalizer
-        Railway::Normalizer.new
+      def decompose
+        return [@activity]
       end
+
     end
 
     extend Process # make ::call etc. class methods on Operation.
 
     extend Activity::Heritage::Accessor
 
-    extend Activity::DSL # #_task
-    # delegate step, pass and fail via Operation::_task to the @builder, and save results in @adds.
-    extend Activity::DSL.def_dsl! :step
-    extend Activity::DSL.def_dsl! :pass
-    extend Activity::DSL.def_dsl! :fail
     class << self
+      extend Forwardable # TODO: test those helpers
+      def_delegators :@activity, :Path#, :Output, :End #, :task
+      def_delegators Activity::Magnetic::Builder::DSLMethods, :Output, :End #, :task
+      def_delegators :@activity, :outputs, :debug
+      # def_delegators :@activity, :step, :pass, :fail
+
+      def step(task, options={}, &block); add_task!(:step, task, options, &block) end
+      def pass(task, options={}, &block); add_task!(:pass, task, options, &block) end
+      def fail(task, options={}, &block); add_task!(:fail, task, options, &block) end
+
       alias_method :success, :pass
       alias_method :failure, :fail
 
-      extend Forwardable # TODO: test those helpers
-      def_delegators :@builder, :Path, :Output, :End #, :task
+      def add_task!(name, task, options, &block)
+        heritage.record(name, task, options, &block)
+        @activity.add_task!(name, task, options, &block)
+      end
     end
 
     extend PublicCall              # ::call(params, { current_user: .. })
-    extend Trace                   # ::trace
+    # extend Trace                   # ::trace
+
   end
 end
 

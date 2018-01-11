@@ -15,14 +15,15 @@ class TaskWrapTest < Minitest::Spec
       task: MyMacro,
       id: "MyMacro",
 
-      runner_options: {
-        merge: Trailblazer::Activity::Magnetic::Builder::Path.plan do
-          task Trailblazer::Operation::Wrap::Inject::ReverseMergeDefaults.new( contract: "MyDefaultContract" ),
-            id:     "inject.my_default",
-            before: "task_wrap.call_task"
-        end
-      }
-
+      extension: [
+        Trailblazer::Activity::TaskWrap::Merge.new(
+          Trailblazer::Activity::Magnetic::Builder::Path.plan do
+            task Trailblazer::Operation::Wrap::Inject::ReverseMergeDefaults.new( contract: "MyDefaultContract" ),
+              id:     "inject.my_default",
+              before: "task_wrap.call_task"
+          end
+        )
+      ]
     )
 
     def model!(options, **)
@@ -41,7 +42,6 @@ class TaskWrapTest < Minitest::Spec
   # default gets set by Injection.
   it do
     direction, (options, _) = Create.__call__( [{}, {}] )
-
 
     inspect_hash(options, "options.contract", :contract, "MyMacro.contract").
       must_equal %{{"options.contract"=>nil, :contract=>"MyDefaultContract", "MyMacro.contract"=>"MyDefaultContract"}}
@@ -73,12 +73,14 @@ class TaskWrapTest < Minitest::Spec
     step(
       task:           AnotherMacro,
       id:             "AnotherMacro",
-      runner_options: {
-        merge: Trailblazer::Activity::Magnetic::Builder::Path.plan do
-          task Trailblazer::Operation::Wrap::Inject::ReverseMergeDefaults.new( another_contract: "AnotherDefaultContract" ), id: "inject.my_default",
-          before: "task_wrap.call_task"
-        end
-      }
+      extension: [
+        Trailblazer::Activity::TaskWrap::Merge.new(
+          Trailblazer::Activity::Magnetic::Builder::Path.plan do
+            task Trailblazer::Operation::Wrap::Inject::ReverseMergeDefaults.new( another_contract: "AnotherDefaultContract" ), id: "inject.my_default",
+            before: "task_wrap.call_task"
+          end
+        )
+      ]
     )
   end
 

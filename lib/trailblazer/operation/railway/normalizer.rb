@@ -13,6 +13,8 @@ module Trailblazer
       def call(task, options, unknown_options, sequence_options)
         wrapped_task, options =
           if task.is_a?(::Hash) # macro.
+            options = options.merge(extension: (options[:extension]||[])+(task[:extension]||[]) ) # FIXME.
+
             [
               task[:task],
               task.merge(options) # Note that the user options are merged over the macro options.
@@ -32,9 +34,7 @@ module Trailblazer
 
         options = defaultize(task, options) # :plus_poles
 
-
         options, locals, sequence_options = override(task, options, sequence_options) # :override
-
         return wrapped_task, options, unknown_options, sequence_options
       end
 

@@ -25,6 +25,7 @@ class IntrospectTest < Minitest::Spec
 
   describe "#collect" do
     it "iterates over each task element in the top activity" do
+      skip
       all_tasks = Activity::Introspect.collect(activity) do |task, connections|
         task
       end
