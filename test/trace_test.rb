@@ -28,7 +28,7 @@ class TraceTest < Minitest::Spec
     stack, _ = Trailblazer::Activity::Trace.(
       Create,
       [
-        { a_return: true, "params" => {} },
+        { a_return: true, params: {} },
       ]
     )
 
@@ -47,7 +47,7 @@ class TraceTest < Minitest::Spec
   end
 
   it "Operation::trace" do
-    result = Create.trace({ "params" => { x: 1 }, a_return: true })
+    result = Create.trace({ params: { x: 1 }, a_return: true })
     result.wtf.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- #<Trailblazer::Activity::Start:>
 |-- Create.task.a
 |-- MyNested

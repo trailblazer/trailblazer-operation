@@ -10,6 +10,8 @@ class Trailblazer::Operation
     # In workflows/Nested compositions, this method is not used anymore and it might probably
     # get removed in future versions of TRB. Currently, we use Operation::__call__ as an alternative.
     #
+    #
+    # @note Do not override this method as it will be removed in future versions. Also, you will break tracing.
     # @return Operation::Railway::Result binary result object
     def call(*args)
       ctx = PublicCall.options_for_public_call(*args)
@@ -21,11 +23,9 @@ class Trailblazer::Operation
       Railway::Result(last_signal, options, flow_options)
     end
 
-    private
     # Compile a Context object to be passed into the Activity::call.
+    # @private
     def self.options_for_public_call(options={}, *containers)
-      # options, *containers = Deprecations.accept_positional_options(params, options, *containers) # TODO: make this optional for "power users".
-
       # generate the skill hash that embraces runtime options plus potential containers, the so called Runtime options.
       # This wrapping is supposed to happen once in the entire system.
 

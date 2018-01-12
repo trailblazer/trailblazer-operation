@@ -11,6 +11,8 @@ module Trailblazer
       end
 
       def call(task, options, unknown_options, sequence_options)
+        options[:extension] = options[:extension] + [ Activity::Introspect.method(:add_introspection) ] # fixme: this sucks
+
         wrapped_task, options =
           if task.is_a?(::Hash) # macro.
             options = options.merge(extension: (options[:extension]||[])+(task[:extension]||[]) ) # FIXME.
