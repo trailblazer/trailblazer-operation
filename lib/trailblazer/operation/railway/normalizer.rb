@@ -37,8 +37,6 @@ module Trailblazer
               options = options.merge(extension: (options[:extension]||[])+(task[:extension]||[]) ) # FIXME.
 
               task.merge(options) # Note that the user options are merged over the macro options.
-            elsif task.is_a?(Array) # TODO remove in 2.2
-              Operation::DeprecatedMacro.( *task )
             else # user step
               { id: task }
                 .merge(options)                     # default :id
@@ -68,7 +66,15 @@ module Trailblazer
           ctx[:options], ctx[:sequence_options] = options, sequence_options
         end
 
-        def self.deprecate_name(ctx, options:, unknown_options:, **) # TODO remove in 2.2
+        # TODO remove in 2.2
+        def self.deprecate_macro_with_two_args(ctx, task:, **)
+          return true unless task.is_a?(Array) # TODO remove in 2.2
+
+          ctx[:task] = Operation::DeprecatedMacro.( *task )
+        end
+
+        # TODO remove in 2.2
+        def self.deprecate_name(ctx, options:, unknown_options:, **)
           unknown_options, deprecated_options = Activity::Magnetic::Options.normalize(unknown_options, [:name])
 
           options = options.merge( name: deprecated_options[:name] ) if deprecated_options[:name]
@@ -83,6 +89,7 @@ module Trailblazer
         end
 
         task TaskBuilder.( method(:normalize_extension_option) )
+        task TaskBuilder.( method(:deprecate_macro_with_two_args) )
         task TaskBuilder.( method(:normalize_for_macro) )
         task TaskBuilder.( method(:deprecate_name) )
         task TaskBuilder.( method(:raise_on_missing_id) )

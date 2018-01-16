@@ -2,7 +2,7 @@
 module Trailblazer
   module Operation::DeprecatedMacro
     # Allows old macros with the `(input, options)` signature.
-    def self.call(proc, options={})
+    def self.call(proc, options)
       warn %{[Trailblazer] Macros with API (input, options) are deprecated. Please use the "Task API" signature (options, flow_options) or use a simpler Callable. (#{proc})}
 
       wrapped_proc = ->( (options, flow_options), **circuit_options ) do
