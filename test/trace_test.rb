@@ -29,6 +29,7 @@ class TraceTest < Minitest::Spec
       Create,
       [
         { a_return: true, params: {} },
+        {}
       ]
     )
 
