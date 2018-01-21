@@ -54,7 +54,7 @@ module Trailblazer
     end
 
 
-    include Activity::Interface
+    extend Activity::Interface
 
     module Process
       # Call the actual {Process} with the options prepared in PublicCall.
