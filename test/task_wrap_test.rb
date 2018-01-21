@@ -17,7 +17,9 @@ class TaskWrapTest < Minitest::Spec
 
       extension: [
         Trailblazer::Activity::TaskWrap::Merge.new(
-          Trailblazer::Activity::Magnetic::Builder::Path.plan do
+          Module.new do
+            extend Trailblazer::Activity[ Trailblazer::Activity::Path::Plan ]
+
             task Trailblazer::Operation::Wrap::Inject::ReverseMergeDefaults.new( contract: "MyDefaultContract" ),
               id:     "inject.my_default",
               before: "task_wrap.call_task"
@@ -75,7 +77,9 @@ class TaskWrapTest < Minitest::Spec
       id:             "AnotherMacro",
       extension: [
         Trailblazer::Activity::TaskWrap::Merge.new(
-          Trailblazer::Activity::Magnetic::Builder::Path.plan do
+          Module.new do
+            extend Trailblazer::Activity[ Trailblazer::Activity::Path::Plan ]
+
             task Trailblazer::Operation::Wrap::Inject::ReverseMergeDefaults.new( another_contract: "AnotherDefaultContract" ), id: "inject.my_default",
             before: "task_wrap.call_task"
           end

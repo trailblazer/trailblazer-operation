@@ -67,11 +67,6 @@ module Trailblazer
           )
         )
       end
-
-      def decompose
-        [@activity]
-      end
-
     end
 
     extend Process # make ::call etc. class methods on Operation.
@@ -80,10 +75,8 @@ module Trailblazer
 
     class << self
       extend Forwardable # TODO: test those helpers
-      # def_delegators :@activity, :Path#, :Output, :End #, :task
-      # def_delegators Activity::Magnetic::Builder::DSLMethods, :Output, :End #, :task
-      # def_delegators :@activity, :outputs, :debug
-        # def_delegators :@activity, :step, :pass, :fail
+      def_delegators :@activity, :Path, :Output, :End
+      def_delegators :@activity, :outputs, :debug, :decompose
 
       def step(task, options={}, &block); add_task!(:step, task, options, &block) end
       def pass(task, options={}, &block); add_task!(:pass, task, options, &block) end
