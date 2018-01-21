@@ -25,18 +25,21 @@ module Trailblazer
         end
 
         # TODO remove in 2.2
-        def self.deprecate_name(ctx, options:, connection_options:, **)
+        def self.deprecate_name(ctx, local_options:, connection_options:, **)
           connection_options, deprecated_options = Activity::Magnetic::Options.normalize(connection_options, [:name])
+          local_options, _deprecated_options           = Activity::Magnetic::Options.normalize(local_options, [:name])
 
-          options = options.merge( name: deprecated_options[:name] ) if deprecated_options[:name]
+          deprecated_options = deprecated_options.merge(_deprecated_options)
 
-          options, locals = Activity::Magnetic::Options.normalize(options, [:name])
+          local_options = local_options.merge( name: deprecated_options[:name] ) if deprecated_options[:name]
+
+          local_options, locals = Activity::Magnetic::Options.normalize(local_options, [:name])
           if locals[:name]
             warn "[Trailblazer] The :name option for #step, #success and #failure has been renamed to :id."
-            options = options.merge(id: locals[:name])
+            local_options = local_options.merge(id: locals[:name])
           end
 
-          ctx[:options], ctx[:connection_options] = options, connection_options
+          ctx[:local_options], ctx[:connection_options] = local_options, connection_options
         end
 
         def self.raise_on_missing_id(ctx, local_options:, **)
