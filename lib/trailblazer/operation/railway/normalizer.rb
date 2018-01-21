@@ -39,10 +39,16 @@ module Trailblazer
           ctx[:options], ctx[:connection_options] = options, connection_options
         end
 
+        def self.raise_on_missing_id(ctx, local_options:, **)
+          raise "No :id given for #{local_options[:task]}" unless local_options[:id]
+          true
+        end
+
         # add more normalization tasks to the existing Magnetic::Normalizer::Pipeline
         task Activity::TaskBuilder::Binary.( method(:deprecate_macro_with_two_args) ), before: "split_options"
         task Activity::TaskBuilder::Binary.( method(:deprecate_name) )
         task Activity::TaskBuilder::Binary.( method(:override) )
+        task Activity::TaskBuilder::Binary.( method(:raise_on_missing_id) )
       end
     end # Normalizer
   end
