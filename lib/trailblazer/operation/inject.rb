@@ -6,7 +6,9 @@ module Trailblazer
       # injection but need a default parameter to be set if not injected.
       # @returns ADDS
       def self.Defaults(default_dependencies)
-        Activity::Magnetic::Builder::Path.plan do
+        Module.new do
+          extend Activity[ Activity::Path::Plan ]
+
           task ReverseMergeDefaults.new( default_dependencies ),
             id:     "ReverseMergeDefaults#{default_dependencies}",
             before: "task_wrap.call_task"
