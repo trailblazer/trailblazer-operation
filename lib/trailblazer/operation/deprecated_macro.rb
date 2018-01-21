@@ -13,7 +13,7 @@ module Trailblazer
         return direction, [options, flow_options]
       end
 
-      return options.merge( task: wrapped_proc )
+      options.merge( task: wrapped_proc )
     end
   end
 end

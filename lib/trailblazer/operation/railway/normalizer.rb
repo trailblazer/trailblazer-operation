@@ -5,59 +5,10 @@ module Trailblazer
     # task via {TaskBuilder} in order to translate true/false to `Right` or `Left`.
     #
     # The Normalizer sits in the `@builder`, which receives all DSL calls from the Operation subclass.
-    class Normalizer
-      def initialize(task_builder: TaskBuilder, default_plus_poles: Normalizer.InitialPlusPoles(), activity: Pipeline, **options)
-        @task_builder       = task_builder
-        @default_plus_poles = default_plus_poles
-      end
+    module Normalizer
+      Pipeline = Activity::Magnetic::Normalizer::Pipeline.clone
 
-      def call(task, options, unknown_options, sequence_options)
-        ctx = {
-          task: task, options: options, unknown_options: unknown_options, sequence_options: sequence_options,
-          task_builder:       @task_builder,
-          default_plus_poles: @default_plus_poles,
-        }
-
-        signal, (ctx, ) = Pipeline.( [ctx] )
-
-        return ctx[:options][:task], ctx[:options], ctx[:unknown_options], ctx[:sequence_options]
-      end
-
-      # needs the basic Normalizer
-
-      # :default_plus_poles is an injectable option.
-      class Pipeline < Activity
-        def self.normalize_extension_option( ctx, options:, ** )
-          ctx[:options][:extension] = options[:extension] + [ Activity::Introspect.method(:add_introspection) ] # fixme: this sucks
-        end
-
-        def self.normalize_for_macro( ctx, task:, options:, task_builder:, ** )
-          ctx[:options] =
-            if task.is_a?(::Hash) # macro.
-              options = options.merge(extension: (options[:extension]||[])+(task[:extension]||[]) ) # FIXME.
-
-              task.merge(options) # Note that the user options are merged over the macro options.
-            else # user step
-              { id: task }
-                .merge(options)                     # default :id
-                .merge( task: task_builder.(task) )
-            end
-        end
-
-        def self.raise_on_missing_id( ctx, options:, ** )
-          raise "No :id given for #{options[:task]}" unless options[:id]
-          true
-        end
-
-        # Merge user options over defaults.
-        def self.defaultize( ctx, options:, default_plus_poles:, ** ) # TODO: test :default_plus_poles
-          ctx[:options] =
-            {
-              plus_poles: default_plus_poles,
-            }
-            .merge(options)
-        end
-
+      Pipeline.module_eval do
         # Handle the :override option which is specific to Operation.
         def self.override(ctx, task:, options:, sequence_options:, **)
           options, locals  = Activity::Magnetic::Options.normalize(options, [:override])
@@ -70,12 +21,12 @@ module Trailblazer
         def self.deprecate_macro_with_two_args(ctx, task:, **)
           return true unless task.is_a?(Array) # TODO remove in 2.2
 
-          ctx[:task] = Operation::DeprecatedMacro.( *task )
+          ctx[:options] = Operation::DeprecatedMacro.( *task )
         end
 
         # TODO remove in 2.2
-        def self.deprecate_name(ctx, options:, unknown_options:, **)
-          unknown_options, deprecated_options = Activity::Magnetic::Options.normalize(unknown_options, [:name])
+        def self.deprecate_name(ctx, options:, connection_options:, **)
+          connection_options, deprecated_options = Activity::Magnetic::Options.normalize(connection_options, [:name])
 
           options = options.merge( name: deprecated_options[:name] ) if deprecated_options[:name]
 
@@ -85,24 +36,13 @@ module Trailblazer
             options = options.merge(id: locals[:name])
           end
 
-          ctx[:options], ctx[:unknown_options] = options, unknown_options
+          ctx[:options], ctx[:connection_options] = options, connection_options
         end
 
-        task TaskBuilder.( method(:normalize_extension_option) )
-        task TaskBuilder.( method(:deprecate_macro_with_two_args) )
-        task TaskBuilder.( method(:normalize_for_macro) )
+        # add more normalization tasks to the existing Magnetic::Normalizer::Pipeline
+        task TaskBuilder.( method(:deprecate_macro_with_two_args) ), before: "split_options"
         task TaskBuilder.( method(:deprecate_name) )
-        task TaskBuilder.( method(:raise_on_missing_id) )
-        task TaskBuilder.( method(:defaultize) )
         task TaskBuilder.( method(:override) )
-      end
-
-      # @private Might be removed.
-      def self.InitialPlusPoles
-        Activity::Magnetic::DSL::PlusPoles.new.merge(
-          Activity.Output(Activity::Right, :success) => nil,
-          Activity.Output(Activity::Left,  :failure) => nil,
-        )
       end
     end # Normalizer
   end

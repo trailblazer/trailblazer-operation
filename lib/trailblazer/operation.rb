@@ -8,6 +8,8 @@ require "trailblazer/container_chain"
 require "trailblazer/activity"
 require "trailblazer/activity/magnetic"
 
+require "trailblazer/operation/heritage"
+
 require "trailblazer/operation/variable_mapping"
 
 require "trailblazer/operation/public_call"      # TODO: Remove in 3.0.
@@ -27,24 +29,17 @@ module Trailblazer
   # The Trailblazer-style operation.
   # Note that you don't have to use our "opinionated" version with result object, skills, etc.
   class Operation
-    class Activity < Trailblazer::Activity
-      include Trailblazer::Activity::TaskWrap
 
-      def self.config
-        return Trailblazer::Activity::Magnetic::Builder::FastTrack,
-          Railway::Normalizer.new,
-          builder_options = {
-            track_end:     Railway::End::Success.new(:success, semantic: :success),
-            failure_end:   Railway::End::Failure.new(:failure, semantic: :failure),
-            pass_fast_end: Railway::End::PassFast.new(:pass_fast, semantic: :pass_fast),
-            fail_fast_end: Railway::End::FailFast.new(:fail_fast, semantic: :fail_fast),
-          }
-      end
+    module FastTrackActivity
+      builder_options = {
+        track_end:     Railway::End::Success.new(:success, semantic: :success),
+        failure_end:   Railway::End::Failure.new(:failure, semantic: :failure),
+        pass_fast_end: Railway::End::PassFast.new(:pass_fast, semantic: :pass_fast),
+        fail_fast_end: Railway::End::FailFast.new(:fail_fast, semantic: :fail_fast),
+      }
 
-      # delegate DSL calls to the Activity's {Builder} instance.
-      extend DSL.def_dsl!(:step)
-      extend DSL.def_dsl!(:fail)
-      extend DSL.def_dsl!(:pass)
+      extend Activity[ Activity::FastTrack, pipeline: Railway::Normalizer::Pipeline, builder_options: builder_options ]
+      include Activity::TaskWrap
     end
 
     extend Skill::Accessors        # ::[] and ::[]= # TODO: fade out this usage.
@@ -56,14 +51,13 @@ module Trailblazer
     end
 
     def self.initialize!
-      @activity = Class.new(Activity)
+      @activity = FastTrackActivity.clone
     end
 
 
+    include Activity::Interface
+
     module Process
-
-      include Activity::Interface
-
       # @private
       # Call the actual {Process} with the options prepared in PublicCall.
       def __call__(args, argumenter: [], **circuit_options)
@@ -75,21 +69,21 @@ module Trailblazer
       end
 
       def decompose
-        return [@activity]
+        [@activity]
       end
 
     end
 
     extend Process # make ::call etc. class methods on Operation.
 
-    extend Activity::Heritage::Accessor
+    extend Heritage::Accessor
 
     class << self
       extend Forwardable # TODO: test those helpers
-      def_delegators :@activity, :Path#, :Output, :End #, :task
-      def_delegators Activity::Magnetic::Builder::DSLMethods, :Output, :End #, :task
-      def_delegators :@activity, :outputs, :debug
-      # def_delegators :@activity, :step, :pass, :fail
+      # def_delegators :@activity, :Path#, :Output, :End #, :task
+      # def_delegators Activity::Magnetic::Builder::DSLMethods, :Output, :End #, :task
+      # def_delegators :@activity, :outputs, :debug
+        # def_delegators :@activity, :step, :pass, :fail
 
       def step(task, options={}, &block); add_task!(:step, task, options, &block) end
       def pass(task, options={}, &block); add_task!(:pass, task, options, &block) end
@@ -100,7 +94,7 @@ module Trailblazer
 
       def add_task!(name, task, options, &block)
         heritage.record(name, task, options, &block)
-        @activity.add_task!(name, task, options, &block)
+        @activity.send(name, task, options, &block)
       end
     end
 
