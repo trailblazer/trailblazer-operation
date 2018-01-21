@@ -17,7 +17,7 @@ module Trailblazer
     def call(operation, options={ style: :line })
       # TODO: better introspection API.
 
-      process, outputs, adds = operation.decompose
+      activity, process, outputs, adds = operation.decompose
 
       alterations = Activity::Magnetic::Builder::Finalizer.adds_to_alterations(adds)
       # DISCUSS: any other way to retrieve the Alterations?
