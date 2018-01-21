@@ -10,7 +10,7 @@ class MacaroniTaskBuilderTest < Minitest::Spec
   #:create
   class Memo::Create < Trailblazer::Operation
     #~ign
-    Normalizer = Railway::Normalizer.new( task_builder: Railway::KwSignature )
+    Normalizer, _ = Trailblazer::Activity::Magnetic::Normalizer.build( task_builder: Railway::KwSignature, pipeline: Railway::Normalizer::Pipeline )
 
     step :create_model, normalizer: Normalizer
     step :save,         normalizer: Normalizer

@@ -7,7 +7,7 @@ module Trailblazer
     #   def my_step( params:, options:, ** )
     module Macaroni
       def self.call(user_proc)
-        Task.new( Trailblazer::Option.build( Macaroni::Option, user_proc ), user_proc )
+        Activity::TaskBuilder::Task.new( Trailblazer::Option.build( Macaroni::Option, user_proc ), user_proc )
       end
 
       class Option < Trailblazer::Option

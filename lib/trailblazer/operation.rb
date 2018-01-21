@@ -8,17 +8,16 @@ require "trailblazer/container_chain"
 require "trailblazer/activity"
 require "trailblazer/activity/magnetic"
 
-require "trailblazer/operation/heritage"
 
 require "trailblazer/operation/variable_mapping"
 
+require "trailblazer/operation/heritage"
 require "trailblazer/operation/public_call"      # TODO: Remove in 3.0.
 require "trailblazer/operation/skill"
 require "trailblazer/operation/deprecated_macro" # TODO: remove in 2.2.
 require "trailblazer/operation/result"
 require "trailblazer/operation/railway"
 
-require "trailblazer/operation/railway/task_builder"
 require "trailblazer/operation/railway/fast_track"
 require "trailblazer/operation/railway/normalizer"
 require "trailblazer/operation/trace"
@@ -58,8 +57,9 @@ module Trailblazer
     include Activity::Interface
 
     module Process
-      # @private
       # Call the actual {Process} with the options prepared in PublicCall.
+      #
+      # @private
       def __call__(args, argumenter: [], **circuit_options)
         @activity.( args, circuit_options.merge(
             exec_context: new,
