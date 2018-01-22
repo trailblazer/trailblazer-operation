@@ -20,7 +20,6 @@ module Trailblazer
       def initialize(task, user_proc)
         @task      = task
         @user_proc = user_proc
-
         freeze
       end
 
