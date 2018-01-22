@@ -20,5 +20,5 @@ gem "benchmark-ips"
 
 # gem "declarative", path: "../declarative"
 
-gem "trailblazer-activity", path: "../circuit"
-# gem "trailblazer-activity", git: "https://github.com/trailblazer/trailblazer-activity"
+# gem "trailblazer-activity", path: "../circuit"
+gem "trailblazer-activity", git: "https://github.com/trailblazer/trailblazer-activity"
