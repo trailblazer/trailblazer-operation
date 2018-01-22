@@ -13,12 +13,12 @@ gem "benchmark-ips"
 # gem "trailblazer-circuit", git: "https://github.com/trailblazer/trailblazer-circuit"
 # gem "trailblazer-activity", path: "../trailblazer-activity"
 # gem "trailblazer-developer", path: "../developer"
-gem "trailblazer-developer", git: "https://github.com/trailblazer/trailblazer-developer"
+# gem "trailblazer-developer", git: "https://github.com/trailblazer/trailblazer-developer"
 # gem "representable", path: "../representable"
 
 # gem "raise", path: "../raise"
 
 # gem "declarative", path: "../declarative"
 
-# gem "trailblazer-activity", path: "../trailblazer-circuit"
-gem "trailblazer-activity", git: "https://github.com/trailblazer/trailblazer-activity"
+gem "trailblazer-activity", path: "../circuit"
+# gem "trailblazer-activity", git: "https://github.com/trailblazer/trailblazer-activity"

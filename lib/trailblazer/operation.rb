@@ -37,7 +37,7 @@ module Trailblazer
         fail_fast_end: Railway::End::FailFast.new(:fail_fast, semantic: :fail_fast),
       }
 
-      extend Activity[ Activity::FastTrack, pipeline: Railway::Normalizer::Pipeline, builder_options: builder_options ]
+      extend Activity::FastTrack( pipeline: Railway::Normalizer::Pipeline, builder_options: builder_options )
       include Activity::TaskWrap
     end
 
@@ -69,7 +69,7 @@ module Trailblazer
       end
 
       def decompose
-        return @activity, *@activity.decompose
+        @activity.decompose.merge( activity: @activity )
       end
     end
 

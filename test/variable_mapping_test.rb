@@ -21,7 +21,7 @@ class VariableMappingTest < Minitest::Spec
 
   let (:activity) do
     Module.new do
-      extend Activity[]
+      extend Activity::Path()
 
       task task: Model
       task task: Uuid
@@ -40,7 +40,7 @@ class VariableMappingTest < Minitest::Spec
 
       # add filters around Model.
       runtime[ Model ] = Module.new do
-        extend Activity[ Activity::Path::Plan ]
+        extend Activity::Path::Plan()
 
         task Activity::TaskWrap::Input.new( model_input ),   id: "task_wrap.input", before: "task_wrap.call_task"
         task Activity::TaskWrap::Output.new( model_output ), id: "task_wrap.output", before: "End.success", group: :end
@@ -48,7 +48,7 @@ class VariableMappingTest < Minitest::Spec
 
       # add filters around Uuid.
       runtime[ Uuid ] = Module.new do
-        extend Activity[ Activity::Path::Plan ]
+        extend Activity::Path::Plan()
 
         task Activity::TaskWrap::Input.new( uuid_input ),   id: "task_wrap.input", before: "task_wrap.call_task"
         task Activity::TaskWrap::Output.new( uuid_output ), id: "task_wrap.output", before: "End.success", group: :end

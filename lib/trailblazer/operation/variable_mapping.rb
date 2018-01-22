@@ -1,4 +1,4 @@
-module Trailblazer::Activity
+class Trailblazer::Activity < Module
   module TaskWrap
     # TaskWrap step to compute the incoming {Context} for the wrapped task.
     # This allows renaming, filtering, hiding, of the options passed into the wrapped task.
