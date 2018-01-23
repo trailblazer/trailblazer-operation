@@ -38,7 +38,6 @@ module Trailblazer
       }
 
       extend Activity::FastTrack( pipeline: Railway::Normalizer::Pipeline, builder_options: builder_options )
-      include Activity::TaskWrap
     end
 
     extend Skill::Accessors        # ::[] and ::[]= # TODO: fade out this usage.

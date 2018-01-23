@@ -14,6 +14,10 @@ lots of work on the DSL specific parts.
 
 params:, rest: ..
 
+## 0.2.0
+
+* Cleanly separate `Activity` and `Operation` responsibilities. An operation is nothing more but a class around an activity, hosting instance methods and implementing inheritance.
+
 ## 0.1.4
 
 * `TaskWrap.arguments_for_call` now returns the correct `circuit_options` where the `:runner` etc.'s already merged.
