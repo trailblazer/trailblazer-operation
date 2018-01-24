@@ -4,7 +4,7 @@ class RailwayResultTest < Minitest::Spec
   Result  = Trailblazer::Operation::Railway::Result
   Success = Trailblazer::Operation::Railway::End::Success
 
-  let(:event)    { Success.new(nil) }
+  let(:event)    { Success.new(semantic: nil) }
   let (:success) { Result.new(true, { "x"=> String }, event) }
 
   it { success.success?.must_equal true }

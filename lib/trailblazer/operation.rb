@@ -31,10 +31,10 @@ module Trailblazer
 
     module FastTrackActivity
       builder_options = {
-        track_end:     Railway::End::Success.new(:success),
-        failure_end:   Railway::End::Failure.new(:failure),
-        pass_fast_end: Railway::End::PassFast.new(:pass_fast),
-        fail_fast_end: Railway::End::FailFast.new(:fail_fast),
+        track_end:     Railway::End::Success.new(semantic: :success),
+        failure_end:   Railway::End::Failure.new(semantic: :failure),
+        pass_fast_end: Railway::End::PassFast.new(semantic: :pass_fast),
+        fail_fast_end: Railway::End::FailFast.new(semantic: :fail_fast),
       }
 
       extend Activity::FastTrack( pipeline: Railway::Normalizer::Pipeline, builder_options: builder_options )

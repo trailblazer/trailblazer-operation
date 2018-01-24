@@ -81,10 +81,10 @@ class DeclarativeApiTest < Minitest::Spec
     end
 
     it "provides #outputs" do
-      Activity::Introspect.Outputs(Edit.outputs).must_equal %{success=> (#<struct Trailblazer::Operation::Railway::End::Success semantic=:success>, success)
-failure=> (#<struct Trailblazer::Operation::Railway::End::Failure semantic=:failure>, failure)
-pass_fast=> (#<struct Trailblazer::Operation::Railway::End::PassFast semantic=:pass_fast>, pass_fast)
-fail_fast=> (#<struct Trailblazer::Operation::Railway::End::FailFast semantic=:fail_fast>, fail_fast)}
+      Activity::Introspect.Outputs(Edit.outputs).must_equal %{success=> (#<Trailblazer::Operation::Railway::End::Success semantic=:success>, success)
+failure=> (#<Trailblazer::Operation::Railway::End::Failure semantic=:failure>, failure)
+pass_fast=> (#<Trailblazer::Operation::Railway::End::PassFast semantic=:pass_fast>, pass_fast)
+fail_fast=> (#<Trailblazer::Operation::Railway::End::FailFast semantic=:fail_fast>, fail_fast)}
     end
 
     it "is an Interface" do

@@ -35,29 +35,29 @@ class TraceTest < Minitest::Spec
 
     puts output = Trailblazer::Activity::Trace::Present.tree(stack)
 
-    output.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- #<struct Trailblazer::Activity::Start semantic=:default>
+    output.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- #<Trailblazer::Activity::Start semantic=:default>
 |-- Create.task.a
 |-- MyNested
-|   |-- #<struct Trailblazer::Activity::Start semantic=:default>
+|   |-- #<Trailblazer::Activity::Start semantic=:default>
 |   |-- B.task.b
 |   |-- B.task.e
-|   `-- #<struct Trailblazer::Operation::Railway::End::Success semantic=:success>
+|   `-- #<Trailblazer::Operation::Railway::End::Success semantic=:success>
 |-- Create.task.c
 |-- Create.task.params
-`-- #<struct Trailblazer::Operation::Railway::End::Failure semantic=:failure>}
+`-- #<Trailblazer::Operation::Railway::End::Failure semantic=:failure>}
   end
 
   it "Operation::trace" do
     result = Create.trace({ params: { x: 1 }, a_return: true })
-    result.wtf.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- #<struct Trailblazer::Activity::Start semantic=:default>
+    result.wtf.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- #<Trailblazer::Activity::Start semantic=:default>
 |-- Create.task.a
 |-- MyNested
-|   |-- #<struct Trailblazer::Activity::Start semantic=:default>
+|   |-- #<Trailblazer::Activity::Start semantic=:default>
 |   |-- B.task.b
 |   |-- B.task.e
-|   `-- #<struct Trailblazer::Operation::Railway::End::Success semantic=:success>
+|   `-- #<Trailblazer::Operation::Railway::End::Success semantic=:success>
 |-- Create.task.c
 |-- Create.task.params
-`-- #<struct Trailblazer::Operation::Railway::End::Success semantic=:success>}
+`-- #<Trailblazer::Operation::Railway::End::Success semantic=:success>}
   end
 end
