@@ -14,6 +14,11 @@ lots of work on the DSL specific parts.
 
 params:, rest: ..
 
+
+## 0.2.2
+
+* Use `activity-0.4.2`.
+
 ## 0.2.1
 
 * Use `activity-0.4.1`.
