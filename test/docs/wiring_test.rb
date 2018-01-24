@@ -516,7 +516,7 @@ class WiringsDocEndTest < Minitest::Spec
 
   #:end
   class Memo::Update < Trailblazer::Operation
-    step :find_model, Output(:failure) => End("End.model_not_found", :model_not_found)
+    step :find_model, Output(:failure) => End(:model_not_found)
     step :update
     fail :db_error
     step :save
@@ -548,12 +548,12 @@ class WiringsDocEndTest < Minitest::Spec
   it "errors out on End.model_not_found" do
     result = Memo::Update.( id: false )
     result.inspect(:find_model, :update, :save, :db_error).must_equal %{<Result:false [false, nil, nil, nil] >}
-    result.event.instance_variable_get(:@options).must_equal(semantic: :model_not_found)
+    result.event.to_h.must_equal(semantic: :model_not_found)
   end
 
   it "takes normal error track" do
     result = Memo::Update.( id: true, update: false )
     result.inspect(:find_model, :update, :save, :db_error).must_equal %{<Result:false [true, false, nil, 1] >}
-    result.event.instance_variable_get(:@options).must_equal(semantic: :failure)
+    result.event.to_h.must_equal(semantic: :failure)
   end
 end

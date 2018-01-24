@@ -31,10 +31,10 @@ module Trailblazer
 
     module FastTrackActivity
       builder_options = {
-        track_end:     Railway::End::Success.new(:success, semantic: :success),
-        failure_end:   Railway::End::Failure.new(:failure, semantic: :failure),
-        pass_fast_end: Railway::End::PassFast.new(:pass_fast, semantic: :pass_fast),
-        fail_fast_end: Railway::End::FailFast.new(:fail_fast, semantic: :fail_fast),
+        track_end:     Railway::End::Success.new(:success),
+        failure_end:   Railway::End::Failure.new(:failure),
+        pass_fast_end: Railway::End::PassFast.new(:pass_fast),
+        fail_fast_end: Railway::End::FailFast.new(:fail_fast),
       }
 
       extend Activity::FastTrack( pipeline: Railway::Normalizer::Pipeline, builder_options: builder_options )
@@ -67,8 +67,8 @@ module Trailblazer
         )
       end
 
-      def decompose
-        @activity.decompose.merge( activity: @activity )
+      def to_h
+        @activity.to_h.merge( activity: @activity )
       end
     end
 
