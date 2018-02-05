@@ -314,7 +314,7 @@ class WiringsDocSeqOptionsTest < Minitest::Spec
     Memo = Id::Memo
     #:id-inspect
     Trailblazer::Operation.introspect( Memo::Create )
-    #=> [>create_model,>validate_params,>save]
+    #=> [>create_memo,>validate_params,>save]
     #:id-inspect end
 
     Trailblazer::Operation.introspect( Memo::Create ).must_equal %{[>create_memo,>validate_params,>save]}
@@ -371,7 +371,7 @@ class WiringsDocRecoverTest < Minitest::Spec
     fail :upload_to_azure,  Output(:success) => :success
     fail :upload_to_b2,     Output(:success) => :success
     fail :log_problem
-    #~fail-success-methods
+    #~methods
     #:fail-success-s3
     def upload_to_s3(options, s3:, **)
       options[:s3] = s3 # the actual upload is dispatched here and result collected.
@@ -389,7 +389,7 @@ class WiringsDocRecoverTest < Minitest::Spec
     def log_problem(options, **)
       options[:problem] = "All uploads failed."
     end
-    #~fail-success-methods end
+    #~methods end
   end
   #:fail-success end
 
@@ -481,7 +481,7 @@ class WiringsDocDeciderTest < Minitest::Spec
     step :update
     step :create, magnetic_to: [:create_route]
     step :save
-    #~decm
+    #~methods
     def find_model(options, id:nil, **)
       options[:model] = Memo.find(id)
     end
@@ -498,7 +498,7 @@ class WiringsDocDeciderTest < Minitest::Spec
     def save(options, **)
       options[:save] = true
     end
-    #~decm end
+    #~methods end
   end
   #:decider end
 
