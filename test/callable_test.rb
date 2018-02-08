@@ -1,8 +1,8 @@
 require "test_helper"
 
-class SubprocessHelper < Minitest::Spec
-  Circuit = Trailblazer::Circuit
-  Activity = Trailblazer::Activity
+class CallableHelper < Minitest::Spec
+  Operation = Trailblazer::Operation
+  Activity  = Trailblazer::Activity
 
   module Blog
     Read    = ->((options, *args), *) { options["Read"] = 1; [ Activity::Right, [options, *args] ] }
@@ -14,7 +14,7 @@ class SubprocessHelper < Minitest::Spec
     Relax   = ->((options, *args), *) { options["Relax"]=true; [ Activity::Right, [options, *args] ] }
   end
 
-  ### Subprocess( )
+  ### Callable( )
   ###
   describe "circuit with 1 level of nesting" do # TODO: test this kind of configuration in dsl_tests somewhere.
     let(:blog) do
@@ -47,7 +47,7 @@ class SubprocessHelper < Minitest::Spec
     end
   end
 
-  ### Subprocess( End1, End2 )
+  ### Callable( End1, End2 )
   ###
   describe "circuit with 2 end events in the nested process" do
     let(:blog) do
@@ -70,7 +70,7 @@ class SubprocessHelper < Minitest::Spec
       end
     end
 
-    it "runs from Subprocess->default to Relax" do
+    it "runs from Callable->default to Relax" do
       user.( [ options = { "return" => Activity::Right } ] ).must_equal [
         user.outputs[:success].signal,
         [ {"return"=>Activity::Right, "Read"=>1, "NextPage"=>[], "Relax"=>true} ]
@@ -79,7 +79,7 @@ class SubprocessHelper < Minitest::Spec
       options.must_equal({"return"=>Activity::Right, "Read"=>1, "NextPage"=>[], "Relax"=>true})
     end
 
-    it "runs from other Subprocess end" do
+    it "runs from other Callable end" do
       user.( [ options = { "return" => Activity::Left } ] ).must_equal [
         user.outputs[:success].signal,
         [ {"return"=>Activity::Left, "Read"=>1, "NextPage"=>[]} ]
@@ -89,19 +89,19 @@ class SubprocessHelper < Minitest::Spec
     end
 
     #---
-    #- Subprocess( activity, start_at )
+    #- Callable( activity, start_at )
     let(:with_nested_and_start_at) do
       _blog = blog
 
       Module.new do
         extend Activity::Path()
 
-        task task: Activity::Subprocess( _blog, task: Blog::Next ), _blog.outputs[:success] => :success
+        task task: Operation::Callable( _blog, task: Blog::Next ), _blog.outputs[:success] => :success
         task task: User::Relax
       end
     end
 
-    it "runs Subprocess from alternative start" do
+    it "runs Callable from alternative start" do
       with_nested_and_start_at.( [options = { "return" => Activity::Right }] ).
         must_equal [
           with_nested_and_start_at.outputs[:success].signal,
@@ -112,8 +112,8 @@ class SubprocessHelper < Minitest::Spec
     end
 
     #---
-    #- Subprocess(  activity, call: :__call__ ) { ... }
-    describe "Subprocess with :call option" do
+    #- Callable(  activity, call: :__call__ ) { ... }
+    describe "Callable with :call option" do
       let(:process) do
         class Workout
           def self.__call__((options, *args), *)
@@ -123,7 +123,7 @@ class SubprocessHelper < Minitest::Spec
           end
         end
 
-        subprocess = Activity::Subprocess( Workout, call: :__call__ )
+        subprocess = Operation::Callable( Workout, call: :__call__ )
 
         Module.new do
         extend Activity::Path()
@@ -133,7 +133,7 @@ class SubprocessHelper < Minitest::Spec
         end
       end
 
-      it "runs Subprocess process with __call__" do
+      it "runs Callable process with __call__" do
         process.( [options = { "return" => Activity::Right }] ).
           must_equal [
             process.outputs[:success].signal,

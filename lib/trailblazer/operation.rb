@@ -10,6 +10,7 @@ require "trailblazer/activity/magnetic"
 
 
 require "trailblazer/operation/variable_mapping"
+require "trailblazer/operation/callable"
 
 require "trailblazer/operation/heritage"
 require "trailblazer/operation/public_call"      # TODO: Remove in 3.0.
