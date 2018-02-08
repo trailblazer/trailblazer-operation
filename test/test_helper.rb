@@ -35,5 +35,5 @@ module Test
 end
 
 Minitest::Spec.class_eval do
-
+  Activity = Trailblazer::Activity
 end

@@ -31,9 +31,9 @@ class InspectTest < Minitest::Spec
  5 ============================>finalize!}
   end
 
-  describe "step with only one plus pole (happens with Nested)" do
+  describe "step with only one output (happens with Nested)" do
     class Present < Trailblazer::Operation
-      pass :ok!, plus_poles: Trailblazer::Activity::Magnetic::DSL::PlusPoles::from_outputs( :success => Trailblazer::Activity.Output("signal", :success) )
+      pass :ok!, outputs: {:success => Trailblazer::Activity::Output("signal", :success)}
     end
 
     it do

@@ -126,8 +126,8 @@ class NestedFastTrackTest < Minitest::Spec
   describe "Nested, fast_track: true and all its outputs given" do
     let(:update) do
       Class.new(Trailblazer::Operation) do
-        step task: Trailblazer::Activity::Subprocess( Edit, call: :__call__ ), id: "Subprocess/",
-          plus_poles: Trailblazer::Activity::Magnetic::DSL::PlusPoles::from_outputs( Edit.outputs ),
+        step task: Trailblazer::Operation::Callable( Edit, call: :__call__ ), id: "Callable/",
+          outputs: Edit.outputs ,
           fast_track: true
         step :b
         fail :f
@@ -151,8 +151,8 @@ class NestedFastTrackTest < Minitest::Spec
       Class.new(Trailblazer::Operation) do
         include Steps
 
-        step task: Trailblazer::Activity::Subprocess( Edit, call: :__call__ ), id: "Subprocess/",
-          plus_poles: Trailblazer::Activity::Magnetic::DSL::PlusPoles::from_outputs( Edit.outputs ) # all outputs given means it "works"
+        step task: Trailblazer::Operation::Callable( Edit, call: :__call__ ), id: "Callable/",
+          outputs: Edit.outputs  # all outputs given means it "works"
         step :b
         fail :f
       end
@@ -173,8 +173,8 @@ class NestedFastTrackTest < Minitest::Spec
       Class.new(Trailblazer::Operation) do
         include Steps
 
-        step({task: Trailblazer::Activity::Subprocess( Edit, call: :__call__ ), id: "Subprocess/",
-                  plus_poles: Trailblazer::Activity::Magnetic::DSL::PlusPoles::from_outputs( Edit.outputs )},
+        step({task: Trailblazer::Operation::Callable( Edit, call: :__call__ ), id: "Callable/",
+                  outputs: Edit.outputs },
           {Output(:pass_fast) => :success, Output(:fail_fast) => :failure} )# manually rewire the fast-track outputs to "conventional" railway ends.
 
         step :b
