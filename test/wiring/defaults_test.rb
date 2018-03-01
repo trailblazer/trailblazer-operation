@@ -79,8 +79,8 @@ require "test_helper"
 class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
   class Create < Trailblazer::Operation
     step :a
-    fail :b, Output(:success) => :success #{}"End.success"
-    fail :c, Output(:success) => :success
+    fail :b, Output(:success) => Track(:success) #{}"End.success"
+    fail :c, Output(:success) => Track(:success)
 
     Test.step(self, :a, :b, :c)
   end
@@ -99,7 +99,7 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
 
 
 #   #---
-#   # with => :success, steps can still be added before End.success and they will be executed.
+#   # with => Track(:success), steps can still be added before End.success and they will be executed.
   class Update < Create
     pass :d
 

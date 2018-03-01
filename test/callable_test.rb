@@ -22,7 +22,7 @@ class CallableHelper < Minitest::Spec
         extend Activity::Path()
 
         task task: Blog::Read
-        task task: Blog::Next, Output(Activity::Right, :done) => "End.success", Output(Activity::Left, :success) => :success
+        task task: Blog::Next, Output(Activity::Right, :done) => "End.success", Output(Activity::Left, :success) => Track(:success)
         task task: Blog::Comment
       end
     end
@@ -33,7 +33,7 @@ class CallableHelper < Minitest::Spec
       Module.new do
         extend Activity::Path()
 
-        task task: _blog, _blog.outputs[:success] => :success
+        task task: _blog, _blog.outputs[:success] => Track(:success)
         task task: User::Relax
       end
     end
@@ -65,7 +65,7 @@ class CallableHelper < Minitest::Spec
       Module.new do
         extend Activity::Path()
 
-        task task: _blog, _blog.outputs[:success] => :success, _blog.outputs[:retry] => "End.success"
+        task task: _blog, _blog.outputs[:success] => Track(:success), _blog.outputs[:retry] => "End.success"
         task task: User::Relax
       end
     end
@@ -96,7 +96,7 @@ class CallableHelper < Minitest::Spec
       Module.new do
         extend Activity::Path()
 
-        task task: Operation::Callable( _blog, task: Blog::Next ), _blog.outputs[:success] => :success
+        task task: Operation::Callable( _blog, task: Blog::Next ), _blog.outputs[:success] => Track(:success)
         task task: User::Relax
       end
     end

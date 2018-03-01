@@ -368,8 +368,8 @@ class WiringsDocRecoverTest < Minitest::Spec
   #:fail-success
   class Memo::Upload < Trailblazer::Operation
     step :upload_to_s3
-    fail :upload_to_azure,  Output(:success) => :success
-    fail :upload_to_b2,     Output(:success) => :success
+    fail :upload_to_azure,  Output(:success) => Track(:success)
+    fail :upload_to_b2,     Output(:success) => Track(:success)
     fail :log_problem
     #~methods
     #:fail-success-s3
@@ -477,7 +477,7 @@ class WiringsDocDeciderTest < Minitest::Spec
 
   #:decider
   class Memo::Upsert < Trailblazer::Operation
-    step :find_model, Output(:failure) => :create_route
+    step :find_model, Output(:failure) => Track(:create_route)
     step :update
     step :create, magnetic_to: [:create_route]
     step :save

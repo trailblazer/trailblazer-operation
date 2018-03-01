@@ -6,7 +6,7 @@ require "trailblazer/context"
 require "trailblazer/container_chain"
 
 require "trailblazer/activity"
-require "trailblazer/activity/magnetic"
+require "trailblazer/activity/dsl/magnetic"
 
 
 require "trailblazer/operation/variable_mapping"
@@ -79,7 +79,7 @@ module Trailblazer
 
     class << self
       extend Forwardable # TODO: test those helpers
-      def_delegators :@activity, :Path, :Output, :End
+      def_delegators :@activity, :Path, :Output, :End, :Track
       def_delegators :@activity, :outputs, :debug
 
       def step(task, options={}, &block); add_task!(:step, task, options, &block) end

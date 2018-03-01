@@ -175,7 +175,7 @@ class NestedFastTrackTest < Minitest::Spec
 
         step({task: Trailblazer::Operation::Callable( Edit, call: :__call__ ), id: "Callable/",
                   outputs: Edit.outputs },
-          {Output(:pass_fast) => :success, Output(:fail_fast) => :failure} )# manually rewire the fast-track outputs to "conventional" railway ends.
+          {Output(:pass_fast) => Track(:success), Output(:fail_fast) => Track(:failure)} )# manually rewire the fast-track outputs to "conventional" railway ends.
 
         step :b
         fail :f

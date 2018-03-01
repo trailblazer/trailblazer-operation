@@ -12,7 +12,7 @@ class TraceTest < Minitest::Spec
 
   class Create < Trailblazer::Operation
     step ->(options, a_return:, **) { options[:a] = a_return }, id: "Create.task.a"
-    step( {task: B, id: "MyNested"}, B.outputs[:success] => :success )
+    step( {task: B, id: "MyNested"}, B.outputs[:success] => Track(:success) )
     step ->(options, **) { options[:c] = true }, id: "Create.task.c"
     step ->(options, params:, **) { params.any? }, id: "Create.task.params"
 
