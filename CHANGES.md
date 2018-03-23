@@ -14,6 +14,10 @@ lots of work on the DSL specific parts.
 
 params:, rest: ..
 
+## 0.2.5
+
+* Minor fixes for activity 0.5.2.
+
 ## 0.2.4
 
 *  Use `Activity::FastTrack` signals.
