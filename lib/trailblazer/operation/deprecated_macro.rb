@@ -8,7 +8,7 @@ module Trailblazer
       wrapped_proc = ->( (options, flow_options), **circuit_options ) do
         result = proc.(circuit_options[:exec_context], options) # run the macro, with the deprecated signature.
 
-        direction = Activity::TaskBuilder::Binary.binary_direction_for(result, Activity::Right, Activity::Left)
+        direction = Activity::TaskBuilder.binary_signal_for(result, Activity::Right, Activity::Left)
 
         return direction, [options, flow_options]
       end

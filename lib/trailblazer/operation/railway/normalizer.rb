@@ -27,7 +27,7 @@ module Trailblazer
         # TODO remove in 2.2
         def self.deprecate_name(ctx, local_options:, connection_options:, **)
           connection_options, deprecated_options = Activity::Magnetic::Options.normalize(connection_options, [:name])
-          local_options, _deprecated_options           = Activity::Magnetic::Options.normalize(local_options, [:name])
+          local_options, _deprecated_options     = Activity::Magnetic::Options.normalize(local_options, [:name])
 
           deprecated_options = deprecated_options.merge(_deprecated_options)
 
@@ -48,10 +48,10 @@ module Trailblazer
         end
 
         # add more normalization tasks to the existing Magnetic::Normalizer::Pipeline
-        task Activity::TaskBuilder::Binary.( method(:deprecate_macro_with_two_args) ), before: "split_options"
-        task Activity::TaskBuilder::Binary.( method(:deprecate_name) )
-        task Activity::TaskBuilder::Binary.( method(:override) )
-        task Activity::TaskBuilder::Binary.( method(:raise_on_missing_id) )
+        task Activity::TaskBuilder::Binary( method(:deprecate_macro_with_two_args) ), before: "split_options"
+        task Activity::TaskBuilder::Binary( method(:deprecate_name) )
+        task Activity::TaskBuilder::Binary( method(:override) )
+        task Activity::TaskBuilder::Binary( method(:raise_on_missing_id) )
       end
     end # Normalizer
   end
