@@ -4,10 +4,6 @@ class TraceTest < Minitest::Spec
   class B < Trailblazer::Operation
     step ->(options, **) { options[:b] = true }, id: "B.task.b"
     step ->(options, **) { options[:e] = true }, id: "B.task.e"
-
-    def self.call( (options, flow_options), **circuit_options )
-      __call__( [Trailblazer::Context(options), flow_options], circuit_options )
-    end
   end
 
   class Create < Trailblazer::Operation
@@ -15,10 +11,6 @@ class TraceTest < Minitest::Spec
     step( {task: B, id: "MyNested"}, B.outputs[:success] => Track(:success) )
     step ->(options, **) { options[:c] = true }, id: "Create.task.c"
     step ->(options, params:, **) { params.any? }, id: "Create.task.params"
-
-    def self.call( (options, flow_options), **circuit_options )
-      __call__( [Trailblazer::Context(options), flow_options], circuit_options ) # FIXME.
-    end
   end
   # raise Create["__task_wraps__"].inspect
 
@@ -35,29 +27,31 @@ class TraceTest < Minitest::Spec
 
     puts output = Trailblazer::Activity::Trace::Present.tree(stack)
 
-    output.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- #<Trailblazer::Activity::Start semantic=:default>
-|-- Create.task.a
-|-- MyNested
-|   |-- #<Trailblazer::Activity::Start semantic=:default>
-|   |-- B.task.b
-|   |-- B.task.e
-|   `-- #<Trailblazer::Operation::Railway::End::Success semantic=:success>
-|-- Create.task.c
-|-- Create.task.params
-`-- #<Trailblazer::Operation::Railway::End::Failure semantic=:failure>}
+    output.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{`-- TraceTest::Create
+    |-- Start.default
+    |-- Create.task.a
+    |-- MyNested
+    |   |-- Start.default
+    |   |-- B.task.b
+    |   |-- B.task.e
+    |   `-- End.success
+    |-- Create.task.c
+    |-- Create.task.params
+    `-- End.failure}
   end
 
   it "Operation::trace" do
     result = Create.trace({ params: { x: 1 }, a_return: true })
-    result.wtf.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{|-- #<Trailblazer::Activity::Start semantic=:default>
-|-- Create.task.a
-|-- MyNested
-|   |-- #<Trailblazer::Activity::Start semantic=:default>
-|   |-- B.task.b
-|   |-- B.task.e
-|   `-- #<Trailblazer::Operation::Railway::End::Success semantic=:success>
-|-- Create.task.c
-|-- Create.task.params
-`-- #<Trailblazer::Operation::Railway::End::Success semantic=:success>}
+    result.wtf.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{`-- TraceTest::Create
+    |-- Start.default
+    |-- Create.task.a
+    |-- MyNested
+    |   |-- Start.default
+    |   |-- B.task.b
+    |   |-- B.task.e
+    |   `-- End.success
+    |-- Create.task.c
+    |-- Create.task.params
+    `-- End.success}
   end
 end

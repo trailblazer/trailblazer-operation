@@ -57,17 +57,6 @@ module Trailblazer
     extend Activity::Interface
 
     module Process
-      # Call the actual {Process} with the options prepared in PublicCall.
-      #
-      # @private
-      def __call__(args, argumenter: [], **circuit_options)
-        @activity.( args, circuit_options.merge(
-            exec_context: new,
-            argumenter:  argumenter + [ Activity::TaskWrap.method(:arguments_for_call) ], # FIXME: should we move this outside?
-          )
-        )
-      end
-
       def to_h
         @activity.to_h.merge( activity: @activity )
       end
@@ -80,7 +69,7 @@ module Trailblazer
     class << self
       extend Forwardable # TODO: test those helpers
       def_delegators :@activity, :Path, :Output, :End, :Track
-      def_delegators :@activity, :outputs, :debug
+      def_delegators :@activity, :outputs
 
       def step(task, options={}, &block); add_task!(:step, task, options, &block) end
       def pass(task, options={}, &block); add_task!(:pass, task, options, &block) end

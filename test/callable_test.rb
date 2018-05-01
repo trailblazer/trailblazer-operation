@@ -96,7 +96,7 @@ class CallableHelper < Minitest::Spec
       Module.new do
         extend Activity::Path()
 
-        task task: Operation::Callable( _blog, task: Blog::Next ), _blog.outputs[:success] => Track(:success)
+        task task: Operation::Callable( _blog, start_task: Blog::Next ), _blog.outputs[:success] => Track(:success)
         task task: User::Relax
       end
     end

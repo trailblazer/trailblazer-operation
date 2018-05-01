@@ -34,7 +34,7 @@ class TaskWrapTest < Minitest::Spec
     end
   end
 
-  # it { Create.__call__("adsf", options={}, {}).inspect("MyMacro.contract", "options.contract").must_equal %{} }
+  # it { Create.call("adsf", options={}, {}).inspect("MyMacro.contract", "options.contract").must_equal %{} }
 
   def inspect_hash(hash, *keys)
     Hash[ keys.collect { |key| [key, hash[key]] } ].inspect
@@ -43,7 +43,7 @@ class TaskWrapTest < Minitest::Spec
   #-
   # default gets set by Injection.
   it do
-    direction, (options, _) = Create.__call__( [{}, {}] )
+    direction, (options, _) = Create.call( [{}, {}], {} )
 
     inspect_hash(options, "options.contract", :contract, "MyMacro.contract").
       must_equal %{{"options.contract"=>nil, :contract=>"MyDefaultContract", "MyMacro.contract"=>"MyDefaultContract"}}
@@ -51,7 +51,7 @@ class TaskWrapTest < Minitest::Spec
 
   # injected from outside, Injection skips.
   it do
-    direction, (options, _) = Create.__call__( [ { :contract=>"MyExternalContract" }, {} ] )
+    direction, (options, _) = Create.call( [ { :contract=>"MyExternalContract" }, {} ], {} )
 
     inspect_hash(options, "options.contract", :contract, "MyMacro.contract").
       must_equal %{{"options.contract"=>"MyExternalContract", :contract=>"MyExternalContract", "MyMacro.contract"=>"MyExternalContract"}}
@@ -66,7 +66,7 @@ class TaskWrapTest < Minitest::Spec
   class Update < Trailblazer::Operation
     step(
       task: ->( (options, *args), * ) {
-          _d, *o = Create.__call__( [ options, *args ] )
+          _d, *o = Create.call( [ options, *args ], {} )
 
           [ Trailblazer::Activity::Right, *o ]
         },
@@ -89,7 +89,7 @@ class TaskWrapTest < Minitest::Spec
   end
 
   it do
-    direction, (options, _) = Update.__call__( [ {}, {} ] )
+    direction, (options, _) = Update.call( [ {}, {} ], {} )
 
     inspect_hash(options, "options.contract", :contract, "MyMacro.contract", "AnotherMacro.another_contract").
       must_equal %{{"options.contract"=>nil, :contract=>"MyDefaultContract", "MyMacro.contract"=>"MyDefaultContract", "AnotherMacro.another_contract"=>"AnotherDefaultContract"}}
