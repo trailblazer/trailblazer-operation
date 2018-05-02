@@ -16,7 +16,7 @@ class Trailblazer::Operation
   # The use of this module is not encouraged and it is only here for backward-compatibility.
   # Instead, please pass dependencies via containers, locals, or macros into the respective steps.
   module ClassDependencies
-    def __call__( (ctx, flow_options), **circuit_options )
+    def call_with_circuit_interface( (ctx, flow_options), **circuit_options )
       @skills.each { |name, value| ctx[name] ||= value } # this resembles the behavior in 2.0. we didn't say we liked it.
 
       super

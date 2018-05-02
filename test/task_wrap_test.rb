@@ -15,7 +15,7 @@ class TaskWrapTest < Minitest::Spec
       task: MyMacro,
       id: "MyMacro",
 
-      extension: [
+      Trailblazer::Activity::DSL::Extension.new(
         Trailblazer::Activity::TaskWrap::Merge.new(
           Module.new do
             extend Trailblazer::Activity::Path::Plan()
@@ -25,7 +25,7 @@ class TaskWrapTest < Minitest::Spec
               before: "task_wrap.call_task"
           end
         )
-      ]
+      ) => true
     )
 
     def model!(options, **)
@@ -43,17 +43,17 @@ class TaskWrapTest < Minitest::Spec
   #-
   # default gets set by Injection.
   it do
-    direction, (options, _) = Create.call( [{}, {}], {} )
+    result = Create.call( {} )
 
-    inspect_hash(options, "options.contract", :contract, "MyMacro.contract").
+    inspect_hash(result, "options.contract", :contract, "MyMacro.contract").
       must_equal %{{"options.contract"=>nil, :contract=>"MyDefaultContract", "MyMacro.contract"=>"MyDefaultContract"}}
   end
 
   # injected from outside, Injection skips.
   it do
-    direction, (options, _) = Create.call( [ { :contract=>"MyExternalContract" }, {} ], {} )
+    result = Create.call( { :contract=>"MyExternalContract" } )
 
-    inspect_hash(options, "options.contract", :contract, "MyMacro.contract").
+    inspect_hash(result, "options.contract", :contract, "MyMacro.contract").
       must_equal %{{"options.contract"=>"MyExternalContract", :contract=>"MyExternalContract", "MyMacro.contract"=>"MyExternalContract"}}
   end
 
@@ -65,8 +65,8 @@ class TaskWrapTest < Minitest::Spec
 
   class Update < Trailblazer::Operation
     step(
-      task: ->( (options, *args), * ) {
-          _d, *o = Create.call( [ options, *args ], {} )
+      task: ->( (options, *args), circuit_options ) {
+          _d, *o = Create.call( [ options, *args ], circuit_options )
 
           [ Trailblazer::Activity::Right, *o ]
         },
@@ -75,7 +75,7 @@ class TaskWrapTest < Minitest::Spec
     step(
       task:           AnotherMacro,
       id:             "AnotherMacro",
-      extension: [
+      Trailblazer::Activity::DSL::Extension.new(
         Trailblazer::Activity::TaskWrap::Merge.new(
           Module.new do
             extend Trailblazer::Activity::Path::Plan()
@@ -84,14 +84,14 @@ class TaskWrapTest < Minitest::Spec
             before: "task_wrap.call_task"
           end
         )
-      ]
+      ) => true,
     )
   end
 
   it do
-    direction, (options, _) = Update.call( [ {}, {} ], {} )
+    result = Update.call( {} )
 
-    inspect_hash(options, "options.contract", :contract, "MyMacro.contract", "AnotherMacro.another_contract").
+    inspect_hash(result, "options.contract", :contract, "MyMacro.contract", "AnotherMacro.another_contract").
       must_equal %{{"options.contract"=>nil, :contract=>"MyDefaultContract", "MyMacro.contract"=>"MyDefaultContract", "AnotherMacro.another_contract"=>"AnotherDefaultContract"}}
   end
 end

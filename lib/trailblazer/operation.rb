@@ -14,7 +14,7 @@ require "trailblazer/operation/callable"
 
 require "trailblazer/operation/heritage"
 require "trailblazer/operation/public_call"      # TODO: Remove in 3.0.
-require "trailblazer/operation/skill"
+require "trailblazer/operation/class_dependencies"
 require "trailblazer/operation/deprecated_macro" # TODO: remove in 2.2.
 require "trailblazer/operation/result"
 require "trailblazer/operation/railway"

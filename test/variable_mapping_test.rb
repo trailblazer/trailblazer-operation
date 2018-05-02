@@ -54,20 +54,17 @@ class VariableMappingTest < Minitest::Spec
         task Activity::TaskWrap::Output.new( uuid_output ), id: "task_wrap.output", before: "End.success", group: :end
       end
 
-      signal, (options, flow_options) = activity.(
-      [
-        options = { "a" => 1 },
-        {},
-      ],
+      signal, (options, flow_options) = Activity::TaskWrap.invoke(activity,
+        [
+          options = { "a" => 1 },
+          {},
+        ],
 
-      wrap_runtime: runtime, # dynamic additions from the outside (e.g. tracing), also per task.
-      runner: Activity::TaskWrap::Runner,
-      argumenters: [ Activity::TaskWrap::NonStatic.method(:arguments_for_call) ],
-      wrap_static: Hash.new( Activity::TaskWrap.initial_activity ),
-    )
+        wrap_runtime: runtime, # dynamic additions from the outside (e.g. tracing), also per task.
+      )
 
-    signal.must_equal activity.outputs[:success].signal
-    options.must_equal({"a"=>1, "model.a"=>4, "uuid.a" => 7 })
+      signal.must_equal activity.outputs[:success].signal
+      options.must_equal({"a"=>1, "model.a"=>4, "uuid.a" => 7 })
     end
   end
 end
