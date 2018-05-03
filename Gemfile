@@ -12,4 +12,4 @@ gem "benchmark-ips"
 
 # gem "trailblazer-developer", path: "../developer"
 # gem "trailblazer-developer", git: "https://github.com/trailblazer/trailblazer-developer"
-gem "trailblazer-activity", path: "../trailblazer-activity"
+# gem "trailblazer-activity", path: "../trailblazer-activity"
