@@ -14,6 +14,17 @@ lots of work on the DSL specific parts.
 
 params:, rest: ..
 
+## 0.3.0
+
+* Use `activity` 0.6.0.
+* Remove `Operation::__call__` in favor of one `call` that dispatches to either
+    * `call_with_public_interface` this implements the complicated public `Operation.()` semantic and will be faded out with the rise of workflow engines.
+    * `call_with_circuit_interface` is the circuit-compatible version that will be invoked on nested operations.
+
+    This might seem a bit "magical" but simplifies the interface a lot. In better languages, you could use method overloading for that, in Ruby, we have to
+    do that ourselves. This decision was made with the deprecation of `Operation.()` in mind. In the future, operations will mostly be invoked from
+    workflow engines and not directly, where the engine takes care of applying the correct interface.
+
 ## 0.2.5
 
 * Minor fixes for activity 0.5.2.
