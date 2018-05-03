@@ -1,5 +1,5 @@
-class Trailblazer::Operation
-  module PublicCall
+module Trailblazer
+  module Operation::PublicCall
     # This is the outer-most public `call` method that gets invoked when calling `Create.()`.
     # The signature of this is `params, options, *containers`. This was a mistake, as the
     # first argument could've been part of `options` hash in the first place.
@@ -19,14 +19,14 @@ class Trailblazer::Operation
     end
 
     def call_with_public_interface(*args)
-      ctx = PublicCall.options_for_public_call(*args)
+      ctx = Operation::PublicCall.options_for_public_call(*args)
 
       # call the activity.
       # This will result in invoking {::call_with_circuit_interface}.
       last_signal, (options, flow_options) = Activity::TaskWrap.invoke(self, [ctx, {}], {})
 
       # Result is successful if the activity ended with an End event derived from Railway::End::Success.
-      Railway::Result(last_signal, options, flow_options)
+      Operation::Railway::Result(last_signal, options, flow_options)
     end
 
     # This interface is used for all nested OPs (and the outer-most, too).
