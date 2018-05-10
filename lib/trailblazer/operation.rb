@@ -9,7 +9,6 @@ require "trailblazer/activity"
 require "trailblazer/activity/dsl/magnetic"
 
 
-require "trailblazer/operation/variable_mapping"
 require "trailblazer/operation/callable"
 
 require "trailblazer/operation/heritage"
