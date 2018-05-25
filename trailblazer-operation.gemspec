@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.description   = %q{Trailblazer's operation object.}
   spec.summary       = %q{Trailblazer's operation object with railway flow and integrated error handling.}
   spec.homepage      = "http://trailblazer.to"
-  spec.license       = "MIT"
+  spec.license       = "LGPL-3.0"
 
   spec.files         = `git ls-files`.split($/)
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
