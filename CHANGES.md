@@ -14,6 +14,10 @@ lots of work on the DSL specific parts.
 
 params:, rest: ..
 
+## 0.4.0
+
+* Use `activity-0.7.0`.
+
 ## 0.3.1
 
 * Moved `VariableMapping` to the `activity` gem.
