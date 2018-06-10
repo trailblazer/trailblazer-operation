@@ -14,7 +14,7 @@ module Trailblazer
   module Operation::Inspect
     module_function
 
-    def call(operation, options={ style: :line })
+    def call(operation, options = {style: :line})
       # TODO: better introspection API.
 
       alterations = Activity::Magnetic::Builder::Finalizer.adds_to_alterations(operation.to_h[:adds])
@@ -26,16 +26,15 @@ module Trailblazer
       rows = railway.each_with_index.collect do |element, i|
         magnetic_to, task, plus_poles = element.configuration
 
-        created_by =
-          if magnetic_to == [:failure]
-            :fail
-          elsif plus_poles.size > 1
-            plus_poles[0].color == plus_poles[1].color ? :pass : :step
-          else
-            :pass # this is wrong for Nested, sometimes
-          end
+        created_by = if magnetic_to == [:failure]
+                       :fail
+                     elsif plus_poles.size > 1
+                       plus_poles[0].color == plus_poles[1].color ? :pass : :step
+                     else
+                       :pass # this is wrong for Nested, sometimes
+                     end
 
-        [ i, [ created_by, element.id ] ]
+        [i, [created_by, element.id]]
       end
 
       return inspect_line(rows) if options[:style] == :line
@@ -46,7 +45,7 @@ module Trailblazer
       @inspect[step]
     end
 
-    Operator = { :fail => "<<", :pass => ">>", :step => ">"}
+    Operator = {fail: "<<", pass: ">>", step: ">"}
 
     def inspect_line(names)
       string = names.collect { |i, (end_of_edge, name)| "#{Operator[end_of_edge]}#{name}" }.join(",")
@@ -61,13 +60,13 @@ module Trailblazer
         padding = 38
 
         proc = if operator == "<<"
-          sprintf("%- #{padding}s", op)
-        elsif [">", ">>", "&"].include?(operator.to_s)
-          sprintf("% #{padding}s", op)
-        else
-          pad = " " * ((padding - op.length) / 2)
-          "#{pad}#{op}#{pad}"
-        end
+                 sprintf("%- #{padding}s", op)
+               elsif [">", ">>", "&"].include?(operator.to_s)
+                 sprintf("% #{padding}s", op)
+               else
+                 pad = " " * ((padding - op.length) / 2)
+                 "#{pad}#{op}#{pad}"
+               end
 
         proc = proc.gsub(" ", "=")
 

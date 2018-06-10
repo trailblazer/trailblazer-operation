@@ -6,7 +6,7 @@ module Trailblazer
     # Passes through all subclasses of Direction.~~~~~~~~~~~~~~~~~
     module TaskBuilder
       def self.call(user_proc)
-        Task.new( Trailblazer::Option::KW( user_proc ), user_proc )
+        Task.new(Trailblazer::Option::KW(user_proc), user_proc)
       end
 
       # Translates the return value of the user step into a valid signal.
@@ -23,14 +23,14 @@ module Trailblazer
         freeze
       end
 
-      def call( (options, *args), **circuit_args )
+      def call((options, *args), **circuit_args)
         # Execute the user step with TRB's kw args.
-        result = @task.( options, **circuit_args ) # circuit_args contains :exec_context.
+        result = @task.(options, **circuit_args) # circuit_args contains :exec_context.
 
         # Return an appropriate signal which direction to go next.
-        direction = TaskBuilder.binary_direction_for( result, Activity::Right, Activity::Left )
+        direction = TaskBuilder.binary_direction_for(result, Activity::Right, Activity::Left)
 
-        [ direction, [ options, *args ], **circuit_args ]
+        [direction, [options, *args], **circuit_args]
       end
     end
   end

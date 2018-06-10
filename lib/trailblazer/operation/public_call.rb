@@ -41,13 +41,13 @@ module Trailblazer
 
     # Compile a Context object to be passed into the Activity::call.
     # @private
-    def self.options_for_public_call(options={}, *containers)
+    def self.options_for_public_call(options = {}, *containers)
       # generate the skill hash that embraces runtime options plus potential containers, the so called Runtime options.
       # This wrapping is supposed to happen once in the entire system.
 
       hash_transformer = ->(containers) { containers[0].to_hash } # FIXME: don't transform any containers into kw args.
 
-      immutable_options = Trailblazer::Context::ContainerChain.new( [options, *containers], to_hash: hash_transformer ) # Runtime options, immutable.
+      immutable_options = Trailblazer::Context::ContainerChain.new([options, *containers], to_hash: hash_transformer) # Runtime options, immutable.
 
       ctx = Trailblazer::Context(immutable_options)
     end

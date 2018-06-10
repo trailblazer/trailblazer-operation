@@ -26,7 +26,6 @@ module Trailblazer
         class Success < Activity::End; end
         class Failure < Activity::End; end
       end
-
     end # Railway
   end
 end
