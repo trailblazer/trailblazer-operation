@@ -25,7 +25,7 @@ class TraceTest < Minitest::Spec
       ]
     )
 
-    puts output = Trailblazer::Activity::Trace::Present.tree(stack)
+    puts output = Trailblazer::Activity::Trace::Present.(stack)
 
     output.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{`-- TraceTest::Create
     |-- Start.default

@@ -34,7 +34,7 @@ module Trailblazer
         end
 
         def wtf
-          Trailblazer::Activity::Trace::Present.tree(@stack)
+          Trailblazer::Activity::Trace::Present.(@stack)
         end
 
         def wtf?
