@@ -4,7 +4,7 @@ module Trailblazer
     class Heritage < Array
       # Record inheritable assignments for replay in an inheriting class.
       def record(method, *args, &block)
-        self << { method: method, args: args, block: block }
+        self << {method: method, args: args, block: block}
       end
 
       # Replay the recorded assignments on inheritor.
@@ -13,7 +13,8 @@ module Trailblazer
         each { |cfg| call!(inheritor, cfg, &block) }
       end
 
-    private
+      private
+
       def call!(inheritor, cfg)
         yield cfg if block_given? # allow messing around with recorded arguments.
 

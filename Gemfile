@@ -7,8 +7,8 @@ gem "multi_json"
 
 gem "dry-auto_inject"
 
-gem "minitest-line"
 gem "benchmark-ips"
+gem "minitest-line"
 
 # gem "trailblazer-developer", path: "../developer"
 # gem "trailblazer-developer", git: "https://github.com/trailblazer/trailblazer-developer"

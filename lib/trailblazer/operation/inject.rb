@@ -9,9 +9,9 @@ module Trailblazer
         Module.new do
           extend Activity::Path::Plan()
 
-          task ReverseMergeDefaults.new( default_dependencies ),
-            id:     "ReverseMergeDefaults#{default_dependencies}",
-            before: "task_wrap.call_task"
+          task ReverseMergeDefaults.new(default_dependencies),
+               id:     "ReverseMergeDefaults#{default_dependencies}",
+               before: "task_wrap.call_task"
         end
       end
 
@@ -28,7 +28,7 @@ module Trailblazer
 
           @defaults.each { |k, v| ctx[k] ||= v }
 
-          return Activity::Right, [ wrap_ctx, original_args ]
+          return Activity::Right, [wrap_ctx, original_args]
         end
       end
     end # Inject

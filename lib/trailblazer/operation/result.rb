@@ -11,7 +11,7 @@ class Trailblazer::Operation
     end
 
     def failure?
-      ! success?
+      !success?
     end
 
     extend Forwardable
