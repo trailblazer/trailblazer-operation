@@ -17,7 +17,7 @@ module Trailblazer
       #
       # @public
       #
-      #   Operation.trace(params, "current_user" => current_user).wtf
+      #   Operation.trace(params, current_user: current_user).wtf
       def trace(*args)
         Trace.(self, *args)
       end
