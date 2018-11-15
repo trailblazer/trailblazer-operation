@@ -5,11 +5,11 @@ module Trailblazer
       # before the {Wrap::Call} task. This is meant for macros and steps that accept a dependency
       # injection but need a default parameter to be set if not injected.
       # @returns ADDS
-      def self.Defaults(default_dependencies)
+      def self.Defaults(default_dependencies, allow_reset: false)
         Module.new do
           extend Activity::Path::Plan()
 
-          task ReverseMergeDefaults.new(default_dependencies),
+          task ReverseMergeDefaults.new(default_dependencies, allow_reset),
                id:     "ReverseMergeDefaults#{default_dependencies}",
                before: "task_wrap.call_task"
         end
@@ -19,14 +19,19 @@ module Trailblazer
       # @returns Task
       # @param Hash list of key/value that should be set if not already assigned/set before (or injected from the outside).
       class ReverseMergeDefaults
-        def initialize(defaults)
+        def initialize(defaults, allow_reset)
           @defaults = defaults
+          @allow_reset = allow_reset
         end
 
         def call((wrap_ctx, original_args), **circuit_options)
           ctx = original_args[0][0]
 
-          @defaults.each { |k, v| ctx[k] ||= v }
+          if @allow_reset
+            @defaults.each { |k, v| ctx[k] = v }
+          else
+            @defaults.each { |k, v| ctx[k] ||= v }
+          end
 
           return Activity::Right, [wrap_ctx, original_args]
         end

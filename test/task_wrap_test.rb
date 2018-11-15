@@ -20,7 +20,7 @@ class TaskWrapTest < Minitest::Spec
           Module.new do
             extend Trailblazer::Activity::Path::Plan()
 
-            task Trailblazer::Operation::Wrap::Inject::ReverseMergeDefaults.new( contract: "MyDefaultContract" ),
+            task Trailblazer::Operation::Wrap::Inject::ReverseMergeDefaults.new({contract: "MyDefaultContract"}, false),
               id:     "inject.my_default",
               before: "task_wrap.call_task"
           end
@@ -80,7 +80,7 @@ class TaskWrapTest < Minitest::Spec
           Module.new do
             extend Trailblazer::Activity::Path::Plan()
 
-            task Trailblazer::Operation::Wrap::Inject::ReverseMergeDefaults.new( another_contract: "AnotherDefaultContract" ), id: "inject.my_default",
+            task Trailblazer::Operation::Wrap::Inject::ReverseMergeDefaults.new({another_contract: "AnotherDefaultContract"}, false), id: "inject.my_default",
             before: "task_wrap.call_task"
           end
         )
@@ -93,5 +93,43 @@ class TaskWrapTest < Minitest::Spec
 
     inspect_hash(result, "options.contract", :contract, "MyMacro.contract", "AnotherMacro.another_contract").
       must_equal %{{"options.contract"=>nil, :contract=>"MyDefaultContract", "MyMacro.contract"=>"MyDefaultContract", "AnotherMacro.another_contract"=>"AnotherDefaultContract"}}
+  end
+
+  # can override default when allow_reset is true
+  EditMacro = ->( (options, *args), *) do
+    options["AnotherMacro.another_contract"] = options[:another_contract]
+    [ Trailblazer::Activity::Right, [options, *args] ]
+  end
+
+  class Edit < Trailblazer::Operation
+    step(
+      task: ->( (options, *args), circuit_options ) {
+          _d, *o = Create.call( [ options, *args ], circuit_options )
+
+          [ Trailblazer::Activity::Right, *o ]
+        },
+      id: "Create"
+    )
+    step(
+      task:           EditMacro,
+      id:             "EditMacro",
+      Trailblazer::Activity::DSL::Extension.new(
+        Trailblazer::Activity::TaskWrap::Merge.new(
+          Module.new do
+            extend Trailblazer::Activity::Path::Plan()
+
+            task Trailblazer::Operation::Wrap::Inject::ReverseMergeDefaults.new({contract: "EditContract"}, true), id: "inject.my_default",
+            before: "task_wrap.call_task"
+          end
+        )
+      ) => true,
+    )
+  end
+
+  it do
+    result = Edit.call( {} )
+
+    inspect_hash(result, "options.contract", :contract, "MyMacro.contract").
+      must_equal %{{"options.contract"=>nil, :contract=>"EditContract", "MyMacro.contract"=>"MyDefaultContract"}}
   end
 end
