@@ -7,8 +7,8 @@ class FastTrackTest < Minitest::Spec
     fail ->(options, **) { options["b"] = true }
     step ->(options, **) { options["y"] = true }
   end
-  it { Retrieve.("dont_fail" => true  ).inspect("x", "b", "y").must_equal %{<Result:true [true, nil, nil] >} }
-  it { Retrieve.("dont_fail" => false ).inspect("x", "b", "y").must_equal %{<Result:true [false, nil, nil] >} }
+  it { Retrieve.("dont_fail" => true).inspect("x", "b", "y").must_equal %{<Result:true [true, nil, nil] >} }
+  it { Retrieve.("dont_fail" => false).inspect("x", "b", "y").must_equal %{<Result:true [false, nil, nil] >} }
 
   # #step fails fast if option set and returns false.
   class Update < Trailblazer::Operation
@@ -30,7 +30,7 @@ class FastTrackTest < Minitest::Spec
   end
 
   it { Delete.("dont_fail" => true).inspect("x", "a", "b", "y").must_equal %{<Result:true [true, true, nil, nil] >} }
-  it { Delete.({}                     ).inspect("x", "a", "b", "y").must_equal %{<Result:false [true, nil, true, nil] >} }
+  it { Delete.({}).inspect("x", "a", "b", "y").must_equal %{<Result:false [true, nil, true, nil] >} }
 end
 
 class FailBangTest < Minitest::Spec
@@ -98,7 +98,7 @@ class NestedFastTrackTest < Minitest::Spec
 
   module Steps
     def b(options, a:, **)
-      options["b"] = a+1
+      options["b"] = a + 1
     end
 
     def f(options, **)
@@ -157,14 +157,13 @@ class NestedFastTrackTest < Minitest::Spec
           # manually rewire the fast-track outputs to "conventional" railway ends.
           Output(:pass_fast) => Track(:success),
           Output(:fail_fast) => Track(:failure)
-
         step :b
         fail :f
       end
     end
 
     # it { puts Trailblazer::Activity::Introspect.Cct(update.instance_variable_get(:@process)) }
-    it { update.to_h  }
+    it { update.to_h }
     # Edit returns End.success
     it { update.(edit_return: true).inspect("a", "b", "f").must_equal %{<Result:true [1, 2, nil] >} }
     # Edit returns End.fail
@@ -175,4 +174,3 @@ class NestedFastTrackTest < Minitest::Spec
     it { update.(edit_return: Trailblazer::Operation::Railway.fail_fast!).inspect("a", "b", "f").must_equal %{<Result:false [1, nil, 3] >} }
   end
 end
-

@@ -7,32 +7,33 @@ require "test_helper"
 # ---  step MyMacro
 class StepTest < Minitest::Spec
   class Callable
-    def self.call(options, b:nil, **o)
+    def self.call(options, b: nil, **_o)
       options["b"] = b
     end
   end
 
   module Implementation
     module_function
-    def c(options, c:nil, **o)
+
+    def c(options, c: nil, **_o)
       options["c"] = c
     end
   end
 
-  MyMacro = ->( direction, options, flow_options ) do
+  MyMacro = lambda do |direction, options, flow_options|
     options["e"] = options[:e]
 
-    [ direction, options, flow_options ]
+    [direction, options, flow_options]
   end
 
   class Create < Trailblazer::Operation
-    step ->(options, a:nil, **o) { options["a"] = a }
+    step ->(options, a: nil, **_o) { options["a"] = a }
     step Callable
     step Implementation.method(:c)
     step :d
-    step [ MyMacro, {} ] # doesn't provide runner_options.
+    step [MyMacro, {}] # doesn't provide runner_options.
 
-    def d(options, d:nil, **o)
+    def d(options, d: nil, **_o)
       options["d"] = d
     end
   end
@@ -47,8 +48,14 @@ class StepTest < Minitest::Spec
   #- :before, :after, :replace, :delete, :override
   class A < Trailblazer::Operation
     step :a!
-    def a!(options, **o); options["a"] = 1; end
-    def a!(options, **o); options["a"] = 1; end if RUBY_VERSION == "2.0.0"
+    def a!(options, **_o)
+      options["a"] = 1
+    end
+    if RUBY_VERSION == "2.0.0"
+      def a!(options, **_o)
+        options["a"] = 1
+      end
+    end
   end
 
   class B < A
@@ -76,7 +83,7 @@ class StepTest < Minitest::Spec
 
   # not existent :name
   it do
-    err = assert_raises Trailblazer::Operation::Railway::Sequence::IndexError  do
+    err = assert_raises Trailblazer::Operation::Railway::Sequence::IndexError do
       class E < Trailblazer::Operation
         step :a, before: "I don't exist!"
       end
@@ -91,8 +98,8 @@ class StepTest < Minitest::Spec
   class Index < Trailblazer::Operation
     step :validate!, name: "my validate"
     step :persist!
-    step [ MyMacro, name: "I win!" ]
-    step [ MyMacro, name: "I win!" ], name: "No, I do!"
+    step [MyMacro, name: "I win!"]
+    step [MyMacro, name: "I win!"], name: "No, I do!"
   end
 
   it { Trailblazer::Operation::Inspect.(Index).must_equal %{[>my validate,>persist!,>I win!,>No, I do!]} }
@@ -114,9 +121,10 @@ end
 #---
 #- Macros with the old `input` arg.
 #  step [ ->(input, options) { } ]
-class StepWithDeprecatedMacroTest < Minitest::Spec # TODO: remove me in 2.2.
+# TODO: remove me in 2.2.
+class StepWithDeprecatedMacroTest < Minitest::Spec
   class Create < Trailblazer::Operation
-    MyOutdatedMacro = ->(input, options) {
+    MyOutdatedMacro = lambda { |input, options|
       options["x"] = input.class
     }
 
@@ -126,11 +134,10 @@ class StepWithDeprecatedMacroTest < Minitest::Spec # TODO: remove me in 2.2.
       end
     end
 
-    step [ MyOutdatedMacro, name: :outdated ]
-    step [ AnotherOldMacro, name: :oldie ]
+    step [MyOutdatedMacro, name: :outdated]
+    step [AnotherOldMacro, name: :oldie]
   end
 
   it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?step_test.rb/, "").must_equal %{[>outdated,>oldie]} }
   it { Create.().inspect("x", "y").must_equal %{<Result:true [StepWithDeprecatedMacroTest::Create, StepWithDeprecatedMacroTest::Create] >} }
 end
-

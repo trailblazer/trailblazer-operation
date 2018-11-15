@@ -1,11 +1,9 @@
 language: ruby
 before_install:
-  - gem install bundler
+  - gem install bundler -v 1.17.3
 matrix:
   include:
-    # - rvm: 2.0.0
-    #   gemfile: "test/gemfiles/Gemfile.ruby-2.0"
-    - rvm: 2.1
+    - rvm: 2.1.0
       gemfile: Gemfile
     - rvm: 2.2.4
       gemfile: Gemfile
@@ -13,5 +11,6 @@ matrix:
       gemfile: Gemfile
     - rvm: 2.4.0
       gemfile: Gemfile
-    - rvm: jruby-9.1.13.0
-      env: JRUBY_OPTS="--profile.api"
+    - rvm: 2.5.0
+      gemfile: Gemfile
+      script: bundle exec rake test && bundle exec rake rubocop

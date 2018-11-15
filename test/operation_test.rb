@@ -13,7 +13,7 @@ class DeclarativeApiTest < Minitest::Spec
     fail :return_true!
     fail :return_false!
 
-    def decide!(options, decide:raise, **)
+    def decide!(options, decide: fail, **)
       options["a"] = true
       decide
     end
@@ -26,8 +26,13 @@ class DeclarativeApiTest < Minitest::Spec
       options["x"] = true
     end
 
-    def return_true! (options, **); options["b"] = true end
-    def return_false!(options, **); options["c"] = false end
+    def return_true!(options, **)
+      options["b"] = true
+    end
+
+    def return_false!(options, **)
+      options["c"] = false
+    end
   end
 
   it { Create.(decide: true).inspect("a", "x", "y", "b", "c").must_equal %{<Result:true [true, true, false, nil, nil] >} }
@@ -37,7 +42,6 @@ class DeclarativeApiTest < Minitest::Spec
   #- trace
 
   it do
-
   end
 
   #---
@@ -51,9 +55,9 @@ class DeclarativeApiTest < Minitest::Spec
   #- pass
   #- fail
   class Update < Trailblazer::Operation
-    pass ->(options, **)         { options["a"] = false }
-    step ->(options, params:raise, **) { options["b"] = params[:decide] }
-    fail ->(options, **)         { options["c"] = true }
+    pass ->(options, **) { options["a"] = false }
+    step ->(options, params: fail, **) { options["b"] = params[:decide] }
+    fail ->(options, **) { options["c"] = true }
   end
 
   it { Update.("params" => {decide: true}).inspect("a", "b", "c").must_equal %{<Result:true [false, true, nil] >} }
@@ -73,5 +77,4 @@ class DeclarativeApiTest < Minitest::Spec
     Upsert.("params" => {decide: true}).inspect("a", "b", "c", "d", "e").must_equal %{<Result:true [false, true, nil, 1, nil] >}
     Unset. ("params" => {decide: true}).inspect("a", "b", "c", "d", "e").must_equal %{<Result:true [false, true, nil, 1, 2] >}
   end
-
 end

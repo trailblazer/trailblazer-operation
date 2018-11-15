@@ -1,10 +1,12 @@
 require "test_helper"
 
 class CallTest < Minitest::Spec
-  class Create < Trailblazer::Operation
-    step ->(*) { true }
-    def inspect
-      "#{@skills.inspect}"
+  describe "::call" do
+    class Create < Trailblazer::Operation
+      step ->(*) { true }
+      def inspect
+        @skills.inspect.to_s
+      end
     end
   end
 
@@ -52,24 +54,26 @@ class CallTest < Minitest::Spec
       end
 
       merge = [
-        [Trailblazer::Activity::TaskWrap::Pipeline.method(:insert_before), "task_wrap.call_task", ["user.add_1", method(:add_1)]],
+        [
+          Trailblazer::Activity::TaskWrap::Pipeline.method(:insert_before),
+          "task_wrap.call_task",
+          ["user.add_1", method(:add_1)]
+        ]
       ]
 
       step :a, extensions: [Trailblazer::Activity::TaskWrap::Extension(merge: merge)]
     end
 
-# normal operation invocation
-    result = operation.({seq: []})
+    # normal operation invocation
+    result = operation.(seq: [])
 
     result.inspect(:seq).must_equal %{<Result:true [[1, :a]] >}
 
-# with tracing
-    result = operation.trace({seq: []})
+    # with tracing
+    result = operation.trace(seq: [])
 
     result.inspect(:seq).must_equal %{<Result:true [[1, :a]] >}
 
     result.wtf?
   end
-
 end
-

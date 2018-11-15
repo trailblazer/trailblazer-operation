@@ -2,7 +2,9 @@ require "test_helper"
 
 class InheritanceTest < Minitest::Spec
   Song = Struct.new(:id, :title, :length) do
-    def self.find_by(options); options[:id].nil? ? nil : new(options[:id]) end
+    def self.find_by(options)
+      options[:id].nil? ? nil : new(options[:id])
+    end
   end
 
   # class Create < Trailblazer::Operation

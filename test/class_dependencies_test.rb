@@ -1,7 +1,6 @@
 require "test_helper"
 
 class ClassDependenciesTest < Minitest::Spec
-
   #- Operation[] and Operation[]=
 
   # class Index < Trailblazer::Operation

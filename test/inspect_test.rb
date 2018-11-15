@@ -1,6 +1,5 @@
 require "test_helper"
 
-
 class InspectTest < Minitest::Spec
   # Test: #to_table
   class Create < Trailblazer::Operation
@@ -33,7 +32,7 @@ class InspectTest < Minitest::Spec
 
   describe "step with only one output (happens with Nested)" do
     class Present < Trailblazer::Operation
-      pass :ok!, outputs: {:success => Trailblazer::Activity::Output("signal", :success)}
+      pass :ok!, outputs: {success: Trailblazer::Activity::Output("signal", :success)}
     end
 
     it do

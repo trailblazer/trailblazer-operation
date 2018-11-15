@@ -1,10 +1,10 @@
 require "test_helper"
 
 class IntrospectTest < Minitest::Spec
-  A = ->(*args) { [ Activity::Right, *args ] }
-  B = ->(*args) { [ Activity::Right, *args ] }
-  C = ->(*args) { [ Activity::Right, *args ] }
-  D = ->(*args) { [ Activity::Right, *args ] }
+  A = ->(*args) { [Activity::Right, *args] }
+  B = ->(*args) { [Activity::Right, *args] }
+  C = ->(*args) { [Activity::Right, *args] }
+  D = ->(*args) { [Activity::Right, *args] }
 
   let(:activity) do
     nested = bc
@@ -26,7 +26,7 @@ class IntrospectTest < Minitest::Spec
   describe "#collect" do
     it "iterates over each task element in the top activity" do
       skip
-      all_tasks = Activity::Introspect.collect(activity) do |task, connections|
+      all_tasks = Activity::Introspect.map(activity) do |task, _connections|
         task
       end
 
@@ -39,7 +39,7 @@ class IntrospectTest < Minitest::Spec
 
     it "iterates over all task elements recursively" do
       skip
-      all_tasks = Activity::Introspect.collect(activity, recursive: true) do |task, connections|
+      all_tasks = Activity::Introspect.map(activity, recursive: true) do |task, _connections|
         task
       end
 

@@ -5,7 +5,7 @@ class TemplateWithGroupTest < Minitest::Spec
 
   #:template
   class Memo::Operation < Trailblazer::Operation
-    step :log_call,  group: :start
+    step :log_call, group: :start
     step :log_success,  group: :end, before: "End.success"
     fail :log_errors,   group: :end, before: "End.failure"
     #~tmethods
@@ -49,11 +49,10 @@ class TemplateWithGroupTest < Minitest::Spec
   #:template-user end
 
   # it { pp F['__sequence__'].to_a }
-  it {
-
-skip
-    Memo::Create.(params: {}, "b_return" => false,
-                                  ).inspect("row").must_equal %{<Result:true [[:a, :l, :b, :c, :z]] >} }
+  it do
+    skip
+    Memo::Create.(params: {}, "b_return" => false).inspect("row").must_equal %{<Result:true [[:a, :l, :b, :c, :z]] >}
+  end
 end
 
 class DoormatWithGroupTest < Minitest::Spec
@@ -62,12 +61,12 @@ class DoormatWithGroupTest < Minitest::Spec
   #:doormat-group
   class Memo::Create < Trailblazer::Operation
     step :create_model
-    step :log_success,  group: :end, before: "End.success"
+    step :log_success, group: :end, before: "End.success"
 
     step :validate
     step :save
 
-    fail :log_errors,   group: :end, before: "End.failure"
+    fail :log_errors, group: :end, before: "End.failure"
     #~methods
     def create_model(options, **)
       options["row"] = [:a]
@@ -96,10 +95,10 @@ class DoormatWithGroupTest < Minitest::Spec
   #:doormat-group end
 
   # it { pp F['__sequence__'].to_a }
-  it {
-skip
-    Memo::Create.(params: {}, "b_return" => false,
-                                  ).inspect("row").must_equal %{<Result:true [[:a, :b, :c, :z]] >} }
+  it do
+    skip
+    Memo::Create.(params: {}, "b_return" => false).inspect("row").must_equal %{<Result:true [[:a, :b, :c, :z]] >}
+  end
 end
 
 class DoormatStepDocsTest < Minitest::Spec
@@ -142,8 +141,9 @@ class DoormatStepDocsTest < Minitest::Spec
   #:doormat-before end
 
   # it { pp F['__sequence__'].to_a }
-  it { Memo::Create.(params: {}, "b_return" => false,
-                                  ).inspect("row").must_equal %{<Result:true [[:a, :b, :c, :z]] >} }
+  it {
+    Memo::Create.(params: {}, "b_return" => false).inspect("row").must_equal %{<Result:true [[:a, :b, :c, :z]] >}
+  }
 end
 
 class DoormatInheritanceTest < Minitest::Spec
@@ -188,7 +188,7 @@ class DoormatInheritanceTest < Minitest::Spec
   #:doormat-before-inheritance-sub end
 
   # it { pp F['__sequence__'].to_a }
-  it { Create.({}, "b_return" => false,
-                                  ).inspect("row").must_equal %{<Result:true [[:a, :b, :c, :z]] >} }
+  it {
+    Create.({}, "b_return" => false).inspect("row").must_equal %{<Result:true [[:a, :b, :c, :z]] >}
+  }
 end
-
