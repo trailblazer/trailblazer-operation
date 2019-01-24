@@ -14,6 +14,14 @@ class Trailblazer::Operation
       !success?
     end
 
+    def to_hash
+      data.to_hash
+    end
+
+    def keys
+      data.to_hash.keys
+    end
+
     extend Forwardable
     def_delegators :@data, :[] # DISCUSS: make it a real delegator? see Nested.
 
@@ -26,5 +34,9 @@ class Trailblazer::Operation
     def slice(*keys)
       keys.collect { |k| self[k] }
     end
+
+    private
+
+    attr_reader :data
   end
 end
