@@ -44,6 +44,7 @@ module Trailblazer
 
         def self.raise_on_missing_id(ctx, local_options:, **)
           raise "No :id given for #{local_options[:task]}" unless local_options[:id]
+
           true
         end
 

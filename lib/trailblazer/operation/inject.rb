@@ -10,7 +10,7 @@ module Trailblazer
           extend Activity::Path::Plan()
 
           task ReverseMergeDefaults.new(default_dependencies),
-               id:     "ReverseMergeDefaults#{default_dependencies}",
+               id: "ReverseMergeDefaults#{default_dependencies}",
                before: "task_wrap.call_task"
         end
       end

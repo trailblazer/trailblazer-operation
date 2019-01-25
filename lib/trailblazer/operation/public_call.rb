@@ -15,6 +15,7 @@ module Trailblazer
     # @return Operation::Railway::Result binary result object
     def call(*args)
       return call_with_circuit_interface(*args) if args.any? && args[0].is_a?(Array) # This is kind of a hack that could be well hidden if Ruby had method overloading. Goal is to simplify the call/__call__ thing as we're fading out Operation::call anyway.
+
       call_with_public_interface(*args)
     end
 
