@@ -38,6 +38,7 @@ module Trailblazer
       end
 
       return inspect_line(rows) if options[:style] == :line
+
       return inspect_rows(rows)
     end
 

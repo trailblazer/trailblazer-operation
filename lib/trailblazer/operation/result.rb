@@ -14,17 +14,30 @@ class Trailblazer::Operation
       !success?
     end
 
+    def to_hash
+      data.to_hash
+    end
+
+    def keys
+      data.to_hash.keys
+    end
+
     extend Forwardable
     def_delegators :@data, :[] # DISCUSS: make it a real delegator? see Nested.
 
     # DISCUSS: the two methods below are more for testing.
     def inspect(*slices)
       return "<Result:#{success?} #{slice(*slices).inspect} >" if slices.any?
+
       "<Result:#{success?} #{@data.inspect} >"
     end
 
     def slice(*keys)
       keys.collect { |k| self[k] }
     end
+
+    private
+
+    attr_reader :data
   end
 end

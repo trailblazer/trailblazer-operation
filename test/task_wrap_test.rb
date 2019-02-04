@@ -21,7 +21,7 @@ class TaskWrapTest < Minitest::Spec
             extend Trailblazer::Activity::Path::Plan()
 
             task Trailblazer::Operation::Wrap::Inject::ReverseMergeDefaults.new( contract: "MyDefaultContract" ),
-              id:     "inject.my_default",
+              id: "inject.my_default",
               before: "task_wrap.call_task"
           end
         )
@@ -81,7 +81,7 @@ class TaskWrapTest < Minitest::Spec
             extend Trailblazer::Activity::Path::Plan()
 
             task Trailblazer::Operation::Wrap::Inject::ReverseMergeDefaults.new( another_contract: "AnotherDefaultContract" ), id: "inject.my_default",
-            before: "task_wrap.call_task"
+                                                                                                                               before: "task_wrap.call_task"
           end
         )
       ) => true,
