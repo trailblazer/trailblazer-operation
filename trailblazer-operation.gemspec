@@ -4,7 +4,7 @@ require 'trailblazer/operation/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "trailblazer-operation"
-  spec.version       = Trailblazer::Operation::VERSION
+  spec.version       = Trailblazer::Operation_VERSION # FIXME.
   spec.authors       = ["Nick Sutterer"]
   spec.email         = ["apotonick@gmail.com"]
   spec.description   = %q{Trailblazer's operation object.}
@@ -17,7 +17,7 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "trailblazer-activity", ">= 0.7.1", "< 0.8.0"
+  # spec.add_dependency "trailblazer-activity", ">= 0.7.1", "< 0.8.0"
   spec.add_dependency "trailblazer-context", ">= 0.1.1", "< 0.3.0"
 
   spec.add_development_dependency "bundler"

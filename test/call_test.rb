@@ -18,7 +18,7 @@ class CallTest < Minitest::Spec
     #---
     # success?
     class Update < Trailblazer::Operation
-      step ->(options, **) { options[:result] }
+      step ->(ctx, **) { ctx[:result] }
     end
 
     # operation success
@@ -28,7 +28,7 @@ class CallTest < Minitest::Spec
       result.success?.must_equal true
 
       result.event.must_be_instance_of Trailblazer::Operation::Railway::End::Success
-      result.event.must_equal Update.outputs[:success].signal
+      result.event.must_equal Update.to_h[:outputs][0].signal
     end
 
     # operation failure
@@ -39,7 +39,7 @@ class CallTest < Minitest::Spec
       result.failure?.must_equal true
 
       result.event.must_be_instance_of Trailblazer::Operation::Railway::End::Failure
-      result.event.must_equal Update.outputs[:failure].signal
+      result.event.must_equal Update.to_h[:outputs][1].signal
     end
 
   end

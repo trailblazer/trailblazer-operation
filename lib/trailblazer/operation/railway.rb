@@ -23,8 +23,8 @@ module Trailblazer
       end
 
       module End
-        class Success < Activity::End; end
-        class Failure < Activity::End; end
+        Success = Activity::Railway::End::Success
+        Failure = Activity::Railway::End::Failure
       end
     end # Railway
   end

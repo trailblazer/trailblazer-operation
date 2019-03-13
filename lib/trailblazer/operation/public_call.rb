@@ -33,9 +33,10 @@ module Trailblazer
     def call_with_circuit_interface(args, circuit_options)
       @activity.(
         args,
-        circuit_options.merge(
-          exec_context: new
-        )
+        circuit_options
+        #.merge(
+        #  exec_context: new
+        #) # FIXME: we don't need this, right?
       )
     end
 
