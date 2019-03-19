@@ -9,12 +9,6 @@ require "trailblazer/activity"
 require "trailblazer/activity/dsl/linear"
 
 
-# require "trailblazer/operation/callable"
-
-
-# require "trailblazer/operation/railway/macaroni"
-
-
 module Trailblazer
   # DISCUSS: I don't know where else to put this. It's not part of the {Activity} concept
   class Activity
@@ -25,14 +19,26 @@ module Trailblazer
         class Failure < Activity::End; end
       end
     end
+
+    module Operation
+      def self.OptionsForState()
+        {
+          end_task: Activity::Railway::End::Success.new(semantic: :success),
+          failure_end: Activity::Railway::End::Failure.new(semantic: :failure),
+        }
+      end
+    end
+  end
+
+  def self.Operation(options)
+    Class.new(Activity::Railway( Activity::Operation.OptionsForState.merge(options) )) do
+      extend Operation::PublicCall
+    end
   end
 
   # The Trailblazer-style operation.
   # Note that you don't have to use our "opinionated" version with result object, skills, etc.
-  class Operation < Activity::Railway(
-    end_task: Activity::Railway::End::Success.new(semantic: :success),
-    failure_end: Activity::Railway::End::Failure.new(semantic: :failure)
-    )
+  class Operation < Activity::Railway(Activity::Operation.OptionsForState)
 
     # module FastTrackActivity
       # builder_options = {
@@ -64,3 +70,5 @@ require "trailblazer/operation/railway"
 
 require "trailblazer/operation/railway/fast_track"
 require "trailblazer/operation/trace"
+
+require "trailblazer/operation/railway/macaroni"

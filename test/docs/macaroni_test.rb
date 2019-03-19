@@ -8,12 +8,10 @@ class MacaroniTaskBuilderTest < Minitest::Spec
   end
 
   #:create
-  class Memo::Create < Trailblazer::Operation
+class Memo::Create < Trailblazer::Operation(step_interface_builder: Trailblazer::Operation::Railway::KwSignature)
     #~ign
-    Normalizer, _ = Trailblazer::Activity::Magnetic::Normalizer.build( task_builder: Railway::KwSignature, pipeline: Railway::Normalizer::Pipeline )
-
-    step :create_model, normalizer: Normalizer
-    step :save,         normalizer: Normalizer
+    step :create_model
+    step :save
     #~ign end
     #~methods
     def create_model( params:, options:, ** )

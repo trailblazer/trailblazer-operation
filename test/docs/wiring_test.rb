@@ -425,11 +425,11 @@ class WiringsDocCustomConnectionTest < Minitest::Spec
 
   #:target-id
   class Memo::Upload < Trailblazer::Operation
-    step :new?, Output(:failure) => "index"
+    step :new?, Output(:failure) => Id(:index)
     step :upload
     step :validate
     fail :validation_error
-    step :index, id: "index"
+    step :index, id: :index
     #~target-id-methods
     def new?(options, is_new:, **)
       options[:new?] = is_new
