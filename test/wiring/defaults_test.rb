@@ -82,7 +82,7 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
     fail :b, Output(:success) => Track(:success) #{}"End.success"
     fail :c, Output(:success) => Track(:success)
 
-    Test.step(self, :a, :b, :c)
+    extend Trailblazer::Activity::Testing.def_steps(:a, :b, :c)
   end
 
   # a => true
@@ -121,11 +121,11 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
   # failure steps reference End.success and not just the polarization. This won't call #d in failure=>success case.
   class Delete < Trailblazer::Operation
     step :a
-    fail :b, Output(:success) => "End.success"
-    fail :c, Output(:success) => "End.success"
+    fail :b, Output(:success) => Id("End.success")
+    fail :c, Output(:success) => Id("End.success")
     pass :d
 
-    Test.step(self, :a, :b, :c)
+    Trailblazer::Activity::Testing.def_steps(:a, :b, :c)
 
     def d(options, data:, **)
       data << :d
@@ -147,11 +147,11 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
   # |_____|_|_______ E.f
   class Connect < Trailblazer::Operation
     step :a
-    step :b, Output(:success) => "d"
+    step :b, Output(:success) => Id("d")
     step :c, magnetic_to: [] # otherwise :success will be an open input!
     pass :d, id: "d"
 
-    Test.step(self, :a, :b, :c)
+    Trailblazer::Activity::Testing.def_steps(:a, :b, :c)
 
     def d(options, data:, **)
       data << :d
@@ -175,16 +175,14 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
   # | \ /  V
   # |__f____g----E.f
   class Post < Trailblazer::Operation
-    step :a, Output(:success) => "d", id: "a"
-    fail :f, Output(:success) => "c"
+    step :a, Output(:success) => Id("d"), id: "a"
+    fail :f, Output(:success) => Id("c")
     step :c, magnetic_to: [], id: "c" # otherwise :success will be an open input!
     fail :g
     step :d, id: "d"
 
-    Test.step(self, :a, :f, :c, :g, :d)
+    Trailblazer::Activity::Testing.def_steps(:a, :f, :c, :g, :d)
   end
-
-  pp Post["__sequence__"]
 
   # a => true
   it { Post.( a_return: true, d_return: true, data: []).inspect(:data).must_equal %{<Result:true [[:a, :d]] >} }

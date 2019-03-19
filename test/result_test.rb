@@ -23,7 +23,7 @@ class RailwayResultTest < Minitest::Spec
   it { Result.new(true, { "x"=> true, "y"=>1, "z"=>2 }, event).inspect("z", "y").must_equal %{<Result:true [2, 1] >} }
 
   class Create < Trailblazer::Operation
-    success :call
+    pass :call
 
     def call(options, **)
       options[:message] = "Result objects are actually quite handy!"
