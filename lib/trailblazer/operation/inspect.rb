@@ -15,22 +15,17 @@ module Trailblazer
     module_function
 
     def call(operation, options = {style: :line})
-      # TODO: better introspection API.
+      graph = Activity::Introspect::Graph(operation)
 
+      rows = graph.collect do |node, i|
+        next if node[:data][:stop_event] # DISCUSS: show this?
 
-      rows = railway.each_with_index.collect do |element, i|
-        magnetic_to, task, plus_poles = element.configuration
+        created_by = node[:data][:dsl_track] || :pass
 
-        created_by = if magnetic_to == [:failure]
-                       :fail
-                     elsif plus_poles.size > 1
-                       plus_poles[0].color == plus_poles[1].color ? :pass : :step
-                     else
-                       :pass # this is wrong for Nested, sometimes
-                     end
+        [i, [created_by, node.id]]
+      end.compact
 
-        [i, [created_by, element.id]]
-      end
+      rows = rows[1..-1] # remove start
 
       return inspect_line(rows) if options[:style] == :line
       return inspect_rows(rows)
