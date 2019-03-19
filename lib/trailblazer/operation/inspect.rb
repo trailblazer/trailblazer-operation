@@ -17,11 +17,6 @@ module Trailblazer
     def call(operation, options = {style: :line})
       # TODO: better introspection API.
 
-      alterations = Activity::Magnetic::Builder::Finalizer.adds_to_alterations(operation.to_h[:adds])
-      # DISCUSS: any other way to retrieve the Alterations?
-
-      # pp alterations
-      railway = alterations.instance_variable_get(:@groups).instance_variable_get(:@groups)[:main]
 
       rows = railway.each_with_index.collect do |element, i|
         magnetic_to, task, plus_poles = element.configuration

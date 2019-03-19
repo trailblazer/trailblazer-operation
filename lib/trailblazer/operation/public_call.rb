@@ -23,10 +23,11 @@ module Trailblazer
 
       # call the activity.
       # This will result in invoking {::call_with_circuit_interface}.
-      last_signal, (options, flow_options) = Activity::TaskWrap.invoke(self, [ctx, {}], {})
+      # last_signal, (options, flow_options) = Activity::TaskWrap.invoke(self, [ctx, {}], {})
+      signal, (ctx, flow_options) = call_with_circuit_interface([ctx, {}], {})
 
       # Result is successful if the activity ended with an End event derived from Railway::End::Success.
-      Operation::Railway::Result(last_signal, options, flow_options)
+      Operation::Railway::Result(signal, ctx, flow_options)
     end
 
     # This interface is used for all nested OPs (and the outer-most, too).
@@ -34,9 +35,9 @@ module Trailblazer
       @activity.(
         args,
         circuit_options
-        #.merge(
-        #  exec_context: new
-        #) # FIXME: we don't need this, right?
+        .merge(
+          exec_context: new # TODO: add this to {Activity} interface
+        )
       )
     end
 
