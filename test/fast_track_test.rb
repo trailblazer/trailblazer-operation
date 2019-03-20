@@ -61,7 +61,7 @@ class FailFastBangTest < Minitest::Spec
   end
 
   # without proper configuration, emitting a FastTrack signal is illegal.
-  it { assert_raises(Trailblazer::Circuit::IllegalSignalError) { Create.().inspect("x", "y", "a").must_equal %{<Result:false [true, nil, nil] >} } }
+  it { assert_raises(Trailblazer::Activity::Circuit::IllegalSignalError) { Create.().inspect("x", "y", "a").must_equal %{<Result:false [true, nil, nil] >} } }
 
   class Update < Trailblazer::Operation
     step ->(options, *) { options["x"] = true; Railway.fail_fast! }, fast_track: true
@@ -109,7 +109,7 @@ class NestedFastTrackTest < Minitest::Spec
   describe "Nested, fast_track: true and all its outputs given" do
     let(:update) do
       Class.new(Trailblazer::Operation) do
-        step task: Edit, outputs: Edit.outputs, fast_track: true
+        step Subprocess(Edit), fast_track: true
         step :b
         fail :f
 
@@ -132,7 +132,7 @@ class NestedFastTrackTest < Minitest::Spec
       Class.new(Trailblazer::Operation) do
         include Steps
 
-        step task: Edit, outputs: Edit.outputs
+        step Subprocess(Edit), Output(:pass_fast) => Track(:pass_fast), Output(:fail_fast) => Track(:fail_fast)
         step :b
         fail :f
       end
@@ -153,7 +153,7 @@ class NestedFastTrackTest < Minitest::Spec
       Class.new(Trailblazer::Operation) do
         include Steps
 
-        step task: Edit, outputs: {success: Edit.to_h[:outputs][0], failure: Edit.to_h[:outputs][3], pass_fast: Edit.to_h[:outputs][1], fail_fast: Edit.to_h[:outputs][2]},
+        step Subprocess(Edit),
           # manually rewire the fast-track outputs to "conventional" railway ends.
           Output(:pass_fast) => Track(:success),
           Output(:fail_fast) => Track(:failure)
