@@ -46,7 +46,7 @@ module Trailblazer
     require "trailblazer/operation/public_call"      # TODO: Remove in 3.0.
     extend PublicCall              # ::call(params, { current_user: .. })
 
-    require "trailblazer/operation/trace"      # TODO: Remove in 3.0.
+    require "trailblazer/operation/trace"
     extend Trace                   # ::trace
 
     module Railway

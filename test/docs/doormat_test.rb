@@ -49,7 +49,10 @@ class TemplateWithGroupTest < Minitest::Spec
   #:template-user end
 
   # it { pp F['__sequence__'].to_a }
-  it { Memo::Create.(params: {}, "b_return" => false,
+  it {
+
+skip
+    Memo::Create.(params: {}, "b_return" => false,
                                   ).inspect("row").must_equal %{<Result:true [[:a, :l, :b, :c, :z]] >} }
 end
 
@@ -93,7 +96,9 @@ class DoormatWithGroupTest < Minitest::Spec
   #:doormat-group end
 
   # it { pp F['__sequence__'].to_a }
-  it { Memo::Create.(params: {}, "b_return" => false,
+  it {
+skip
+    Memo::Create.(params: {}, "b_return" => false,
                                   ).inspect("row").must_equal %{<Result:true [[:a, :b, :c, :z]] >} }
 end
 
