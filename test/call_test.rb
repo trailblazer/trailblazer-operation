@@ -39,7 +39,7 @@ class CallTest < Minitest::Spec
       result.failure?.must_equal true
 
       result.event.must_be_instance_of Trailblazer::Operation::Railway::End::Failure
-      result.event.must_equal Update.to_h[:outputs][1].signal
+      result.event.must_equal Update.to_h[:outputs].find { |output| output.semantic == :failure }.signal
     end
 
   end

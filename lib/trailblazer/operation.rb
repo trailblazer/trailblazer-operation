@@ -41,13 +41,13 @@ module Trailblazer
   # The Trailblazer-style operation.
   # Note that you don't have to use our "opinionated" version with result object, skills, etc.
   class Operation < Activity::FastTrack(Activity::Operation.OptionsForState)
-
     # extend Skill::Accessors # ::[] and ::[]= # TODO: fade out this usage.
 
-
-require "trailblazer/operation/public_call"      # TODO: Remove in 3.0.
+    require "trailblazer/operation/public_call"      # TODO: Remove in 3.0.
     extend PublicCall              # ::call(params, { current_user: .. })
-    # extend Trace                   # ::trace
+
+    require "trailblazer/operation/trace"      # TODO: Remove in 3.0.
+    extend Trace                   # ::trace
 
     module Railway
       def self.fail!     ; Activity::Left  end

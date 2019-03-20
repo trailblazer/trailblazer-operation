@@ -82,7 +82,7 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
     fail :b, Output(:success) => Track(:success) #{}"End.success"
     fail :c, Output(:success) => Track(:success)
 
-    extend Trailblazer::Activity::Testing.def_steps(:a, :b, :c)
+    Test.step(self, :a, :b, :c)
   end
 
   # a => true
@@ -125,7 +125,7 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
     fail :c, Output(:success) => Id("End.success")
     pass :d
 
-    Trailblazer::Activity::Testing.def_steps(:a, :b, :c)
+    Test.step(self, :a, :b, :c, :d)
 
     def d(options, data:, **)
       data << :d
@@ -151,7 +151,7 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
     step :c, magnetic_to: [] # otherwise :success will be an open input!
     pass :d, id: "d"
 
-    Trailblazer::Activity::Testing.def_steps(:a, :b, :c)
+    Test.step(self, :a, :b, :c)
 
     def d(options, data:, **)
       data << :d
@@ -181,7 +181,7 @@ class WireDefaultsEarlyExitSuccessTest < Minitest::Spec
     fail :g
     step :d, id: "d"
 
-    Trailblazer::Activity::Testing.def_steps(:a, :f, :c, :g, :d)
+    Test.step(self, :a, :f, :c, :g, :d)
   end
 
   # a => true
