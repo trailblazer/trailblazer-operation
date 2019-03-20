@@ -479,7 +479,7 @@ class WiringsDocDeciderTest < Minitest::Spec
   class Memo::Upsert < Trailblazer::Operation
     step :find_model, Output(:failure) => Track(:create_route)
     step :update
-    step :create, magnetic_to: [:create_route]
+    step :create, magnetic_to: :create_route
     step :save
     #~methods
     def find_model(options, id:nil, **)
