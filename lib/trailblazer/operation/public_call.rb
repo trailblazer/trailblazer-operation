@@ -32,12 +32,10 @@ module Trailblazer
 
     # This interface is used for all nested OPs (and the outer-most, too).
     def call_with_circuit_interface(args, circuit_options)
-      @activity.(
+      Activity::TaskWrap.invoke(
+        @activity,
         args,
-        circuit_options
-        .merge(
-          exec_context: new # TODO: add this to {Activity} interface
-        )
+        circuit_options.merge(exec_context: new)
       )
     end
 
