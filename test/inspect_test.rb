@@ -23,12 +23,12 @@ class InspectTest < Minitest::Spec
 
   it do
     Trailblazer::Operation::Inspect.call(Create, style: :rows).must_equal %{
- 0 ==============================>decide!
- 1 ===========================>>wasnt_ok!
- 2 =============================>>was_ok!
- 3 <<return_true!========================
- 4 <<return_false!=======================
- 5 ============================>finalize!}
+ 1 ==============================>decide!
+ 2 ===========================>>wasnt_ok!
+ 3 =============================>>was_ok!
+ 4 <<return_true!========================
+ 5 <<return_false!=======================
+ 6 ============================>finalize!}
   end
 
   describe "step with only one output (happens with Nested)" do

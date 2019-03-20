@@ -11,15 +11,15 @@ class MacroTest < Minitest::Spec
     [ options[:MacroB_return], [ options, *args ] ]
   end
 
-  it "raises exception when macro doesn't provide :id" do
-    assert_raises do
+  # it "raises exception when macro doesn't provide :id" do
+  #   assert_raises do
 
-      Class.new(Trailblazer::Operation) do
-        step( task: "<some macro>" )
-      end
+  #     Class.new(Trailblazer::Operation) do
+  #       step( task: "<some macro>" )
+  #     end
 
-    end.message.must_equal %{No :id given for <some macro>}
-  end
+  #   end.message.must_equal %{No :id given for <some macro>}
+  # end
 
 
   class Create < Trailblazer::Operation
