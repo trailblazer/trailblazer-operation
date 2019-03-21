@@ -84,16 +84,17 @@ class StepTest < Minitest::Spec
   it { D.().inspect("a").must_equal %{<Result:true [[:b, :b]] >} }
 
   class E < Trailblazer::Operation
-    step :a!
-    step :add!
-    step :add!, override: true
+    imp = T.def_task(:b)
 
-    def a!(options, **);   options["a"] = []; end
-    def add!(options, **); options["a"] << :b; end
+    step :a
+    step({task: :b, id: :b})
+    step({task: imp, id: :b}, override: true)
+
+    include T.def_steps(:a)
   end
 
-  it { Trailblazer::Operation::Inspect.(E).must_equal %{[>a!,>add!]} }
-  it { E.().inspect("a").must_equal %{<Result:true [[:b]] >} }
+  it { Trailblazer::Operation::Inspect.(E).must_equal %{[>a,>b]} }
+  it { E.(seq: []).inspect(:seq).must_equal %{<Result:true [[:a, :b]] >} }
 
   #- with proc
   class F < Trailblazer::Operation
@@ -157,7 +158,7 @@ class StepTest < Minitest::Spec
   end
 
   class Ii < I
-    step :a, override: true
+    step({task: T.def_task(:b), id: :a}, override: true)
   end
 
   # FIXME: we have all fast track ends here.

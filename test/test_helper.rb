@@ -6,6 +6,7 @@ require "trailblazer/activity/testing"
 
 Minitest::Spec.class_eval do
   Activity = Trailblazer::Activity
+  T = Activity::Testing
 end
 
 # TODO: replace all this with {Activity::Testing.def_steps}
