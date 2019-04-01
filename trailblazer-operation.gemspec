@@ -17,7 +17,7 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  # spec.add_dependency "trailblazer-activity", ">= 0.7.1", "< 0.8.0"
+  spec.add_dependency "trailblazer-activity-dsl-linear", "< 1.0.0"
   spec.add_dependency "trailblazer-context", ">= 0.1.1", "< 0.3.0"
 
   spec.add_development_dependency "bundler"
@@ -25,5 +25,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake"
   spec.add_development_dependency "rubocop"
 
-  spec.required_ruby_version = ">= 2.0.0"
+  spec.required_ruby_version = ">= 2.1.0"
 end
