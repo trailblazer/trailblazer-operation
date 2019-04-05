@@ -13,7 +13,7 @@ class DocsActivityTest < Minitest::Spec
   #:describe
   describe Memo::Create do
     it "creates a sane Memo instance" do
-      result = Memo::Create.( params: { body: "Enjoy an IPA" } )
+      result = Memo::Create.(params: {body: "Enjoy an IPA"})
 
       result.success?.must_equal true
       result[:model].body.must_equal "Enjoy an IPA"

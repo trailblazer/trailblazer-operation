@@ -7,8 +7,8 @@ Gem::Specification.new do |spec|
   spec.version       = Trailblazer::Operation_VERSION # FIXME.
   spec.authors       = ["Nick Sutterer"]
   spec.email         = ["apotonick@gmail.com"]
-  spec.description   = %q{Trailblazer's operation object.}
-  spec.summary       = %q{Trailblazer's operation object with railway flow and integrated error handling.}
+  spec.description   = %q(Trailblazer's operation object.)
+  spec.summary       = %q(Trailblazer's operation object with railway flow and integrated error handling.)
   spec.homepage      = "http://trailblazer.to"
   spec.license       = "MIT"
 

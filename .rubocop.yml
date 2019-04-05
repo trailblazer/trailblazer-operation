@@ -5,3 +5,4 @@ inherit_from:
 Naming/MethodName:
   Exclude:
     - 'lib/trailblazer/operation/inject.rb'
+    - 'lib/trailblazer/operation.rb'

@@ -1,6 +1,5 @@
 require "test_helper"
 
-
 class InspectTest < Minitest::Spec
   # Test: #to_table
   class Create < Trailblazer::Operation

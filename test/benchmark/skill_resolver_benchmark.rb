@@ -11,28 +11,27 @@ normal_container = {}
   normal_container["xbla_#{i}"] = i
 end
 
-
 Benchmark.ips do |x|
-  x.report(:merge) {
+  x.report(:merge) do
     attrs = normal_container.merge(initialize_hash)
-    10.times do |i|
+    10.times do |_i|
       attrs["bla_8"]
     end
-    10.times do |i|
+    10.times do |_i|
       attrs["xbla_1"]
     end
-  }
+  end
 
-  x.report(:resolver) {
+  x.report(:resolver) do
     attrs = Trailblazer::Skill::Resolver.new(initialize_hash, normal_container)
 
-    10.times do |i|
+    10.times do |_i|
       attrs["bla_8"]
     end
-    10.times do |i|
+    10.times do |_i|
       attrs["xbla_1"]
     end
-  }
+  end
 end
 
 # Warming up --------------------------------------
