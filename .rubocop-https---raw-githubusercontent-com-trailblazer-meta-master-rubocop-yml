@@ -99,3 +99,22 @@ Metrics/AbcSize:
   Max: 25
 Style/LambdaCall:
   Enabled: false
+Style/Semicolon:
+  Enabled: false
+Naming/UncommunicativeMethodParamName:
+  Enabled: false
+Style/ClassAndModuleChildren:
+  Enabled: false
+Layout/LeadingCommentSpace:
+  Exclude:
+    - 'test/docs/**/*'
+Layout/AlignHash:
+  EnforcedHashRocketStyle: table
+Style/FrozenStringLiteralComment:
+  Enabled: false
+Layout/AlignHash:
+  EnforcedColonStyle: table
+SingleLineMethods:
+  Enabled: false
+Style/Lambda:
+  EnforcedStyle: literal
