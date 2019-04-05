@@ -19,8 +19,8 @@ class RailwayResultTest < Minitest::Spec
 
   #---
   # inspect
-  it { success.inspect.must_equal %(<Result:true {\"x\"=>String} >) }
-  it { Result.new(true, {"x" => true, "y" => 1, "z" => 2}, event).inspect("z", "y").must_equal %(<Result:true [2, 1] >) }
+  it { success.inspect.must_equal %{<Result:true {\"x\"=>String} >} }
+  it { Result.new(true, {"x" => true, "y" => 1, "z" => 2}, event).inspect("z", "y").must_equal %{<Result:true [2, 1] >} }
 
   class Create < Trailblazer::Operation
     pass :call

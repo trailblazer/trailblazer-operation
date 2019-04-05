@@ -51,7 +51,7 @@ class TemplateWithGroupTest < Minitest::Spec
   # it { pp F['__sequence__'].to_a }
   it {
     skip
-    Memo::Create.(params: {}, "b_return" => false).inspect("row").must_equal %(<Result:true [[:a, :l, :b, :c, :z]] >)
+    Memo::Create.(params: {}, "b_return" => false).inspect("row").must_equal %{<Result:true [[:a, :l, :b, :c, :z]] >}
   }
 end
 
@@ -97,7 +97,7 @@ class DoormatWithGroupTest < Minitest::Spec
   # it { pp F['__sequence__'].to_a }
   it {
     skip
-    Memo::Create.(params: {}, "b_return" => false).inspect("row").must_equal %(<Result:true [[:a, :b, :c, :z]] >)
+    Memo::Create.(params: {}, "b_return" => false).inspect("row").must_equal %{<Result:true [[:a, :b, :c, :z]] >}
   }
 end
 
@@ -141,7 +141,7 @@ class DoormatStepDocsTest < Minitest::Spec
   #:doormat-before end
 
   # it { pp F['__sequence__'].to_a }
-  it { Memo::Create.(params: {}, "b_return" => false).inspect("row").must_equal %(<Result:true [[:a, :b, :c, :z]] >) }
+  it { Memo::Create.(params: {}, "b_return" => false).inspect("row").must_equal %{<Result:true [[:a, :b, :c, :z]] >} }
 end
 
 class DoormatInheritanceTest < Minitest::Spec
@@ -186,5 +186,5 @@ class DoormatInheritanceTest < Minitest::Spec
   #:doormat-before-inheritance-sub end
 
   # it { pp F['__sequence__'].to_a }
-  it { Create.({}, "b_return" => false).inspect("row").must_equal %(<Result:true [[:a, :b, :c, :z]] >) }
+  it { Create.({}, "b_return" => false).inspect("row").must_equal %{<Result:true [[:a, :b, :c, :z]] >} }
 end

@@ -58,14 +58,14 @@ class StepTest < Minitest::Spec
     step :d!, after:  :b!
   end
 
-  it { Trailblazer::Operation::Inspect.(B).must_equal %([>b!,>d!,>c!,>a!]) }
+  it { Trailblazer::Operation::Inspect.(B).must_equal %{[>b!,>d!,>c!,>a!]} }
 
   class C < B
     step :e!, replace: :c!
     step nil, delete: :d!
   end
 
-  it { Trailblazer::Operation::Inspect.(C).must_equal %([>b!,>e!,>a!]) }
+  it { Trailblazer::Operation::Inspect.(C).must_equal %{[>b!,>e!,>a!]} }
 
   class D < Trailblazer::Operation
     step :a!
@@ -73,7 +73,7 @@ class StepTest < Minitest::Spec
     step :b!, override: true
   end
 
-  it { Trailblazer::Operation::Inspect.(D).must_equal %([>a!,>b!]) }
+  it { Trailblazer::Operation::Inspect.(D).must_equal %{[>a!,>b!]} }
 
   # not existent :name
   it do
@@ -96,7 +96,7 @@ class StepTest < Minitest::Spec
     step [MyMacro, name: "I win!"], name: "No, I do!"
   end
 
-  it { Trailblazer::Operation::Inspect.(Index).must_equal %([>my validate,>persist!,>I win!,>No, I do!]) }
+  it { Trailblazer::Operation::Inspect.(Index).must_equal %{[>my validate,>persist!,>I win!,>No, I do!]} }
 
   #---
   #- inheritance
@@ -132,6 +132,6 @@ class StepWithDeprecatedMacroTest < Minitest::Spec
     step [AnotherOldMacro, name: :oldie]
   end
 
-  it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?step_test.rb/, "").must_equal %([>outdated,>oldie]) }
-  it { Create.().inspect("x", "y").must_equal %(<Result:true [StepWithDeprecatedMacroTest::Create, StepWithDeprecatedMacroTest::Create] >) }
+  it { Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?step_test.rb/, "").must_equal %{[>outdated,>oldie]} }
+  it { Create.().inspect("x", "y").must_equal %{<Result:true [StepWithDeprecatedMacroTest::Create, StepWithDeprecatedMacroTest::Create] >} }
 end

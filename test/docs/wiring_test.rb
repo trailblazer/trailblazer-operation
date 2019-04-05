@@ -7,7 +7,7 @@ class WiringDocsTest < Minitest::Spec
     end
 
     def inspect
-      %(#<Memo text=#{text.inspect}>)
+      %{#<Memo text=#{text.inspect}>}
     end
 
     attr_accessor :id, :text
@@ -347,7 +347,7 @@ class WiringsDocSeqOptionsTest < Minitest::Spec
     #=> [>create_memo,>validate_params,>save]
     #:id-inspect end
 
-    Trailblazer::Operation.introspect(Memo::Create).must_equal %([>create_memo,>validate_params,>save])
+    Trailblazer::Operation.introspect(Memo::Create).must_equal %{[>create_memo,>validate_params,>save]}
   end
 
   it ":delete removes step" do
@@ -357,7 +357,7 @@ class WiringsDocSeqOptionsTest < Minitest::Spec
     #=> [>create_model,>save]
     #:delete-inspect end
 
-    Trailblazer::Operation.introspect(Memo::Create::Admin).must_equal %([>create_memo,>save])
+    Trailblazer::Operation.introspect(Memo::Create::Admin).must_equal %{[>create_memo,>save]}
   end
 
   it ":before inserts" do
@@ -367,7 +367,7 @@ class WiringsDocSeqOptionsTest < Minitest::Spec
     #=> [>create_model,>save]
     #:before-inspect end
 
-    Trailblazer::Operation.introspect(Memo::Create::Authorized).must_equal %([>policy,>create_memo,>validate_params,>save])
+    Trailblazer::Operation.introspect(Memo::Create::Authorized).must_equal %{[>policy,>create_memo,>validate_params,>save]}
   end
 
   it ":after inserts" do
@@ -377,7 +377,7 @@ class WiringsDocSeqOptionsTest < Minitest::Spec
     #=> [>create_memo,>validate_params,>logger,>save]
     #:after-inspect end
 
-    Trailblazer::Operation.introspect(Memo::Create::Logging).must_equal %([>create_memo,>validate_params,>logger,>save])
+    Trailblazer::Operation.introspect(Memo::Create::Logging).must_equal %{[>create_memo,>validate_params,>logger,>save]}
   end
 
   it ":replace inserts" do
@@ -387,7 +387,7 @@ class WiringsDocSeqOptionsTest < Minitest::Spec
     #=> [>update_memo,>validate_params,>save]
     #:replace-inspect end
 
-    Trailblazer::Operation.introspect(Memo::Update).must_equal %([>update_memo,>validate_params,>save])
+    Trailblazer::Operation.introspect(Memo::Update).must_equal %{[>update_memo,>validate_params,>save]}
   end
 end
 
@@ -488,17 +488,17 @@ class WiringsDocCustomConnectionTest < Minitest::Spec
 
   it "works with new image" do
     result = Memo::Upload.(image: my_image, is_new: true)
-    result.inspect(:new?, :upload, :validate, :validation_error, :index).must_equal %(<Result:true [true, true, true, nil, true] >)
+    result.inspect(:new?, :upload, :validate, :validation_error, :index).must_equal %{<Result:true [true, true, true, nil, true] >}
   end
 
   it "skips everything but index for existing image" do
     result = Memo::Upload.(image: my_image, is_new: false)
-    result.inspect(:new?, :upload, :validate, :validation_error, :index).must_equal %(<Result:true [false, nil, nil, nil, true] >)
+    result.inspect(:new?, :upload, :validate, :validation_error, :index).must_equal %{<Result:true [false, nil, nil, nil, true] >}
   end
 
   it "fails in validation" do
     result = Memo::Upload.(image: my_image, is_new: true, validate: false)
-    result.inspect(:new?, :upload, :validate, :validation_error, :index).must_equal %(<Result:false [true, true, false, true, nil] >)
+    result.inspect(:new?, :upload, :validate, :validation_error, :index).must_equal %{<Result:false [true, true, false, true, nil] >}
   end
 end
 
@@ -536,11 +536,11 @@ class WiringsDocDeciderTest < Minitest::Spec
   #:decider end
 
   it "goes the create route" do
-    Memo::Upsert.(id: false).inspect(:find_model, :update, :create, :save).must_equal %(<Result:true [false, nil, true, true] >)
+    Memo::Upsert.(id: false).inspect(:find_model, :update, :create, :save).must_equal %{<Result:true [false, nil, true, true] >}
   end
 
   it "goes the update route" do
-    Memo::Upsert.(id: true).inspect(:find_model, :update, :create, :save).must_equal %(<Result:true [true, true, nil, true] >)
+    Memo::Upsert.(id: true).inspect(:find_model, :update, :create, :save).must_equal %{<Result:true [true, true, nil, true] >}
   end
 end
 
@@ -578,18 +578,18 @@ class WiringsDocEndTest < Minitest::Spec
   #:end end
 
   it "goes success path" do
-    Memo::Update.(id: true).inspect(:find_model, :update, :save, :db_error).must_equal %(<Result:true [true, true, true, nil] >)
+    Memo::Update.(id: true).inspect(:find_model, :update, :save, :db_error).must_equal %{<Result:true [true, true, true, nil] >}
   end
 
   it "errors out on End.model_not_found" do
     result = Memo::Update.(id: false)
-    result.inspect(:find_model, :update, :save, :db_error).must_equal %(<Result:false [false, nil, nil, nil] >)
+    result.inspect(:find_model, :update, :save, :db_error).must_equal %{<Result:false [false, nil, nil, nil] >}
     result.event.to_h.must_equal(semantic: :model_not_found)
   end
 
   it "takes normal error track" do
     result = Memo::Update.(id: true, update: false)
-    result.inspect(:find_model, :update, :save, :db_error).must_equal %(<Result:false [true, false, nil, 1] >)
+    result.inspect(:find_model, :update, :save, :db_error).must_equal %{<Result:false [true, false, nil, 1] >}
     result.event.to_h.must_equal(semantic: :failure)
   end
 end

@@ -31,8 +31,8 @@ class DeclarativeApiTest < Minitest::Spec
     def return_false!(options, **_o); options["c"] = false end
   end
 
-  it { Create.({}, decide: true).inspect("a", "x", "y", "b", "c").must_equal %(<Result:true [true, true, false, nil, nil] >) }
-  it { Create.({}, decide: false).inspect("a", "x", "y", "b", "c").must_equal %(<Result:false [true, nil, nil, true, false] >) }
+  it { Create.({}, decide: true).inspect("a", "x", "y", "b", "c").must_equal %{<Result:true [true, true, false, nil, nil] >} }
+  it { Create.({}, decide: false).inspect("a", "x", "y", "b", "c").must_equal %{<Result:false [true, nil, nil, true, false] >} }
 
   #---
   #- trace
@@ -45,7 +45,7 @@ class DeclarativeApiTest < Minitest::Spec
   class Noop < Trailblazer::Operation
   end
 
-  it { Noop.().inspect("params").must_equal %(<Result:true [{}] >) }
+  it { Noop.().inspect("params").must_equal %{<Result:true [{}] >} }
 
   #---
   #- pass
@@ -56,6 +56,6 @@ class DeclarativeApiTest < Minitest::Spec
     fail ->(options, **_o) { options["c"] = true }
   end
 
-  it { Update.(decide: true).inspect("a", "b", "c").must_equal %(<Result:true [false, true, nil] >) }
-  it { Update.(decide: false).inspect("a", "b", "c").must_equal %(<Result:false [false, false, true] >) }
+  it { Update.(decide: true).inspect("a", "b", "c").must_equal %{<Result:true [false, true, nil] >} }
+  it { Update.(decide: false).inspect("a", "b", "c").must_equal %{<Result:false [false, false, true] >} }
 end

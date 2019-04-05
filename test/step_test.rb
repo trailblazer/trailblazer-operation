@@ -61,7 +61,7 @@ class StepTest < Minitest::Spec
     def d!(options, **); options["order"] << "d"; end
   end
 
-  it { Trailblazer::Operation::Inspect.(B).must_equal %([>b!,>d!,>c!,>a!]) }
+  it { Trailblazer::Operation::Inspect.(B).must_equal %{[>b!,>d!,>c!,>a!]} }
 
   class C < B
     step :e!, replace: :c!
@@ -69,8 +69,8 @@ class StepTest < Minitest::Spec
     def e!(options, **); options["order"] << "e"; end
   end
 
-  it { Trailblazer::Operation::Inspect.(C).must_equal %([>b!,>e!,>a!]) }
-  it { C.("order" => []).inspect("order").must_equal %(<Result:true [["b", "e", "a"]] >) }
+  it { Trailblazer::Operation::Inspect.(C).must_equal %{[>b!,>e!,>a!]} }
+  it { C.("order" => []).inspect("order").must_equal %{<Result:true [["b", "e", "a"]] >} }
 
   #---
   #- override: true
@@ -84,8 +84,8 @@ class StepTest < Minitest::Spec
     def add!(options, **); options["a"] << :b; end
   end
 
-  it { Trailblazer::Operation::Inspect.(D).must_equal %([>a!,>add!,>another_add!]) }
-  it { D.().inspect("a").must_equal %(<Result:true [[:b, :b]] >) }
+  it { Trailblazer::Operation::Inspect.(D).must_equal %{[>a!,>add!,>another_add!]} }
+  it { D.().inspect("a").must_equal %{<Result:true [[:b, :b]] >} }
 
   class E < Trailblazer::Operation
     imp = T.def_task(:b)
@@ -97,8 +97,8 @@ class StepTest < Minitest::Spec
     include T.def_steps(:a)
   end
 
-  it { Trailblazer::Operation::Inspect.(E).must_equal %([>a,>b]) }
-  it { E.(seq: []).inspect(:seq).must_equal %(<Result:true [[:a, :b]] >) }
+  it { Trailblazer::Operation::Inspect.(E).must_equal %{[>a,>b]} }
+  it { E.(seq: []).inspect(:seq).must_equal %{<Result:true [[:a, :b]] >} }
 
   #- with proc
   class F < Trailblazer::Operation
@@ -109,8 +109,8 @@ class StepTest < Minitest::Spec
     def a!(options, **);   options["a"] = []; end
   end
 
-  it { Trailblazer::Operation::Inspect.(F).must_equal %([>a!,>add!!!]) }
-  it { F.().inspect("a").must_equal %(<Result:true [[:b]] >) }
+  it { Trailblazer::Operation::Inspect.(F).must_equal %{[>a!,>add!!!]} }
+  it { F.().inspect("a").must_equal %{<Result:true [[:b]] >} }
 
   #- with macro
   class G < Trailblazer::Operation
@@ -126,8 +126,8 @@ class StepTest < Minitest::Spec
     def a!(options, **);   options["a"] = []; end
   end
 
-  it { Trailblazer::Operation::Inspect.(G).must_equal %([>a!,>add]) }
-  it { G.().inspect("a").must_equal %(<Result:true [[:b]] >) }
+  it { Trailblazer::Operation::Inspect.(G).must_equal %{[>a!,>add]} }
+  it { G.().inspect("a").must_equal %{<Result:true [[:b]] >} }
 
   # override: true in inherited class with macro
   class Go < G
@@ -135,8 +135,8 @@ class StepTest < Minitest::Spec
     step task: MyMacro, override: true, id: "add"
   end
 
-  it { Trailblazer::Operation::Inspect.(Go).must_equal %([>a!,>add]) }
-  it { Go.().inspect("a").must_equal %(<Result:true [[:m]] >) }
+  it { Trailblazer::Operation::Inspect.(Go).must_equal %{[>a!,>add]} }
+  it { Go.().inspect("a").must_equal %{<Result:true [[:m]] >} }
 
   #- with inheritance
   class H < Trailblazer::Operation
@@ -154,8 +154,8 @@ class StepTest < Minitest::Spec
     def _add!(options, **); options["a"] << :hh; end
   end
 
-  it { Trailblazer::Operation::Inspect.(Hh).must_equal %([>a!,>_add!]) }
-  it { Hh.().inspect("a").must_equal %(<Result:true [[:hh]] >) }
+  it { Trailblazer::Operation::Inspect.(Hh).must_equal %{[>a!,>_add!]} }
+  it { Hh.().inspect("a").must_equal %{<Result:true [[:hh]] >} }
 
   #- inheritance unit test
   class I < Trailblazer::Operation
@@ -177,7 +177,7 @@ class StepTest < Minitest::Spec
       Class.new(Trailblazer::Operation) do
         step :a, before: "I don't exist!"
       end
-    end.inspect.must_equal %(#<Trailblazer::Activity::DSL::Linear::Sequence::IndexError: "I don't exist!">)
+    end.inspect.must_equal %{#<Trailblazer::Activity::DSL::Linear::Sequence::IndexError: "I don't exist!">}
   end
 
   #---
@@ -190,7 +190,7 @@ class StepTest < Minitest::Spec
     step({task: "MyMacro", id: "I win!"}, id: "No, I do!")
   end
 
-  it { Trailblazer::Operation::Inspect.(Index).must_equal %([>my validate,>persist!,>I win!,>No, I do!]) }
+  it { Trailblazer::Operation::Inspect.(Index).must_equal %{[>my validate,>persist!,>I win!,>No, I do!]} }
 
   #---
   #- inheritance
@@ -226,8 +226,8 @@ class StepWithDeprecatedMacroTest < Minitest::Spec
     step [AnotherOldMacro, id: :oldie]
   end
 
-  it { skip; Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?step_test.rb/, "").must_equal %([>outdated,>oldie]) }
-  it { skip; Create.().inspect("x", "y").must_equal %(<Result:true [StepWithDeprecatedMacroTest::Create, StepWithDeprecatedMacroTest::Create] >) }
+  it { skip; Trailblazer::Operation::Inspect.(Create).gsub(/0x.+?step_test.rb/, "").must_equal %{[>outdated,>oldie]} }
+  it { skip; Create.().inspect("x", "y").must_equal %{<Result:true [StepWithDeprecatedMacroTest::Create, StepWithDeprecatedMacroTest::Create] >} }
 end
 
 # TODO: test failure and success aliases properly.

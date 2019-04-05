@@ -27,7 +27,7 @@ class TraceTest < Minitest::Spec
 
     puts output = Trailblazer::Activity::Trace::Present.(stack)
 
-    output.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %(`-- TraceTest::Create
+    output.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{`-- TraceTest::Create
     |-- Start.default
     |-- Create.task.a
     |-- MyNested
@@ -37,12 +37,12 @@ class TraceTest < Minitest::Spec
     |   `-- End.success
     |-- Create.task.c
     |-- Create.task.params
-    `-- End.failure)
+    `-- End.failure}
   end
 
   it "Operation::trace" do
     result = Create.trace(params: {x: 1}, a_return: true)
-    result.wtf.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %(`-- TraceTest::Create
+    result.wtf.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{`-- TraceTest::Create
     |-- Start.default
     |-- Create.task.a
     |-- MyNested
@@ -52,6 +52,6 @@ class TraceTest < Minitest::Spec
     |   `-- End.success
     |-- Create.task.c
     |-- Create.task.params
-    `-- End.success)
+    `-- End.success}
   end
 end

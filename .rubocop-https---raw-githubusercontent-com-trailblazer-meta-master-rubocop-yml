@@ -122,3 +122,14 @@ Style/AsciiComments:
   Enabled: false
 Style/CollectionMethods:
   Enabled: false
+Style/RedundantReturn:
+  Enabled: false
+Style/PercentLiteralDelimiters:
+  PreferredDelimiters:
+    default: {}
+    "%q": '()'
+    "%r": '{}'
+    "%w": '[]'
+    "%": '{}'
+Style/HashSyntax:
+  Enabled: false

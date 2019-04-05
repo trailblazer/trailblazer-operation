@@ -26,6 +26,6 @@ class MacaroniTaskBuilderTest < Minitest::Spec
   #:create end
 
   it "allows optional macaroni call style" do
-    Memo::Create.(params: {title: "Wow!"}).inspect(:model).must_equal %(<Result:true [#<struct MacaroniTaskBuilderTest::Memo title=\"!woW\">] >)
+    Memo::Create.(params: {title: "Wow!"}).inspect(:model).must_equal %{<Result:true [#<struct MacaroniTaskBuilderTest::Memo title=\"!woW\">] >}
   end
 end

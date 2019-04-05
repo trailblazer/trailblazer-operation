@@ -48,7 +48,7 @@ class CallTest < Minitest::Spec
       def self.add_1(wrap_ctx, original_args)
         ctx, = original_args[0]
         ctx[:seq] << 1
-        [wrap_ctx, original_args] # yay to mutable state. not.
+        return wrap_ctx, original_args # yay to mutable state. not.
       end
 
       merge = [
@@ -61,12 +61,12 @@ class CallTest < Minitest::Spec
     # normal operation invocation
     result = operation.(seq: [])
 
-    result.inspect(:seq).must_equal %(<Result:true [[1, :a]] >)
+    result.inspect(:seq).must_equal %{<Result:true [[1, :a]] >}
 
     # with tracing
     result = operation.trace(seq: [])
 
-    result.inspect(:seq).must_equal %(<Result:true [[1, :a]] >)
+    result.inspect(:seq).must_equal %{<Result:true [[1, :a]] >}
 
     result.wtf?
   end
