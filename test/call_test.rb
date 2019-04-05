@@ -4,7 +4,7 @@ class CallTest < Minitest::Spec
   class Create < Trailblazer::Operation
     step ->(*) { true }
     def inspect
-      "#{@skills.inspect}"
+      @skills.inspect.to_s
     end
   end
 
@@ -46,30 +46,28 @@ class CallTest < Minitest::Spec
       include Trailblazer::Activity::Testing.def_steps(:a)
 
       def self.add_1(wrap_ctx, original_args)
-        ctx, _ = original_args[0]
+        ctx, = original_args[0]
         ctx[:seq] << 1
-        return wrap_ctx, original_args # yay to mutable state. not.
+        [wrap_ctx, original_args] # yay to mutable state. not.
       end
 
       merge = [
-        [Trailblazer::Activity::TaskWrap::Pipeline.method(:insert_before), "task_wrap.call_task", ["user.add_1", method(:add_1)]],
+        [Trailblazer::Activity::TaskWrap::Pipeline.method(:insert_before), "task_wrap.call_task", ["user.add_1", method(:add_1)]]
       ]
 
       step :a, extensions: [Trailblazer::Activity::TaskWrap::Extension(merge: merge)]
     end
 
-# normal operation invocation
-    result = operation.({seq: []})
+    # normal operation invocation
+    result = operation.(seq: [])
 
-    result.inspect(:seq).must_equal %{<Result:true [[1, :a]] >}
+    result.inspect(:seq).must_equal %(<Result:true [[1, :a]] >)
 
-# with tracing
-    result = operation.trace({seq: []})
+    # with tracing
+    result = operation.trace(seq: [])
 
-    result.inspect(:seq).must_equal %{<Result:true [[1, :a]] >}
+    result.inspect(:seq).must_equal %(<Result:true [[1, :a]] >)
 
     result.wtf?
   end
-
 end
-

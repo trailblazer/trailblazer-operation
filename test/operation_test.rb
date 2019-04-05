@@ -13,7 +13,7 @@ class DeclarativeApiTest < Minitest::Spec
     fail :return_true!
     fail :return_false!
 
-    def decide!(options, decide:raise, **)
+    def decide!(options, decide: raise, **)
       options["a"] = true
       decide
     end
@@ -26,18 +26,18 @@ class DeclarativeApiTest < Minitest::Spec
       options["x"] = true
     end
 
-    def return_true! (options, **); options["b"] = true end
+    def return_true!(options, **); options["b"] = true end
+
     def return_false!(options, **); options["c"] = false end
   end
 
-  it { Create.(decide: true).inspect("a", "x", "y", "b", "c").must_equal %{<Result:true [true, true, false, nil, nil] >} }
-  it { Create.(decide: false).inspect("a", "x", "y", "b", "c").must_equal %{<Result:false [true, nil, nil, true, false] >} }
+  it { Create.(decide: true).inspect("a", "x", "y", "b", "c").must_equal %(<Result:true [true, true, false, nil, nil] >) }
+  it { Create.(decide: false).inspect("a", "x", "y", "b", "c").must_equal %(<Result:false [true, nil, nil, true, false] >) }
 
   #---
   #- trace
 
   it do
-
   end
 
   #---
@@ -45,19 +45,19 @@ class DeclarativeApiTest < Minitest::Spec
   class Noop < Trailblazer::Operation
   end
 
-  it { Noop.().inspect("params").must_equal %{<Result:true [nil] >} }
+  it { Noop.().inspect("params").must_equal %(<Result:true [nil] >) }
 
   #---
   #- pass
   #- fail
   class Update < Trailblazer::Operation
-    pass ->(options, **)         { options["a"] = false }
-    step ->(options, params:raise, **) { options["b"] = params[:decide] }
-    fail ->(options, **)         { options["c"] = true }
+    pass ->(options, **) { options["a"] = false }
+    step ->(options, params: raise, **) { options["b"] = params[:decide] }
+    fail ->(options, **) { options["c"] = true }
   end
 
-  it { Update.("params" => {decide: true}).inspect("a", "b", "c").must_equal %{<Result:true [false, true, nil] >} }
-  it { Update.("params" => {decide: false}).inspect("a", "b", "c").must_equal %{<Result:false [false, false, true] >} }
+  it { Update.("params" => {decide: true}).inspect("a", "b", "c").must_equal %(<Result:true [false, true, nil] >) }
+  it { Update.("params" => {decide: false}).inspect("a", "b", "c").must_equal %(<Result:false [false, false, true] >) }
 
   #---
   #- inheritance
@@ -70,8 +70,7 @@ class DeclarativeApiTest < Minitest::Spec
   end
 
   it "allows to inherit" do
-    Upsert.("params" => {decide: true}).inspect("a", "b", "c", "d", "e").must_equal %{<Result:true [false, true, nil, 1, nil] >}
-    Unset. ("params" => {decide: true}).inspect("a", "b", "c", "d", "e").must_equal %{<Result:true [false, true, nil, 1, 2] >}
+    Upsert.("params" => {decide: true}).inspect("a", "b", "c", "d", "e").must_equal %(<Result:true [false, true, nil, 1, nil] >)
+    Unset. ("params" => {decide: true}).inspect("a", "b", "c", "d", "e").must_equal %(<Result:true [false, true, nil, 1, 2] >)
   end
-
 end

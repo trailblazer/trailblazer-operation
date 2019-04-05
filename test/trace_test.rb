@@ -8,26 +8,26 @@ class TraceTest < Minitest::Spec
 
   class Create < Trailblazer::Operation
     step ->(options, a_return:, **) { options[:a] = a_return }, id: "Create.task.a"
-    step( {task: B, id: "MyNested"}, B.to_h[:outputs][0] => Track(:success) )
+    step({task: B, id: "MyNested"}, B.to_h[:outputs][0] => Track(:success))
     step ->(options, **) { options[:c] = true }, id: "Create.task.c"
-    step ->(options, params:, **) { params.any? }, id: "Create.task.params"
+    step ->(_options, params:, **) { params.any? }, id: "Create.task.params"
   end
   # raise Create["__task_wraps__"].inspect
 
   it "allows using low-level Activity::Trace" do
-    operation = ->(*args) { puts "@@@@@ #{args.last.inspect}"; Create.__call__(*args) }
+    ->(*args) { puts "@@@@@ #{args.last.inspect}"; Create.__call__(*args) }
 
-    stack, _ = Trailblazer::Activity::Trace.(
+    stack, = Trailblazer::Activity::Trace.(
       Create,
       [
-        { a_return: true, params: {} },
+        {a_return: true, params: {}},
         {}
       ]
     )
 
     puts output = Trailblazer::Activity::Trace::Present.(stack)
 
-    output.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{`-- TraceTest::Create
+    output.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %(`-- TraceTest::Create
     |-- Start.default
     |-- Create.task.a
     |-- MyNested
@@ -37,12 +37,12 @@ class TraceTest < Minitest::Spec
     |   `-- End.success
     |-- Create.task.c
     |-- Create.task.params
-    `-- End.failure}
+    `-- End.failure)
   end
 
   it "Operation::trace" do
-    result = Create.trace({ params: { x: 1 }, a_return: true })
-    result.wtf.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{`-- TraceTest::Create
+    result = Create.trace(params: {x: 1}, a_return: true)
+    result.wtf.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %(`-- TraceTest::Create
     |-- Start.default
     |-- Create.task.a
     |-- MyNested
@@ -52,6 +52,6 @@ class TraceTest < Minitest::Spec
     |   `-- End.success
     |-- Create.task.c
     |-- Create.task.params
-    `-- End.success}
+    `-- End.success)
   end
 end

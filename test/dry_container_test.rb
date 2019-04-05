@@ -18,7 +18,7 @@ class DryContainerTest < Minitest::Spec
   it { Create.({}, {}, my_container)["user_repository"].must_equal Object }
   it { Create.({}, {}, my_container)["contract.create"].must_equal Array }
   # also allows our own options PLUS containers.
-  it { Create.({}, { "model" => String }, my_container)["model"].must_equal String }
-  it { Create.({}, { "model" => String }, my_container)["user_repository"].must_equal Object }
-  it { Create.({}, { "user_repository" => Fixnum }, my_container)["user_repository"].must_equal Fixnum }
+  it { Create.({}, {"model" => String}, my_container)["model"].must_equal String }
+  it { Create.({}, {"model" => String}, my_container)["user_repository"].must_equal Object }
+  it { Create.({}, {"user_repository" => Integer}, my_container)["user_repository"].must_equal Integer }
 end

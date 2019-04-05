@@ -1,7 +1,6 @@
 require "test_helper"
 
 class ClassDependenciesTest < Minitest::Spec
-
   #- Operation[] and Operation[]=
 
   # class Index < Trailblazer::Operation
@@ -12,5 +11,5 @@ class ClassDependenciesTest < Minitest::Spec
   #   step ->(options, **) { options["a"] = options["model.class"] }
   # end
 
-  it { skip "https://trello.com/c/t8bUJlqb/25-op-class-dependencies"; Index.({}).inspect("a", "model.class").must_equal %{<Result:true [Module, Module] >} }
+  it { skip "https://trello.com/c/t8bUJlqb/25-op-class-dependencies"; Index.({}).inspect("a", "model.class").must_equal %(<Result:true [Module, Module] >) }
 end

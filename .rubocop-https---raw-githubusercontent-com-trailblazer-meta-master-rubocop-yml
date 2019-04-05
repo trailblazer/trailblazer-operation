@@ -118,3 +118,7 @@ SingleLineMethods:
   Enabled: false
 Style/Lambda:
   EnforcedStyle: literal
+Style/AsciiComments:
+  Enabled: false
+Style/CollectionMethods:
+  Enabled: false

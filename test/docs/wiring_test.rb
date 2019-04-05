@@ -2,12 +2,12 @@ require "test_helper"
 
 class WiringDocsTest < Minitest::Spec
   class Memo
-    def initialize(options={})
+    def initialize(_options = {})
       @options
     end
 
     def inspect
-      %{#<Memo text=#{text.inspect}>}
+      %(#<Memo text=#{text.inspect}>)
     end
 
     attr_accessor :id, :text
@@ -28,34 +28,38 @@ class WiringDocsTest < Minitest::Spec
       #~memo-methods
       def create_model(options, **)
       end
+
       def validate(options, **)
       end
+
       def assign_errors(options, **)
       end
+
       def index(options, **)
       end
+
       def uuid(options, **)
       end
+
       def save(options, **)
       end
+
       def log_errors(options, **)
       end
       #~memo-methods end
     end
     #:memo-op end
-
   end
 
   it do
-    result = Memo::Create.( text: "Punk is not dead." )
+    Memo::Create.(text: "Punk is not dead.")
   end
-
 
   module PassFast
     #:pf-op
     class Memo::Create < Trailblazer::Operation
       step :create_model
-      step :validate,     pass_fast: true
+      step :validate, pass_fast: true
       fail :assign_errors
       step :index
       pass :uuid
@@ -64,22 +68,27 @@ class WiringDocsTest < Minitest::Spec
       #~pf-methods
       def create_model(options, **)
       end
+
       def validate(options, **)
       end
+
       def assign_errors(options, **)
       end
+
       def index(options, **)
       end
+
       def uuid(options, **)
       end
+
       def save(options, **)
       end
+
       def log_errors(options, **)
       end
       #~pf-methods end
     end
     #:pf-op end
-
   end
 
   module FailFast
@@ -95,24 +104,30 @@ class WiringDocsTest < Minitest::Spec
       #~ff-methods
       def create_model(options, **)
       end
+
       def validate(options, **)
       end
+
       def assign_errors(options, **)
       end
+
       def index(options, **)
       end
+
       def uuid(options, **)
       end
+
       def save(options, **)
       end
+
       def log_errors(options, **)
       end
       #~ff-methods end
     end
     #:ff-op end
-
   end
 
+  #rubocop:disable Lint/DuplicateMethods
   module FailFast
     #:ff-step-op
     class Memo::Create < Trailblazer::Operation
@@ -126,22 +141,29 @@ class WiringDocsTest < Minitest::Spec
       #~ff-step-methods
       def create_model(options, **)
       end
+
       def validate(options, **)
       end
+
       def assign_errors(options, **)
       end
+
       def index(options, **)
       end
+
       def uuid(options, **)
       end
+
       def save(options, **)
       end
+
       def log_errors(options, **)
       end
       #~ff-step-methods end
     end
     #:ff-step-op end
   end
+#rubocop:enable Lint/DuplicateMethods
 
 =begin
 describe all options :pass_fast, :fast_track and emiting signals directly, like Left.
@@ -151,7 +173,7 @@ describe all options :pass_fast, :fast_track and emiting signals directly, like 
 
     #:ft-step-op
     class Memo::Create < Trailblazer::Operation
-      step :create_model,  fast_track: true
+      step :create_model, fast_track: true
       step :validate
       fail :assign_errors, fast_track: true
       step :index
@@ -160,34 +182,40 @@ describe all options :pass_fast, :fast_track and emiting signals directly, like 
       fail :log_errors
       #~ft-step-methods
       #:ft-create
-      def create_model(options, create_empty_model:false, **)
+      def create_model(options, create_empty_model: false, **)
         options[:model] = Memo.new
         create_empty_model ? Railway.pass_fast! : true
       end
+
       #:ft-create end
       #:signal-validate
-      def validate(options, params: {}, **)
+      def validate(_options, params: {}, **)
         if params[:text].nil?
           Trailblazer::Activity::Left  #=> left track, failure
         else
           Trailblazer::Activity::Right #=> right track, success
         end
       end
+
       #:signal-validate end
       def assign_errors(options, model:, **)
         options[:errors] = "Something went wrong!"
 
         model.id.nil? ? Railway.fail_fast! : false
       end
-      def index(options, model:, **)
+
+      def index(_options, *)
         true
       end
-      def uuid(options, **)
+
+      def uuid(_options, **)
         true
       end
-      def save(options, model:, **)
+
+      def save(_options, model:, **)
         model.id = 1
       end
+
       def log_errors(options, **)
       end
       #~ft-step-methods end
@@ -196,7 +224,7 @@ describe all options :pass_fast, :fast_track and emiting signals directly, like 
 
     class Memo::Create2 < Memo::Create
       #:signalhelper-validate
-      def validate(options, params: {}, **)
+      def validate(_options, params: {}, **)
         if params[:text].nil?
           Railway.fail! #=> left track, failure
         else
@@ -210,7 +238,7 @@ describe all options :pass_fast, :fast_track and emiting signals directly, like 
   it "runs #create_model, only" do
     Memo = FastTrack::Memo
     #:ft-call
-    result = Memo::Create.( create_empty_model: true )
+    result = Memo::Create.(create_empty_model: true)
     puts result.success?        #=> true
     puts result[:model].inspect #=> #<Memo text=nil>
     #:ft-call end
@@ -222,7 +250,7 @@ describe all options :pass_fast, :fast_track and emiting signals directly, like 
   it "fast-tracks in #assign_errors" do
     Memo = FastTrack::Memo
     #:ft-call-err
-    result = Memo::Create.( {} )
+    result = Memo::Create.({})
     puts result.success?          #=> false
     puts result[:model].inspect   #=> #<Memo text=nil>
     puts result[:errors].inspect  #=> "Something went wrong!"
@@ -235,7 +263,7 @@ describe all options :pass_fast, :fast_track and emiting signals directly, like 
 
   it "goes till #save by emitting signals directly" do
     Memo = FastTrack::Memo
-    result = Memo::Create.( params: { text: "Punk is not dead!" } )
+    result = Memo::Create.(params: {text: "Punk is not dead!"})
     result.success?.must_equal true
     result[:model].id.must_equal 1
     result[:errors].must_be_nil
@@ -243,7 +271,7 @@ describe all options :pass_fast, :fast_track and emiting signals directly, like 
 
   it "goes till #save by using signal helper" do
     Memo = FastTrack::Memo
-    result = Memo::Create2.( params: { text: "Punk is not dead!" } )
+    result = Memo::Create2.(params: {text: "Punk is not dead!"})
     result.success?.must_equal true
     result[:model].id.must_equal 1
     result[:errors].must_be_nil
@@ -265,8 +293,10 @@ class WiringsDocSeqOptionsTest < Minitest::Spec
       #~id-methods
       def create_model(options, **)
       end
+
       def validate(options, **)
       end
+
       def save(options, **)
       end
       #~id-methods end
@@ -313,51 +343,51 @@ class WiringsDocSeqOptionsTest < Minitest::Spec
   it ":id shows up in introspect" do
     Memo = Id::Memo
     #:id-inspect
-    Trailblazer::Operation.introspect( Memo::Create )
+    Trailblazer::Operation.introspect(Memo::Create)
     #=> [>create_memo,>validate_params,>save]
     #:id-inspect end
 
-    Trailblazer::Operation.introspect( Memo::Create ).must_equal %{[>create_memo,>validate_params,>save]}
+    Trailblazer::Operation.introspect(Memo::Create).must_equal %([>create_memo,>validate_params,>save])
   end
 
   it ":delete removes step" do
     Memo = Id::Memo
     #:delete-inspect
-    Trailblazer::Operation.introspect( Memo::Create::Admin )
+    Trailblazer::Operation.introspect(Memo::Create::Admin)
     #=> [>create_model,>save]
     #:delete-inspect end
 
-    Trailblazer::Operation.introspect( Memo::Create::Admin ).must_equal %{[>create_memo,>save]}
+    Trailblazer::Operation.introspect(Memo::Create::Admin).must_equal %([>create_memo,>save])
   end
 
   it ":before inserts" do
     Memo = Id::Memo
     #:before-inspect
-    Trailblazer::Operation.introspect( Memo::Create::Authorized )
+    Trailblazer::Operation.introspect(Memo::Create::Authorized)
     #=> [>create_model,>save]
     #:before-inspect end
 
-    Trailblazer::Operation.introspect( Memo::Create::Authorized ).must_equal %{[>policy,>create_memo,>validate_params,>save]}
+    Trailblazer::Operation.introspect(Memo::Create::Authorized).must_equal %([>policy,>create_memo,>validate_params,>save])
   end
 
   it ":after inserts" do
     Memo = Id::Memo
     #:after-inspect
-    Trailblazer::Operation.introspect( Memo::Create::Logging )
+    Trailblazer::Operation.introspect(Memo::Create::Logging)
     #=> [>create_memo,>validate_params,>logger,>save]
     #:after-inspect end
 
-    Trailblazer::Operation.introspect( Memo::Create::Logging ).must_equal %{[>create_memo,>validate_params,>logger,>save]}
+    Trailblazer::Operation.introspect(Memo::Create::Logging).must_equal %([>create_memo,>validate_params,>logger,>save])
   end
 
   it ":replace inserts" do
     Memo = Id::Memo
     #:replace-inspect
-    Trailblazer::Operation.introspect( Memo::Update )
+    Trailblazer::Operation.introspect(Memo::Update)
     #=> [>update_memo,>validate_params,>save]
     #:replace-inspect end
 
-    Trailblazer::Operation.introspect( Memo::Update ).must_equal %{[>update_memo,>validate_params,>save]}
+    Trailblazer::Operation.introspect(Memo::Update).must_equal %([>update_memo,>validate_params,>save])
   end
 end
 
@@ -396,27 +426,27 @@ class WiringsDocRecoverTest < Minitest::Spec
   let(:my_image) { "beautiful landscape" }
 
   it "works for S3" do
-    result = Memo::Upload.( image: my_image, s3: true )
+    result = Memo::Upload.(image: my_image, s3: true)
 
-    [ result.success?, result[:s3], result[:azure], result[:b2], result[:problem] ].must_equal [ true, true, nil, nil, nil ]
+    [result.success?, result[:s3], result[:azure], result[:b2], result[:problem]].must_equal [true, true, nil, nil, nil]
   end
 
   it "works for Azure" do
-    result = Memo::Upload.( image: my_image, azure: true, s3: false )
+    result = Memo::Upload.(image: my_image, azure: true, s3: false)
 
-    [ result.success?, result[:s3], result[:azure], result[:b2], result[:problem] ].must_equal [ true, false, true, nil, nil ]
+    [result.success?, result[:s3], result[:azure], result[:b2], result[:problem]].must_equal [true, false, true, nil, nil]
   end
 
   it "works for B2" do
-    result = Memo::Upload.( image: my_image, b2: true, azure: false, s3: false )
+    result = Memo::Upload.(image: my_image, b2: true, azure: false, s3: false)
 
-    [ result.success?, result[:s3], result[:azure], result[:b2], result[:problem] ].must_equal [ true, false, false, true, nil ]
+    [result.success?, result[:s3], result[:azure], result[:b2], result[:problem]].must_equal [true, false, false, true, nil]
   end
 
   it "fails for all" do
-    result = Memo::Upload.( image: my_image, b2: false, azure: false, s3: false )
+    result = Memo::Upload.(image: my_image, b2: false, azure: false, s3: false)
 
-    [ result.success?, result[:s3], result[:azure], result[:b2], result[:problem] ].must_equal [ false, false, false, false, "All uploads failed." ]
+    [result.success?, result[:s3], result[:azure], result[:b2], result[:problem]].must_equal [false, false, false, false, "All uploads failed."]
   end
 end
 
@@ -439,7 +469,7 @@ class WiringsDocCustomConnectionTest < Minitest::Spec
       options[:upload] = true
     end
 
-    def validate(options, validate:true, **)
+    def validate(options, validate: true, **)
       options[:validate] = validate
     end
 
@@ -457,18 +487,18 @@ class WiringsDocCustomConnectionTest < Minitest::Spec
   let(:my_image) { "beautiful landscape" }
 
   it "works with new image" do
-    result = Memo::Upload.( image: my_image, is_new: true )
-    result.inspect(:new?, :upload, :validate, :validation_error, :index).must_equal %{<Result:true [true, true, true, nil, true] >}
+    result = Memo::Upload.(image: my_image, is_new: true)
+    result.inspect(:new?, :upload, :validate, :validation_error, :index).must_equal %(<Result:true [true, true, true, nil, true] >)
   end
 
   it "skips everything but index for existing image" do
-    result = Memo::Upload.( image: my_image, is_new: false )
-    result.inspect(:new?, :upload, :validate, :validation_error, :index).must_equal %{<Result:true [false, nil, nil, nil, true] >}
+    result = Memo::Upload.(image: my_image, is_new: false)
+    result.inspect(:new?, :upload, :validate, :validation_error, :index).must_equal %(<Result:true [false, nil, nil, nil, true] >)
   end
 
   it "fails in validation" do
-    result = Memo::Upload.( image: my_image, is_new: true, validate: false )
-    result.inspect(:new?, :upload, :validate, :validation_error, :index).must_equal %{<Result:false [true, true, false, true, nil] >}
+    result = Memo::Upload.(image: my_image, is_new: true, validate: false)
+    result.inspect(:new?, :upload, :validate, :validation_error, :index).must_equal %(<Result:false [true, true, false, true, nil] >)
   end
 end
 
@@ -482,19 +512,22 @@ class WiringsDocDeciderTest < Minitest::Spec
     step :create, magnetic_to: :create_route
     step :save
     #~methods
-    def find_model(options, id:nil, **)
+    def find_model(options, id: nil, **)
       options[:model] = Memo.find(id)
     end
 
-    def find_model(options, id:, **)
+    def find_model(options, id:, **) #rubocop:disable Lint/DuplicateMethods
       options[:find_model] = id
     end
+
     def update(options, **)
       options[:update] = true
     end
+
     def create(options, **)
       options[:create] = true
     end
+
     def save(options, **)
       options[:save] = true
     end
@@ -503,11 +536,11 @@ class WiringsDocDeciderTest < Minitest::Spec
   #:decider end
 
   it "goes the create route" do
-    Memo::Upsert.( id: false ).inspect(:find_model, :update, :create, :save).must_equal %{<Result:true [false, nil, true, true] >}
+    Memo::Upsert.(id: false).inspect(:find_model, :update, :create, :save).must_equal %(<Result:true [false, nil, true, true] >)
   end
 
   it "goes the update route" do
-    Memo::Upsert.( id: true ).inspect(:find_model, :update, :create, :save).must_equal %{<Result:true [true, true, nil, true] >}
+    Memo::Upsert.(id: true).inspect(:find_model, :update, :create, :save).must_equal %(<Result:true [true, true, nil, true] >)
   end
 end
 
@@ -521,19 +554,22 @@ class WiringsDocEndTest < Minitest::Spec
     fail :db_error
     step :save
     #~methods
-    def find_model(options, id:nil, **)
+    def find_model(options, id: nil, **)
       options[:model] = Memo.find(id)
     end
 
-    def find_model(options, id:, **)
+    def find_model(options, id:, **) #rubocop:disable Lint/DuplicateMethods
       options[:find_model] = id
     end
+
     def update(options, update: true, **)
       options[:update] = update
     end
+
     def db_error(options, **)
       options[:db_error] = 1
     end
+
     def save(options, **)
       options[:save] = true
     end
@@ -542,18 +578,18 @@ class WiringsDocEndTest < Minitest::Spec
   #:end end
 
   it "goes success path" do
-    Memo::Update.( id: true ).inspect(:find_model, :update, :save, :db_error).must_equal %{<Result:true [true, true, true, nil] >}
+    Memo::Update.(id: true).inspect(:find_model, :update, :save, :db_error).must_equal %(<Result:true [true, true, true, nil] >)
   end
 
   it "errors out on End.model_not_found" do
-    result = Memo::Update.( id: false )
-    result.inspect(:find_model, :update, :save, :db_error).must_equal %{<Result:false [false, nil, nil, nil] >}
+    result = Memo::Update.(id: false)
+    result.inspect(:find_model, :update, :save, :db_error).must_equal %(<Result:false [false, nil, nil, nil] >)
     result.event.to_h.must_equal(semantic: :model_not_found)
   end
 
   it "takes normal error track" do
-    result = Memo::Update.( id: true, update: false )
-    result.inspect(:find_model, :update, :save, :db_error).must_equal %{<Result:false [true, false, nil, 1] >}
+    result = Memo::Update.(id: true, update: false)
+    result.inspect(:find_model, :update, :save, :db_error).must_equal %(<Result:false [true, false, nil, 1] >)
     result.event.to_h.must_equal(semantic: :failure)
   end
 end

@@ -1,11 +1,11 @@
-  require "test_helper"
+require "test_helper"
 
 class RailwayResultTest < Minitest::Spec
   Result  = Trailblazer::Operation::Railway::Result
   Success = Trailblazer::Operation::Railway::End::Success
 
   let(:event)    { Success.new(semantic: nil) }
-  let (:success) { Result.new(true, { "x"=> String }, event) }
+  let(:success)  { Result.new(true, {"x" => String}, event) }
 
   it { success.success?.must_equal true }
   it { success.failure?.must_equal false }
@@ -19,8 +19,8 @@ class RailwayResultTest < Minitest::Spec
 
   #---
   # inspect
-  it { success.inspect.must_equal %{<Result:true {\"x\"=>String} >} }
-  it { Result.new(true, { "x"=> true, "y"=>1, "z"=>2 }, event).inspect("z", "y").must_equal %{<Result:true [2, 1] >} }
+  it { success.inspect.must_equal %(<Result:true {\"x\"=>String} >) }
+  it { Result.new(true, {"x" => true, "y" => 1, "z" => 2}, event).inspect("z", "y").must_equal %(<Result:true [2, 1] >) }
 
   class Create < Trailblazer::Operation
     pass :call

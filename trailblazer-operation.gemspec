@@ -7,13 +7,13 @@ Gem::Specification.new do |spec|
   spec.version       = Trailblazer::Operation_VERSION # FIXME.
   spec.authors       = ["Nick Sutterer"]
   spec.email         = ["apotonick@gmail.com"]
-  spec.description   = %q{Trailblazer's operation object.}
-  spec.summary       = %q{Trailblazer's operation object with railway flow and integrated error handling.}
+  spec.description   = %q(Trailblazer's operation object.)
+  spec.summary       = %q(Trailblazer's operation object with railway flow and integrated error handling.)
   spec.homepage      = "http://trailblazer.to"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
-  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
+  spec.executables   = spec.files.grep(%r(^bin/)) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
