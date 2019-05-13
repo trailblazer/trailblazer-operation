@@ -27,7 +27,7 @@ module Trailblazer
       signal, (ctx, flow_options) = Activity::TaskWrap.invoke(
         @activity,
         [ctx, {}],
-        {exec_context: new}
+        exec_context: new
       )
 
       # Result is successful if the activity ended with an End event derived from Railway::End::Success.
@@ -36,10 +36,7 @@ module Trailblazer
 
     # This interface is used for all nested OPs (and the outer-most, too).
     def call_with_circuit_interface(args, circuit_options)
-      @activity.(
-        args,
-        circuit_options.merge(exec_context: new)
-      )
+      strategy_call(args, circuit_options) # FastTrack#call
     end
 
     # Compile a Context object to be passed into the Activity::call.

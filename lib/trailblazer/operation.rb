@@ -43,6 +43,10 @@ module Trailblazer
   class Operation < Activity::FastTrack(Activity::Operation.OptionsForState)
     # extend Skill::Accessors # ::[] and ::[]= # TODO: fade out this usage.
 
+    class << self
+      alias_method :strategy_call, :call
+    end
+
     require "trailblazer/operation/public_call"      # TODO: Remove in 3.0.
     extend PublicCall              # ::call(params, { current_user: .. })
 
