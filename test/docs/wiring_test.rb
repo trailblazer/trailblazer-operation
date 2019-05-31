@@ -54,8 +54,9 @@ class WiringDocsTest < Minitest::Spec
   end
 
   it do
-    Memo::Create.(text: "Punk is not dead.")
+    Step::Memo::Create.(text: "Punk is not dead.")
   end
+
 
   module PassFast
     Memo = Class.new(WiringDocsTest::Memo)
