@@ -16,6 +16,8 @@ class WiringDocsTest < Minitest::Spec
   # _"Everything's a memo."_
 
   module Step
+    Memo = Class.new(WiringDocsTest::Memo)
+
     #:memo-op
     class Memo::Create < Trailblazer::Operation
       step :create_model
@@ -56,6 +58,8 @@ class WiringDocsTest < Minitest::Spec
   end
 
   module PassFast
+    Memo = Class.new(WiringDocsTest::Memo)
+
     #:pf-op
     class Memo::Create < Trailblazer::Operation
       step :create_model
@@ -92,6 +96,8 @@ class WiringDocsTest < Minitest::Spec
   end
 
   module FailFast
+    Memo = Class.new(WiringDocsTest::Memo)
+
     #:ff-op
     class Memo::Create < Trailblazer::Operation
       step :create_model
@@ -129,6 +135,8 @@ class WiringDocsTest < Minitest::Spec
 
   #rubocop:disable Lint/DuplicateMethods
   module FailFast
+    Memo = Class.new(WiringDocsTest::Memo)
+
     #:ff-step-op
     class Memo::Create < Trailblazer::Operation
       step :create_model
@@ -169,7 +177,7 @@ class WiringDocsTest < Minitest::Spec
 describe all options :pass_fast, :fast_track and emiting signals directly, like Left.
 =end
   module FastTrack
-    class Memo < WiringDocsTest::Memo; end
+    Memo = Class.new(WiringDocsTest::Memo)
 
     #:ft-step-op
     class Memo::Create < Trailblazer::Operation
@@ -283,7 +291,7 @@ end
 =end
 class WiringsDocSeqOptionsTest < Minitest::Spec
   module Id
-    class Memo < WiringDocsTest::Memo; end
+    Memo = Class.new(WiringDocsTest::Memo)
 
     #:id
     class Memo::Create < Trailblazer::Operation
