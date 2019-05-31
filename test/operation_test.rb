@@ -33,7 +33,8 @@ class DeclarativeApiTest < Minitest::Spec
 
   it { Create.(decide: true).inspect("a", "x", "y", "b", "c").must_equal %{<Result:true [true, true, false, nil, nil] >} }
   it { Create.(decide: false).inspect("a", "x", "y", "b", "c").must_equal %{<Result:false [true, nil, nil, true, false] >} }
-
+  it { Create.(decide: nil).keys.must_equal(%i(decide a b c)) }
+  it { Create.(decide: nil).to_hash.must_equal(decide: nil, a: true, b: true, c: false) }
   #---
   #- trace
 
@@ -46,6 +47,8 @@ class DeclarativeApiTest < Minitest::Spec
   end
 
   it { Noop.().inspect("params").must_equal %{<Result:true [nil] >} }
+  it { Noop.().keys.must_equal([]) }
+  it { Noop.().to_hash.must_equal({}) }
 
   #---
   #- pass
