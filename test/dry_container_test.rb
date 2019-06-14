@@ -9,6 +9,7 @@ class DryContainerTest < Minitest::Spec
   end
 
   class Create < Trailblazer::Operation
+    extend Trailblazer::Operation::Container
   end
 
   it "allows 2.2 call style" do

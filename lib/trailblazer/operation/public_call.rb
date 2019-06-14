@@ -20,7 +20,7 @@ module Trailblazer
     end
 
     def call_with_public_interface(*args)
-      ctx = Operation::PublicCall.options_for_public_call(*args)
+      ctx = options_for_public_call(*args)
 
       # call the activity.
       # This will result in invoking {::call_with_circuit_interface}.
@@ -40,17 +40,14 @@ module Trailblazer
       strategy_call(args, circuit_options) # FastTrack#call
     end
 
+    def options_for_public_call(*args)
+      Operation::PublicCall.options_for_public_call(*args)
+    end
+
     # Compile a Context object to be passed into the Activity::call.
     # @private
-    def self.options_for_public_call(options = {}, *containers)
-      # generate the skill hash that embraces runtime options plus potential containers, the so called Runtime options.
-      # This wrapping is supposed to happen once in the entire system.
-
-      hash_transformer = ->(containers) { containers[0].to_hash } # FIXME: don't transform any containers into kw args.
-
-      immutable_options = Trailblazer::Context::ContainerChain.new([options, *containers], to_hash: hash_transformer) # Runtime options, immutable.
-
-      ctx = Trailblazer::Context(immutable_options)
+    def self.options_for_public_call(options={})
+      Trailblazer::Context(options)
     end
   end
 end

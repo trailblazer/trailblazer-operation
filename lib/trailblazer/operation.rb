@@ -73,3 +73,5 @@ require "trailblazer/operation/railway"
 require "trailblazer/operation/trace"
 
 require "trailblazer/operation/railway/macaroni"
+
+require "trailblazer/operation/container"
