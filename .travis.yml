@@ -3,8 +3,8 @@ before_install:
   - gem install bundler -v 1.17.3
 matrix:
   include:
-    - rvm: 2.1.0
-      gemfile: Gemfile
+    # - rvm: 2.1.0
+    #   gemfile: Gemfile
     - rvm: 2.2.4
       gemfile: Gemfile
     - rvm: 2.3.3
