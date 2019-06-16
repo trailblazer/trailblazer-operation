@@ -44,6 +44,7 @@ class DocsActivityTest < Minitest::Spec
 
   it do
     module J
+      Memo = Struct.new(:id)
 
       #:op
       class Create < Trailblazer::Operation
@@ -54,19 +55,20 @@ class DocsActivityTest < Minitest::Spec
         #~flow end
 
         #~mod
+        def create(ctx, **)
+          ctx[:model] = Memo.new
+        end
+        #~rest
         def validate(ctx, params:, **)
           ctx[:input] # true/false
           true
-        end
-
-        def create(ctx, **)
-          ctx[:create] = true
         end
 
         def log_error(ctx, params:, **)
           logger.error("wrong params: #{params.inspect}")
           true
         end
+        #~rest
         #~mod end
       end
       #:op end
@@ -77,5 +79,10 @@ class DocsActivityTest < Minitest::Spec
 
     result.success?.must_equal true
     # ctx.inspect.must_equal %{{:params=>{:text=>\"Hydrate!\"}, :create=>true}}
+
+    #:op-result
+    result.success? #=> true
+    result[:model]  #=> #<Memo ..>
+    #:op-result end
   end
 end
