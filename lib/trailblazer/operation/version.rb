@@ -1,6 +1,7 @@
 module Trailblazer
-  Operation_VERSION = "0.5.0"
-  # class Operation
-    # VERSION = "0.4.1".freeze
-  # end
+  module Version
+    module Operation
+      VERSION = "0.5.0"
+    end
+  end
 end
