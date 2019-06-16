@@ -13,6 +13,13 @@ class DeclarativeApiTest < Minitest::Spec
     fail :return_true!
     fail :return_false!
 
+    step :bla, input: ->(ctx, *) { {id: ctx.inspect} }, output: ->(scope, ctx) { ctx["hello"] = scope["1"]; ctx }
+
+    def bla(ctx, id:1, **)
+      puts id
+      true
+    end
+
     def decide!(options, decide: raise, **)
       options["a"] = true
       decide
