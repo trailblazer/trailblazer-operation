@@ -1,3 +1,7 @@
+## 0.5.1
+
+* Remove Inspect. this now sits in the `developer` gem as `Developer.railway`.
+
 ## 0.5.0
 
 * Minimal API around `Activity::FastTrack` to support the old public call style.
