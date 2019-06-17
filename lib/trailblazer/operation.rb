@@ -62,8 +62,6 @@ module Trailblazer
   end
 end
 
-require "trailblazer/operation/inspect"
-
 require "trailblazer/operation/class_dependencies"
 require "trailblazer/operation/deprecated_macro" # TODO: remove in 2.2.
 
