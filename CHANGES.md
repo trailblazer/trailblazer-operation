@@ -1,3 +1,7 @@
+## 0.5.2
+
+* Use `trailblazer-activity-dsl-linear-0.1.6.`
+
 ## 0.5.1
 
 * Remove Inspect. this now sits in the `developer` gem as `Developer.railway`.
