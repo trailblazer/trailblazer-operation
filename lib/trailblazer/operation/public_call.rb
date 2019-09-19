@@ -20,14 +20,14 @@ module Trailblazer
     end
 
     def call_with_public_interface(*args)
-      ctx = options_for_public_call(*args)
+      ctx = options_for_public_call(*args, flow_options())
 
       # call the activity.
       # This will result in invoking {::call_with_circuit_interface}.
       # last_signal, (options, flow_options) = Activity::TaskWrap.invoke(self, [ctx, {}], {})
       signal, (ctx, flow_options) = Activity::TaskWrap.invoke(
         @activity,
-        [ctx, {}],
+        [ctx, flow_options()],
         exec_context: new
       )
 
@@ -46,8 +46,13 @@ module Trailblazer
 
     # Compile a Context object to be passed into the Activity::call.
     # @private
-    def self.options_for_public_call(options={})
-      Trailblazer::Context.for(options, [options, {}], {})
+    def self.options_for_public_call(options={}, flow_options)
+      Trailblazer::Context.for(options, [options, flow_options], {})
+    end
+
+    # @semi=public
+    def flow_options
+      {context_alias: {}}
     end
   end
 end
