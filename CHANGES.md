@@ -1,3 +1,7 @@
+## 0.5.3
+
+* New `context` API.
+
 ## 0.5.2
 
 * Use `trailblazer-activity-dsl-linear-0.1.6.`
