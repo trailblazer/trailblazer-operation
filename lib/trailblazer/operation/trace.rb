@@ -2,8 +2,8 @@ module Trailblazer
   class Operation
     module Trace
       # @note The problem in this method is, we have redundancy with Operation::PublicCall
-      def self.call(operation, *args)
-        ctx = PublicCall.options_for_public_call(*args) # redundant with PublicCall::call.
+      def self.call(operation, options)
+        ctx = PublicCall.options_for_public_call(options) # redundant with PublicCall::call.
 
         stack, signal, (ctx, _flow_options) = Activity::Trace.(operation, [ctx, {}])
 
@@ -18,8 +18,8 @@ module Trailblazer
       # @public
       #
       #   Operation.trace(params, current_user: current_user).wtf
-      def trace(*args)
-        Trace.(self, *args)
+      def trace(options)
+        Trace.(self, options)
       end
 
       # Presentation of the traced stack via the returned result object.
