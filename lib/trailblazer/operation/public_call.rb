@@ -46,8 +46,8 @@ module Trailblazer
 
     # Compile a Context object to be passed into the Activity::call.
     # @private
-    def self.options_for_public_call(options={}, flow_options)
-      Trailblazer::Context.for(options, [options, flow_options], {})
+    def self.options_for_public_call(options, **flow_options)
+      Trailblazer::Context.for_circuit(options, {}, [options, flow_options], {})
     end
 
     # @semi=public
