@@ -18,12 +18,13 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "trailblazer-activity-dsl-linear", ">= 0.2.1", "< 1.0.0"
+  spec.add_dependency "trailblazer-activity", ">= 0.10.0", "< 1.0.0"
+  spec.add_dependency "trailblazer-developer", ">= 0.0.8"
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "minitest"
   spec.add_development_dependency "rake"
   spec.add_development_dependency "rubocop"
-  spec.add_development_dependency "trailblazer-developer", ">= 0.0.3"
 
   spec.required_ruby_version = ">= 2.1.0"
 end
