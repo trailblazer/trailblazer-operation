@@ -1,3 +1,7 @@
+## 0.6.0
+
+* Require newest `activity` gem.
+
 ## 0.5.3
 
 * New `context` API.
