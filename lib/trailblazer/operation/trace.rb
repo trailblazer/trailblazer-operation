@@ -5,7 +5,7 @@ module Trailblazer
       def self.call(operation, options)
         ctx = PublicCall.options_for_public_call(options) # redundant with PublicCall::call.
 
-        stack, signal, (ctx, _flow_options) = Activity::Trace.(operation, [ctx, {}])
+        stack, signal, (ctx, _flow_options) = Developer::Trace.(operation, [ctx, {}])
 
         result = Railway::Result(signal, ctx) # redundant with PublicCall::call.
 
@@ -31,7 +31,7 @@ module Trailblazer
         end
 
         def wtf
-          Trailblazer::Activity::Trace::Present.(@stack)
+          Trailblazer::Developer::Trace::Present.(@stack)
         end
 
         def wtf?
