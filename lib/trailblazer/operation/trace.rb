@@ -24,7 +24,7 @@ module Trailblazer
 
       # Presentation of the traced stack via the returned result object.
       # This object is wrapped around the original result in {Trace.call}.
-      class Result < SimpleDelegator
+      class Result < ::SimpleDelegator
         def initialize(result, stack)
           super(result)
           @stack = stack
