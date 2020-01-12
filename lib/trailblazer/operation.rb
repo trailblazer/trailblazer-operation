@@ -2,7 +2,6 @@ require "trailblazer/option"
 require "trailblazer/context"
 require "trailblazer/container_chain"
 
-require "trailblazer/activity"
 require "trailblazer/activity/dsl/linear"
 
 
