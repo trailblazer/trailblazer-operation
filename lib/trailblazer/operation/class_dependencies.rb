@@ -1,25 +1,28 @@
 # Dependencies can be defined on the operation. class level
 class Trailblazer::Operation
-  module Skill
-    # The class-level skill container: Operation::[], ::[]=.
-    module Accessors
-      # :private:
-      def skills
-        @skills ||= {}
-      end
-
-      extend Forwardable
-      def_delegators :skills, :[], :[]=
-    end
-  end
-
-  # The use of this module is not encouraged and it is only here for backward-compatibility.
+  # The use of this module is currently not encouraged and it is only here for backward-compatibility.
   # Instead, please pass dependencies via containers, locals, or macros into the respective steps.
   module ClassDependencies
-    def call_with_circuit_interface((ctx, flow_options), **circuit_options)
-      @skills.each { |name, value| ctx[name] ||= value } # this resembles the behavior in 2.0. we didn't say we liked it.
+    def fields
+      @fields ||= {}
+    end
 
-      super
+    extend Forwardable
+    def_delegators :fields, :[], :[]=
+
+    def options_for_public_call(options, *)
+      ctx = super
+      context_for_fields(@fields, ctx)
+    end
+
+    private def context_for_fields(fields, ctx)
+      ctx_with_fields = Trailblazer::Context.implementation.build(fields, ctx, [ctx, {}], {}) # TODO: redundant to otions_for_public_call. how to inject aliasing etc?
+    end
+
+    def call_with_circuit_interface((ctx, flow_options), **circuit_options)
+      ctx_with_fields = context_for_fields(@fields, ctx)
+
+      super([ctx_with_fields, flow_options], circuit_options) # FIXME: should we unwrap here?
     end
   end
 end
