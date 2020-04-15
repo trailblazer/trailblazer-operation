@@ -17,7 +17,7 @@ class TraceTest < Minitest::Spec
   it "allows using low-level Activity::Trace" do
     ->(*args) { puts "@@@@@ #{args.last.inspect}"; Create.__call__(*args) }
 
-    stack, = Trailblazer::Activity::Trace.(
+    stack, = Trailblazer::Developer::Trace.(
       Create,
       [
         {a_return: true, params: {}},
@@ -25,33 +25,33 @@ class TraceTest < Minitest::Spec
       ]
     )
 
-    puts output = Trailblazer::Activity::Trace::Present.(stack)
+    puts output = Trailblazer::Developer::Trace::Present.(stack)
 
     output.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{`-- TraceTest::Create
-   |-- Start.default
-   |-- Create.task.a
-   |-- MyNested
-   |   |-- Start.default
-   |   |-- B.task.b
-   |   |-- B.task.e
-   |   `-- End.success
-   |-- Create.task.c
-   |-- Create.task.params
-   `-- End.failure}
+    |-- Start.default
+    |-- Create.task.a
+    |-- MyNested
+    |   |-- Start.default
+    |   |-- B.task.b
+    |   |-- B.task.e
+    |   `-- End.success
+    |-- Create.task.c
+    |-- Create.task.params
+    `-- End.failure}
   end
 
   it "Operation::trace" do
     result = Create.trace(params: {x: 1}, a_return: true)
     result.wtf.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{`-- TraceTest::Create
-   |-- Start.default
-   |-- Create.task.a
-   |-- MyNested
-   |   |-- Start.default
-   |   |-- B.task.b
-   |   |-- B.task.e
-   |   `-- End.success
-   |-- Create.task.c
-   |-- Create.task.params
-   `-- End.success}
+    |-- Start.default
+    |-- Create.task.a
+    |-- MyNested
+    |   |-- Start.default
+    |   |-- B.task.b
+    |   |-- B.task.e
+    |   `-- End.success
+    |-- Create.task.c
+    |-- Create.task.params
+    `-- End.success}
   end
 end

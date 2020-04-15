@@ -1,6 +1,10 @@
+## 0.6.0
+
+* Require newest `activity` gem.
+
 ## 0.5.3
 
-* Reintroduce `ClassDependencies` by leveraging `State.fields`.
+* New `context` API.
 
 ## 0.5.2
 

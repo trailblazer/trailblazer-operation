@@ -67,6 +67,7 @@ require "trailblazer/operation/deprecated_macro" # TODO: remove in 2.2.
 require "trailblazer/operation/result"
 require "trailblazer/operation/railway"
 
+require "trailblazer/developer"
 require "trailblazer/operation/trace"
 
 require "trailblazer/operation/railway/macaroni"
