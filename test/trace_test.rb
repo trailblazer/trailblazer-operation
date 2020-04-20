@@ -14,18 +14,13 @@ class TraceTest < Minitest::Spec
   end
   # raise Create["__task_wraps__"].inspect
 
-  it "allows using low-level Activity::Trace" do
-    ->(*args) { puts "@@@@@ #{args.last.inspect}"; Create.__call__(*args) }
-
-    stack, = Trailblazer::Developer::Trace.(
+  it "allows using low-level Operation::Trace" do
+    result = Trailblazer::Operation::Trace.(
       Create,
-      [
-        {a_return: true, params: {}},
-        {}
-      ]
+      { a_return: true, params: {} },
     )
 
-    puts output = Trailblazer::Developer::Trace::Present.(stack)
+    output = result.wtf
 
     output.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{`-- TraceTest::Create
     |-- Start.default

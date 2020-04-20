@@ -1,3 +1,5 @@
+require 'delegate'
+
 module Trailblazer
   class Operation
     module Trace
