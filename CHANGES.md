@@ -1,3 +1,7 @@
+## 0.6.2
+
+* Fix Trace so it works with Ruby <= 2.4
+
 ## 0.6.1
 
 * Reintroduce `ClassDependencies` by leveraging `State.fields`.
