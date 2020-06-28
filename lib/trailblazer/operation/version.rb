@@ -1,7 +1,5 @@
 module Trailblazer
-  module Version
-    module Operation
-      VERSION = "0.6.2"
-    end
+  class Operation
+    VERSION = "0.6.3"
   end
 end

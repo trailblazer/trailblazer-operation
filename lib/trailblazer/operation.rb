@@ -1,9 +1,9 @@
+require 'forwardable'
 require "trailblazer/option"
 require "trailblazer/context"
 require "trailblazer/container_chain"
 
 require "trailblazer/activity/dsl/linear"
-
 
 module Trailblazer
   # DISCUSS: I don't know where else to put this. It's not part of the {Activity} concept
@@ -60,6 +60,8 @@ module Trailblazer
     end
   end
 end
+
+require 'trailblazer/operation/version'
 
 require "trailblazer/operation/class_dependencies"
 require "trailblazer/operation/deprecated_macro" # TODO: remove in 2.2.

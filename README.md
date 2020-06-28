@@ -15,6 +15,6 @@ An operation can be used exaclty like an activity, including nesting, tracing, e
 
 ## Copyright
 
-Copyright (c) 2016 Nick Sutterer <apotonick@gmail.com>
+Copyright (c) 2016-2020 Nick Sutterer <apotonick@gmail.com>
 
 `trailblazer-operation` is released under the [MIT License](http://www.opensource.org/licenses/MIT).

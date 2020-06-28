@@ -33,7 +33,7 @@ module Trailblazer
         end
 
         def wtf
-          Trailblazer::Developer::Trace::Present.(@stack)
+          Developer::Trace::Present.(@stack)
         end
 
         def wtf?

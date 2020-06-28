@@ -4,7 +4,7 @@ require 'trailblazer/operation/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "trailblazer-operation"
-  spec.version       = Trailblazer::Version::Operation::VERSION
+  spec.version       = Trailblazer::Operation::VERSION
   spec.authors       = ["Nick Sutterer"]
   spec.email         = ["apotonick@gmail.com"]
   spec.description   = %q(Trailblazer's operation object.)
@@ -14,7 +14,7 @@ Gem::Specification.new do |spec|
 
   spec.files         = `git ls-files`.split($/)
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
-  spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
+  spec.test_files    = spec.files.grep(%r{^(test)/})
   spec.require_paths = ["lib"]
 
   spec.add_dependency "trailblazer-activity-dsl-linear", ">= 0.2.6", "< 1.0.0"
