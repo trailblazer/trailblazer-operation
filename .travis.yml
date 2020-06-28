@@ -1,16 +1,9 @@
 language: ruby
 before_install:
   - gem install bundler -v 1.17.3
-matrix:
-  include:
-    # - rvm: 2.1.0
-    #   gemfile: Gemfile
-    - rvm: 2.2.4
-      gemfile: Gemfile
-    - rvm: 2.3.3
-      gemfile: Gemfile
-    - rvm: 2.4.0
-      gemfile: Gemfile
-    - rvm: 2.5.0
-      gemfile: Gemfile
-      script: bundle exec rake test
+rvm:
+  - ruby-head
+  - 2.7
+  - 2.6
+  - 2.5
+  - 2.4
