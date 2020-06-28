@@ -1,4 +1,5 @@
 require 'forwardable'
+require 'trailblazer/operation/version'
 require "trailblazer/option"
 require "trailblazer/context"
 require "trailblazer/container_chain"
@@ -61,7 +62,6 @@ module Trailblazer
   end
 end
 
-require 'trailblazer/operation/version'
 
 require "trailblazer/operation/class_dependencies"
 require "trailblazer/operation/deprecated_macro" # TODO: remove in 2.2.

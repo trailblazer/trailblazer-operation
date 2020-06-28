@@ -4,7 +4,7 @@ require 'trailblazer/operation/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "trailblazer-operation"
-  spec.version       = Trailblazer::Operation::VERSION
+  spec.version       = Trailblazer::Version::Operation::VERSION
   spec.authors       = ["Nick Sutterer"]
   spec.email         = ["apotonick@gmail.com"]
   spec.description   = %q(Trailblazer's operation object.)
