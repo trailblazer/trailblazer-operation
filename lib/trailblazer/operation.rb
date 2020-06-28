@@ -52,25 +52,14 @@ module Trailblazer
 
     require "trailblazer/operation/trace"
     extend Trace                   # ::trace
-
-    module Railway
-      def self.fail!     ; Activity::Left  end
-      def self.pass!     ; Activity::Right end
-      def self.fail_fast!; Activity::FastTrack::FailFast end
-      def self.pass_fast!; Activity::FastTrack::PassFast end
-    end
   end
 end
-
 
 require "trailblazer/operation/class_dependencies"
 require "trailblazer/operation/deprecated_macro" # TODO: remove in 2.2.
 
 require "trailblazer/operation/result"
 require "trailblazer/operation/railway"
-
-require "trailblazer/developer"
-require "trailblazer/operation/trace"
 
 require "trailblazer/operation/railway/macaroni"
 
