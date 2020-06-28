@@ -1,3 +1,5 @@
+require 'forwardable'
+
 class Trailblazer::Operation
   class Result
     # @param success Boolean validity of the result object
