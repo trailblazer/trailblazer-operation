@@ -245,9 +245,8 @@ describe all options :pass_fast, :fast_track and emiting signals directly, like 
   end
 
   it "runs #create_model, only" do
-    Memo = FastTrack::Memo
     #:ft-call
-    result = Memo::Create.(create_empty_model: true)
+    result = FastTrack::Memo::Create.(create_empty_model: true)
     puts result.success?        #=> true
     puts result[:model].inspect #=> #<Memo text=nil>
     #:ft-call end
@@ -257,9 +256,8 @@ describe all options :pass_fast, :fast_track and emiting signals directly, like 
   end
 
   it "fast-tracks in #assign_errors" do
-    Memo = FastTrack::Memo
     #:ft-call-err
-    result = Memo::Create.({})
+    result = FastTrack::Memo::Create.({})
     puts result.success?          #=> false
     puts result[:model].inspect   #=> #<Memo text=nil>
     puts result[:errors].inspect  #=> "Something went wrong!"
@@ -271,16 +269,15 @@ describe all options :pass_fast, :fast_track and emiting signals directly, like 
   end
 
   it "goes till #save by emitting signals directly" do
-    Memo = FastTrack::Memo
-    result = Memo::Create.(params: {text: "Punk is not dead!"})
+    result = FastTrack::Memo::Create.(params: {text: "Punk is not dead!"})
     result.success?.must_equal true
     result[:model].id.must_equal 1
     result[:errors].must_be_nil
   end
 
+
   it "goes till #save by using signal helper" do
-    Memo = FastTrack::Memo
-    result = Memo::Create2.(params: {text: "Punk is not dead!"})
+    result = FastTrack::Memo::Create2.(params: {text: "Punk is not dead!"})
     result.success?.must_equal true
     result[:model].id.must_equal 1
     result[:errors].must_be_nil

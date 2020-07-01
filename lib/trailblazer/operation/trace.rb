@@ -1,4 +1,5 @@
 require 'delegate'
+require "trailblazer/developer"
 
 module Trailblazer
   class Operation
