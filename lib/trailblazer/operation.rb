@@ -2,7 +2,6 @@ require 'forwardable'
 require 'trailblazer/operation/version'
 require "trailblazer/option"
 require "trailblazer/context"
-require "trailblazer/container_chain"
 
 require "trailblazer/activity/dsl/linear"
 
@@ -62,5 +61,3 @@ require "trailblazer/operation/result"
 require "trailblazer/operation/railway"
 
 require "trailblazer/operation/railway/macaroni"
-
-require "trailblazer/operation/container"
