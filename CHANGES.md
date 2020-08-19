@@ -1,3 +1,7 @@
+## 0.6.4
+
+* Remove container support. Containers should be part of `ctx` itself
+
 ## 0.6.3
 
 * Require forwardable module from standard lib.
