@@ -1,3 +1,7 @@
+## 0.6.5
+
+* Upgrade `trailblazer-activity` & `trailblazer-activity-dsl-linear` versions to utilise new `trailblazer-context` :drum:
+
 ## 0.6.4
 
 * Remove container support. Containers should be part of `ctx` itself
