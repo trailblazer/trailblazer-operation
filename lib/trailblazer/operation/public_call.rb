@@ -47,12 +47,12 @@ module Trailblazer
     # Compile a Context object to be passed into the Activity::call.
     # @private
     def self.options_for_public_call(options, **flow_options)
-      Trailblazer::Context.for_circuit(options, {}, [options, flow_options], {})
+      Trailblazer::Context(options, {}, flow_options[:context_options])
     end
 
     # @semi=public
     def flow_options
-      {context_alias: {}}
+      {}
     end
   end
 end
