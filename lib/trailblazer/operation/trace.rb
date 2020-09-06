@@ -25,6 +25,11 @@ module Trailblazer
         Trace.(self, options)
       end
 
+      def wtf(options)
+        Developer.wtf(self, options)
+      end
+      alias_method :wtf?, :wtf
+
       # Presentation of the traced stack via the returned result object.
       # This object is wrapped around the original result in {Trace.call}.
       class Result < ::SimpleDelegator

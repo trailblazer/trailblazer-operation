@@ -49,4 +49,27 @@ class TraceTest < Minitest::Spec
     |-- Create.task.params
     `-- End.success}
   end
+
+  it "Operation::wtf" do
+    output, _ = capture_io do
+      Create.wtf?(params: {x: 1}, a_return: true)
+    end
+
+    _(output).must_equal %{`-- TraceTest::Create
+    |-- \e[32mStart.default\e[0m
+    |-- \e[32mCreate.task.a\e[0m
+    |-- MyNested
+    |   |-- \e[32mStart.default\e[0m
+    |   |-- \e[32mB.task.b\e[0m
+    |   |-- \e[32mB.task.e\e[0m
+    |   `-- End.success
+    |-- \e[32mCreate.task.c\e[0m
+    |-- \e[32mCreate.task.params\e[0m
+    `-- End.success
+}
+  end
+
+  it "Operation::wtf?" do
+    assert_equal Create.method(:wtf), Create.method(:wtf?)
+  end
 end
