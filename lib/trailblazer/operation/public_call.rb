@@ -19,15 +19,20 @@ module Trailblazer
       call_with_public_interface(options, *args)
     end
 
+    # Calls {@activity} as a task interface without passing any circuit_options given.
+    #
+    # @param [Array] args => [ctx, flow_options]
+    #
+    # @private
     def call_with_public_interface(*args)
-      ctx = options_for_public_call(*args, flow_options())
+      ctx = options_for_public_call(*args)
 
       # call the activity.
       # This will result in invoking {::call_with_circuit_interface}.
       # last_signal, (options, flow_options) = Activity::TaskWrap.invoke(self, [ctx, {}], {})
       signal, (ctx, flow_options) = Activity::TaskWrap.invoke(
         @activity,
-        [ctx, flow_options()],
+        [ctx, args.last],
         exec_context: new
       )
 
@@ -36,6 +41,11 @@ module Trailblazer
     end
 
     # This interface is used for all nested OPs (and the outer-most, too).
+    #
+    # @param [Array] args - Contains [ctx, flow_options]
+    # @param [Hash]  circuit_options - Options to configure activity circuit
+    #
+    # @private
     def call_with_circuit_interface(args, circuit_options)
       strategy_call(args, circuit_options) # FastTrack#call
     end
@@ -48,11 +58,6 @@ module Trailblazer
     # @private
     def self.options_for_public_call(options, **flow_options)
       Trailblazer::Context(options, {}, flow_options[:context_options])
-    end
-
-    # @semi=public
-    def flow_options
-      {}
     end
   end
 end
