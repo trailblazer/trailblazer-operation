@@ -19,20 +19,23 @@ module Trailblazer
       call_with_public_interface(options, *args)
     end
 
-    # Calls {@activity} as a task interface without passing any circuit_options given.
+    # Default {@activity} call interface which doesn't accept {circuit_options}
     #
     # @param [Array] args => [ctx, flow_options]
     #
+    # @return [Operation::Railway::Result]
+    #
     # @private
-    def call_with_public_interface(*args)
-      ctx = options_for_public_call(*args)
+    def call_with_public_interface(options, flow_options = {})
+      flow_options  = flow_options_for_public_call(flow_options)
+      ctx           = options_for_public_call(options, flow_options)
 
       # call the activity.
       # This will result in invoking {::call_with_circuit_interface}.
       # last_signal, (options, flow_options) = Activity::TaskWrap.invoke(self, [ctx, {}], {})
       signal, (ctx, flow_options) = Activity::TaskWrap.invoke(
         @activity,
-        [ctx, args.last],
+        [ctx, flow_options],
         exec_context: new
       )
 
@@ -45,6 +48,8 @@ module Trailblazer
     # @param [Array] args - Contains [ctx, flow_options]
     # @param [Hash]  circuit_options - Options to configure activity circuit
     #
+    # @return [signal, [ctx, flow_options]]
+    #
     # @private
     def call_with_circuit_interface(args, circuit_options)
       strategy_call(args, circuit_options) # FastTrack#call
@@ -56,8 +61,13 @@ module Trailblazer
 
     # Compile a Context object to be passed into the Activity::call.
     # @private
-    def self.options_for_public_call(options, **flow_options)
+    def self.options_for_public_call(options, flow_options = {})
       Trailblazer::Context(options, {}, flow_options[:context_options])
+    end
+
+    # @semi=public
+    def flow_options_for_public_call(options = {})
+      options
     end
   end
 end
