@@ -79,8 +79,51 @@ class DeclarativeApiTest < Minitest::Spec
     step ->(options, **) { options["e"] = 2 }
   end
 
+  class Aliases < Update
+    def self.flow_options_for_public_call(*)
+      {
+        context_options: {
+          aliases: { 'b' => :settle },
+          container_class: Trailblazer::Context::Container::WithAliases,
+        }
+      }
+    end
+  end
+
   it "allows to inherit" do
     Upsert.("params" => {decide: true}).inspect("a", "b", "c", "d", "e").must_equal %{<Result:true [false, true, nil, 1, nil] >}
     Unset. ("params" => {decide: true}).inspect("a", "b", "c", "d", "e").must_equal %{<Result:true [false, true, nil, 1, 2] >}
+  end
+
+  #---
+  #- ctx container
+  it do
+    options = { "params" => {decide: true} }
+
+    # Default call
+    result = Update.(options)
+    result.inspect("a", "b", "c").must_equal %{<Result:true [false, true, nil] >}
+
+    # Circuit interface call
+    signal, (ctx, _) = Update.([Update.options_for_public_call(options), {}], {})
+
+    signal.inspect.must_equal %{#<Trailblazer::Activity::Railway::End::Success semantic=:success>}
+    ctx.inspect.must_equal %{#<Trailblazer::Context::Container wrapped_options={\"params\"=>{:decide=>true}} mutable_options={\"a\"=>false, \"b\"=>true}>}
+
+    # Call by passing aliases as an argument.
+    result = Update.(
+      options,
+      {
+        context_options: {
+          aliases: { 'b' => :settle },
+          container_class: Trailblazer::Context::Container::WithAliases,
+        }
+      }
+    )
+    result[:settle].must_equal true
+
+    # Set aliases by overriding `flow_options` at the compile time.
+    result = Aliases.(options)
+    result[:settle].must_equal true
   end
 end

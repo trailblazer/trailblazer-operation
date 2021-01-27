@@ -24,7 +24,6 @@ class DocsActivityTest < Minitest::Spec
     signal.inspect.must_equal %{#<Trailblazer::Activity::Railway::End::Success semantic=:success>}
   end
 
-  #:describe
   describe Memo::Create do
     it "creates a sane Memo instance" do
       #:call-public
@@ -39,8 +38,64 @@ class DocsActivityTest < Minitest::Spec
       result.success?.must_equal true
       result[:model].text.must_equal "Enjoy an IPA"
     end
+
+    it "allows indifferent access for ctx keys" do
+      #:ctx-indifferent-access
+      result = Memo::Create.(params: { text: "Enjoy an IPA" })
+
+      result[:params]     # => { text: "Enjoy an IPA" }
+      result['params']    # => { text: "Enjoy an IPA" }
+      #:ctx-indifferent-access end
+
+      result.success?.must_equal true
+      result[:params].must_equal({ text: "Enjoy an IPA" })
+      result['params'].must_equal({ text: "Enjoy an IPA" })
+    end
+
+    it "allows defining aliases for ctx keys" do
+      module AliasesExample
+        Memo = Struct.new(:text)
+
+        module Memo::Contract
+          Create = Struct.new(:sync)
+        end
+
+        #:ctx-aliases-step
+        class Memo::Create < Trailblazer::Operation
+          #~flow
+          step ->(ctx, **) { ctx[:'contract.default'] = Memo::Contract::Create.new }
+          #~flow end
+
+          pass :sync
+
+          def sync(ctx, contract:, **)
+            # ctx['contract.default'] == ctx[:contract]
+            contract.sync
+          end
+        end
+        #:ctx-aliases-step end
+      end
+
+      #:ctx-aliases
+      options = { params: { text: "Enjoy an IPA" } }
+      flow_options = {
+        context_options: {
+          aliases: { 'contract.default': :contract, 'policy.default': :policy },
+          container_class: Trailblazer::Context::Container::WithAliases,
+        }
+      }
+
+      result = AliasesExample::Memo::Create.(options, flow_options)
+
+      result['contract.default']  # => Memo::Contract::Create
+      result[:contract]           # => Memo::Contract::Create
+      #:ctx-aliases end
+
+      result.success?.must_equal true
+      _(result[:contract].class).must_equal AliasesExample::Memo::Contract::Create
+      _(result['contract.default']).must_equal result[:contract]
+    end
   end
-  #:describe end
 
   it do
     module J
