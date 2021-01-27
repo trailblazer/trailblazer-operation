@@ -1,3 +1,8 @@
+## 0.6.6
+
+* Rename `Operation.flow_options` to `Operation.flow_options_for_public_call`.
+* Operations can also accept `flow_options` at run-time now :beers:, giving them precedence over `Operation.flow_options_for_public_call`.
+
 ## 0.6.5
 
 * Upgrade `trailblazer-activity` & `trailblazer-activity-dsl-linear` versions to utilise new `trailblazer-context` :drum:
