@@ -12,9 +12,9 @@ class Trailblazer::Operation
       @state.update_options(options)
     end
 
-    def options_for_public_call(options, **flow_options)
+    def options_for_public_call(options, flow_options)
       ctx = super
-      context_for_fields(class_fields, [ctx, flow_options], {})
+      context_for_fields(class_fields, [ctx, flow_options])
     end
 
     private def class_fields
@@ -26,9 +26,9 @@ class Trailblazer::Operation
     end
 
     def call_with_circuit_interface((ctx, flow_options), **circuit_options)
-      ctx_with_fields = context_for_fields(class_fields, [ctx, flow_options], circuit_options)
+      ctx_with_fields = context_for_fields(class_fields, [ctx, flow_options], **circuit_options)
 
-      super([ctx_with_fields, flow_options], circuit_options) # FIXME: should we unwrap here?
+      super([ctx_with_fields, flow_options], **circuit_options) # FIXME: should we unwrap here?
     end
   end
 end

@@ -105,7 +105,7 @@ class DeclarativeApiTest < Minitest::Spec
     result.inspect("a", "b", "c").must_equal %{<Result:true [false, true, nil] >}
 
     # Circuit interface call
-    signal, (ctx, _) = Update.([Update.options_for_public_call(options), {}], {})
+    signal, (ctx, _) = Update.([Update.options_for_public_call(options), {}], **{})
 
     signal.inspect.must_equal %{#<Trailblazer::Activity::Railway::End::Success semantic=:success>}
     ctx.inspect.must_equal %{#<Trailblazer::Context::Container wrapped_options={\"params\"=>{:decide=>true}} mutable_options={\"a\"=>false, \"b\"=>true}>}

@@ -19,7 +19,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "trailblazer-activity-dsl-linear", ">= 0.3.2", "< 1.0.0"
   spec.add_dependency "trailblazer-activity", ">= 0.11.2", "< 1.0.0"
-  spec.add_dependency "trailblazer-developer", ">= 0.0.8"
+  spec.add_dependency "trailblazer-developer", ">= 0.0.21" # DISCUSS: should this be a development dep?
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "minitest"

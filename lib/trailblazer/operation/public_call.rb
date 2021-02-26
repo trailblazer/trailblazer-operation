@@ -13,10 +13,10 @@ module Trailblazer
     #
     # @note Do not override this method as it will be removed in future versions. Also, you will break tracing.
     # @return Operation::Railway::Result binary result object
-    def call(options = {}, *args)
-      return call_with_circuit_interface(options, *args) if options.is_a?(Array) # This is kind of a hack that could be well hidden if Ruby had method overloading. Goal is to simplify the call/__call__ thing as we're fading out Operation::call anyway.
+    def call(options = {}, flow_options={}, **circuit_options)
+      return call_with_circuit_interface(options, **circuit_options) if options.is_a?(Array) # This is kind of a hack that could be well hidden if Ruby had method overloading. Goal is to simplify the call/__call__ thing as we're fading out Operation::call anyway.
 
-      call_with_public_interface(options, *args)
+      call_with_public_interface(options, flow_options, circuit_options)
     end
 
     # Default {@activity} call interface which doesn't accept {circuit_options}
@@ -26,8 +26,12 @@ module Trailblazer
     # @return [Operation::Railway::Result]
     #
     # @private
-    def call_with_public_interface(options, flow_options = {})
+    def call_with_public_interface(options, flow_options, circuit_options = {})
       flow_options  = flow_options_for_public_call(flow_options)
+
+      options       = circuit_options.any? ? circuit_options : options # This is needed in Ruby 3 for {Create.(params: {})} calls.
+
+
       ctx           = options_for_public_call(options, flow_options)
 
       # call the activity.
@@ -51,8 +55,8 @@ module Trailblazer
     # @return [signal, [ctx, flow_options]]
     #
     # @private
-    def call_with_circuit_interface(args, circuit_options)
-      strategy_call(args, circuit_options) # FastTrack#call
+    def call_with_circuit_interface(args, **circuit_options)
+      strategy_call(args, **circuit_options) # FastTrack#call
     end
 
     def options_for_public_call(*args)
