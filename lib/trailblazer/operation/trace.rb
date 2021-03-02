@@ -6,6 +6,7 @@ module Trailblazer
     module Trace
       # @note The problem in this method is, we have redundancy with Operation::PublicCall
       def self.call(operation, options)
+        # warn %{Trailblazer: `Operation.trace` is deprecated. Please use `Operation.wtf?`.} # DISCUSS: should this be deprecated?
         ctx = PublicCall.options_for_public_call(options) # redundant with PublicCall::call.
 
         stack, signal, (ctx, _flow_options) = Developer::Trace.(operation, [ctx, {}])
@@ -23,6 +24,10 @@ module Trailblazer
       #   Operation.trace(params, current_user: current_user).wtf
       def trace(options)
         Trace.(self, options)
+      end
+
+      def wtf?(options)
+        call_with_public_interface(options, {}, invoke_class: Developer::Wtf)
       end
 
       # Presentation of the traced stack via the returned result object.

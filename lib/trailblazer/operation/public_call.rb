@@ -16,7 +16,7 @@ module Trailblazer
     def call(options = {}, flow_options={}, **circuit_options)
       return call_with_circuit_interface(options, **circuit_options) if options.is_a?(Array) # This is kind of a hack that could be well hidden if Ruby had method overloading. Goal is to simplify the call/__call__ thing as we're fading out Operation::call anyway.
 
-      call_with_public_interface(options, flow_options, circuit_options)
+      call_with_public_interface(options, flow_options, **circuit_options)
     end
 
     # Default {@activity} call interface which doesn't accept {circuit_options}
@@ -26,7 +26,7 @@ module Trailblazer
     # @return [Operation::Railway::Result]
     #
     # @private
-    def call_with_public_interface(options, flow_options, circuit_options = {})
+    def call_with_public_interface(options, flow_options, invoke_class: Activity::TaskWrap, **circuit_options)
       flow_options  = flow_options_for_public_call(flow_options)
 
       options       = circuit_options.any? ? circuit_options : options # This is needed in Ruby 3 for {Create.(params: {})} calls.
@@ -36,8 +36,7 @@ module Trailblazer
 
       # call the activity.
       # This will result in invoking {::call_with_circuit_interface}.
-      # last_signal, (options, flow_options) = Activity::TaskWrap.invoke(self, [ctx, {}], {})
-      signal, (ctx, flow_options) = Activity::TaskWrap.invoke(
+      signal, (ctx, flow_options) = invoke_class.invoke(
         @activity,
         [ctx, flow_options],
         exec_context: new
