@@ -86,7 +86,7 @@ class DocsActivityTest < Minitest::Spec
       }
 
       # Sorry, this feature is only reliable in Ruby > 2.7
-      if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
+      if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.0.0")
         result = AliasesExample::Memo::Create.(options, flow_options)
       else # Ruby 2.6 etc
         result = AliasesExample::Memo::Create.call_with_flow_options(options, flow_options)

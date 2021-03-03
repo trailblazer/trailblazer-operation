@@ -111,7 +111,7 @@ class DeclarativeApiTest < Minitest::Spec
     ctx.inspect.must_equal %{#<Trailblazer::Context::Container wrapped_options={\"params\"=>{:decide=>true}} mutable_options={\"a\"=>false, \"b\"=>true}>}
 
     # Call by passing aliases as an argument.
-    if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
+    if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.0.0")
       result = Update.(
         options,
         {
