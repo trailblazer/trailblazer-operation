@@ -178,12 +178,20 @@ class StepTest < Minitest::Spec
   # not existent :name
   it do
     op = assert_raises Trailblazer::Activity::DSL::Linear::Sequence::IndexError do
-      Class.new(Trailblazer::Operation) do
+      class InvalidStep < Trailblazer::Operation
         step :a, before: "I don't exist!"
       end
     end
-    assert_equal Trailblazer::Activity::DSL::Linear::Sequence::IndexError, op.class
-    # assert_match /<Trailblazer::Activity::DSL::Linear::Sequence::IndexError: .+ is not a valid step ID. Did you mean any of these ?/, op.inspect
+
+    error_message = %{#<Trailblazer::Activity::DSL::Linear::Sequence::IndexError: StepTest::InvalidStep:
+\e[31m\"I don't exist!\" is not a valid step ID. Did you mean any of these ?\e[0m
+\e[32m\"Start.default\"
+\"End.success\"
+\"End.pass_fast\"
+\"End.fail_fast\"
+\"End.failure\"\e[0m>}
+
+    assert_match error_message, op.inspect
   end
 
   #---
