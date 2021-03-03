@@ -73,9 +73,9 @@ module Trailblazer
       options
     end
 
-    # TODO: remove when we stop supporting < 2.7.
+    # TODO: remove when we stop supporting < 3.0.
     def call_with_flow_options(options, flow_options)
-      raise "[Trailblazer] `Operation.call_with_flow_options is deprecated in Ruby 3.0. Use `Operation.(options, flow_options)`" if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
+      raise "[Trailblazer] `Operation.call_with_flow_options is deprecated in Ruby 3.0. Use `Operation.(options, flow_options)`" if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.0.0")
       call_with_public_interface(options, flow_options, {invoke_class: Activity::TaskWrap})
     end
   end
