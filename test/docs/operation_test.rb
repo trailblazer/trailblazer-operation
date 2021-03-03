@@ -85,7 +85,12 @@ class DocsActivityTest < Minitest::Spec
         }
       }
 
-      result = AliasesExample::Memo::Create.(options, flow_options)
+      # Sorry, this feature is only reliable in Ruby > 2.7
+      if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
+        result = AliasesExample::Memo::Create.(options, flow_options)
+      else # Ruby 2.6 etc
+        result = AliasesExample::Memo::Create.call_with_flow_options(options, flow_options)
+      end
 
       result['contract.default']  # => Memo::Contract::Create
       result[:contract]           # => Memo::Contract::Create

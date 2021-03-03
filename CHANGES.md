@@ -1,3 +1,9 @@
+## 0.7.0
+
+* Compatible with Ruby 2.4-3.0.
+* Add `Operation.wtf?`.
+* Add `Operation.call_with_flow_options` to allow using explicit aliasing in Ruby < 2.7.
+
 ## 0.6.6
 
 * Rename `Operation.flow_options` to `Operation.flow_options_for_public_call`.

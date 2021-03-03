@@ -111,17 +111,29 @@ class DeclarativeApiTest < Minitest::Spec
     ctx.inspect.must_equal %{#<Trailblazer::Context::Container wrapped_options={\"params\"=>{:decide=>true}} mutable_options={\"a\"=>false, \"b\"=>true}>}
 
     # Call by passing aliases as an argument.
-    result = Update.(
-      options,
-      {
-        context_options: {
-          aliases: { 'b' => :settle },
-          container_class: Trailblazer::Context::Container::WithAliases,
+    if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
+      result = Update.(
+        options,
+        {
+          context_options: {
+            aliases: { 'b' => :settle },
+            container_class: Trailblazer::Context::Container::WithAliases,
+          }
         }
-      }
-    )
-    result[:settle].must_equal true
+      )
+    else
+      result = Update.call_with_flow_options(
+        options,
+        {
+          context_options: {
+            aliases: { 'b' => :settle },
+            container_class: Trailblazer::Context::Container::WithAliases,
+          }
+        },
+      )
+    end
 
+    result[:settle].must_equal true
     # Set aliases by overriding `flow_options` at the compile time.
     result = Aliases.(options)
     result[:settle].must_equal true

@@ -13,7 +13,7 @@ module Trailblazer
     #
     # @note Do not override this method as it will be removed in future versions. Also, you will break tracing.
     # @return Operation::Railway::Result binary result object
-    def call(options = {}, flow_options={}, **circuit_options)
+    def call(options = {}, flow_options = {}, **circuit_options)
       return call_with_circuit_interface(options, **circuit_options) if options.is_a?(Array) # This is kind of a hack that could be well hidden if Ruby had method overloading. Goal is to simplify the call/__call__ thing as we're fading out Operation::call anyway.
 
       call_with_public_interface(options, flow_options, **circuit_options)
@@ -71,6 +71,12 @@ module Trailblazer
     # @semi=public
     def flow_options_for_public_call(options = {})
       options
+    end
+
+    # TODO: remove when we stop supporting < 2.7.
+    def call_with_flow_options(options, flow_options)
+      raise "[Trailblazer] `Operation.call_with_flow_options is deprecated in Ruby 3.0. Use `Operation.(options, flow_options)`" if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
+      call_with_public_interface(options, flow_options, {invoke_class: Activity::TaskWrap})
     end
   end
 end
