@@ -1,3 +1,7 @@
+## 0.7.1
+
+* In `Operation.call_with_public_interface`, pass `self` and not `@activity` to the `invoke`r. This fixes tracing as it now catches the actual Operation class, not an activity instance.
+
 ## 0.7.0
 
 * Compatible with Ruby 2.4-3.0.

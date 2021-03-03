@@ -37,7 +37,7 @@ module Trailblazer
       # call the activity.
       # This will result in invoking {::call_with_circuit_interface}.
       signal, (ctx, flow_options) = invoke_class.invoke(
-        @activity,
+        self,
         [ctx, flow_options],
         exec_context: new
       )
