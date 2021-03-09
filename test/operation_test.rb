@@ -95,6 +95,17 @@ class DeclarativeApiTest < Minitest::Spec
     Unset. ("params" => {decide: true}).inspect("a", "b", "c", "d", "e").must_equal %{<Result:true [false, true, nil, 1, 2] >}
   end
 
+# Mixing keywords and string keys in {Operation.call}.
+# Test that {.(params: {}, "current_user" => user)} is processed properly
+  class Collect < Trailblazer::Operation
+    # step ->(ctx, **) { ctx[:keys] }
+  end
+
+  it "contains all keys from {call}" do
+    result = Collect.(params: {}, "current_user" => Module)
+    _(result.inspect).must_equal %{<Result:true #<Trailblazer::Context::Container wrapped_options={:params=>{}, \"current_user\"=>Module} mutable_options={}> >}
+  end
+
   #---
   #- ctx container
   it do

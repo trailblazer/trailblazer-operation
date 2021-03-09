@@ -1,3 +1,7 @@
+## 0.7.2
+
+* Bugfix: when calling `Operation.call(params: {}, "current_user" => user)` the stringified variables got lost in Ruby < 3.
+
 ## 0.7.1
 
 * In `Operation.call_with_public_interface`, pass `self` and not `@activity` to the `invoke`r. This fixes tracing as it now catches the actual Operation class, not an activity instance.
