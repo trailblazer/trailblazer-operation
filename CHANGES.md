@@ -1,3 +1,7 @@
+## 0.7.3
+
+* Revert trailblazer-developer to a runtime dependency.
+
 ## 0.7.2
 
 * Bugfix: when calling `Operation.call(params: {}, "current_user" => user)` the stringified variables got lost in Ruby < 3.
