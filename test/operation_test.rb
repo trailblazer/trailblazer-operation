@@ -1,6 +1,28 @@
 require "test_helper"
 
 class DeclarativeApiTest < Minitest::Spec
+  it "doesn't invoke {call} twice when using public interface" do
+    class MyOp < Trailblazer::Operation
+      @@GLOBAL = []
+      def self.global; @@GLOBAL; end
+
+
+      def self.call(*args)
+        @@GLOBAL << :call
+        super
+      end
+
+      pass :model
+
+      def model(ctx, **)
+        @@GLOBAL << :model
+      end
+    end
+
+    MyOp.({})
+    MyOp.global.inspect.must_equal %{[:call, :model]}
+  end
+
   #---
   #- step, pass, fail
 
