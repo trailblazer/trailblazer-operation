@@ -1,3 +1,7 @@
+## 0.7.5
+
+* Upgrade `trailblazer-activity` & `trailblazer-activity-dsl-linear` patch versions.
+
 ## 0.7.4
 
 * Fix `Operation.call` being called twice before delegating to `call_with_circuit_interface`. This is done via a special `call_task` in the operation's taskWrap.
