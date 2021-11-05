@@ -35,13 +35,14 @@ module Trailblazer
 
       ctx           = options_for_public_call(options, flow_options)
 
-      # call the activity.
+      # call the activity using the runner.
       # This will result in invoking {::call_with_circuit_interface}.
       signal, (ctx, flow_options) = invoke_class.invoke(
         self,
         [ctx, flow_options],
         exec_context: new,
-        wrap_static: initial_wrap_static,
+        wrap_static: initial_wrap_static, # this, here, happens *before* the runner is invoked.
+        runner: RunnerWithClassDependencies,
       )
 
       # Result is successful if the activity ended with an End event derived from Railway::End::Success.
@@ -57,7 +58,24 @@ module Trailblazer
     #
     # @private
     def call_with_circuit_interface(args, **circuit_options)
+      circuit_options = circuit_options.merge(wrap_static: initial_wrap_static, runner: RunnerWithClassDependencies)
+      puts "+++ Op.call_with_circuit_interface #{circuit_options.inspect}"
       strategy_call(args, **circuit_options) # FastTrack#call
+    end
+
+    class RunnerWithClassDependencies
+      def self.call(task, args, **circuit_options)
+
+        if task.is_a?(Operation::ClassDependencies)
+
+          fake_activity = {wrap_static: {task => Operation::ClassDependencies.__initial_wrap_static(task, circuit_options[:wrap_static])}}
+          circuit_options = circuit_options.merge(activity: fake_activity)
+          puts "  @@@@@ ################### #{task.inspect} / #{circuit_options.inspect}"
+        end
+
+        Activity::TaskWrap::Runner.(task, args, **circuit_options)
+      end
+
     end
 
     def options_for_public_call(*args)
@@ -70,7 +88,7 @@ module Trailblazer
       Trailblazer::Context(options, {}, flow_options[:context_options])
     end
 
-    # @semi=public
+    # @semi-public
     def flow_options_for_public_call(options = {})
       options
     end
@@ -87,6 +105,7 @@ module Trailblazer
 
     def call_task(wrap_ctx, original_args) # DISCUSS: copied from {TaskWrap.call_task}.
       op = wrap_ctx[:task]
+      puts "!!! #{op} Operation.call_task ~~~"
 
       original_arguments, original_circuit_options = original_args
 
