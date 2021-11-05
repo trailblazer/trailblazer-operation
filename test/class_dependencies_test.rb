@@ -14,8 +14,7 @@ class ClassDependenciesTest < Minitest::Spec
   it { Index.({}).inspect("a", "model.class").must_equal %{<Result:true [Module, Module] >} }
 
   it "creates separate ctx for circuit interface" do
-
-    raise "this can't work since the OP is run without TaskWrap.invoke"
+    # raise "this can't work since the OP is run without TaskWrap.invoke"
     signal, (ctx, _) = Index.([{}, {}], {})
 
     ctx[:a].inspect.must_equal %{Module}
@@ -29,10 +28,10 @@ class ClassDependenciesTest < Minitest::Spec
     end
 
     # "model.class" gets injected automatically just before {Index}.
-    Home.({params: {}}).inspect.must_equal %{<Result:true #<Trailblazer::Context::Container wrapped_options={:params=>{}, \"model.class\"=>Module} mutable_options={\"a\"=>Module}> >}
+    Home.({params: {}}).inspect.must_equal %{<Result:true #<Trailblazer::Context::Container wrapped_options={\"model.class\"=>Module} mutable_options=#<Trailblazer::Context::Container wrapped_options={:params=>{}} mutable_options={\"a\"=>Module}>> >}
 
     # "model.class" gets injected by user and overrides class dependencies.
-    Home.({params: {}, "model.class" => Symbol}).inspect.must_equal %{<Result:true #<Trailblazer::Context::Container wrapped_options={:params=>{}, :\"model.class\"=>Symbol, \"model.class\"=>Symbol} mutable_options={\"a\"=>Symbol}> >}
+    Home.({params: {}, "model.class" => Symbol}).inspect.must_equal %{<Result:true #<Trailblazer::Context::Container wrapped_options={\"model.class\"=>Module} mutable_options=#<Trailblazer::Context::Container wrapped_options={:params=>{}, \"model.class\"=>Symbol} mutable_options={\"a\"=>Symbol}>> >}
 
 
     class Dashboard < Trailblazer::Operation
@@ -43,8 +42,8 @@ class ClassDependenciesTest < Minitest::Spec
       step Subprocess(Index)
     end
 
-  # "model.class" gets injected automatically in {Dashboard} and overrides the {Index} input.
-    Dashboard.({params: {}}).inspect.must_equal %{<Result:true #<Trailblazer::Context::Container wrapped_options={:params=>{}, \"model.class\"=>Float} mutable_options={\"a\"=>Module}> >}
+  # TODO: "model.class" gets injected automatically in {Dashboard} and overrides the {Index} input.
+    Dashboard.({params: {}}).inspect.must_equal %{<Result:true #<Trailblazer::Context::Container wrapped_options={\"model.class\"=>Module} mutable_options=#<Trailblazer::Context::Container wrapped_options={\"model.class\"=>Float} mutable_options=#<Trailblazer::Context::Container wrapped_options={\"model.class\"=>Float} mutable_options=#<Trailblazer::Context::Container wrapped_options={:params=>{}} mutable_options={:Dashboard=>Float, \"a\"=>Float}>>>> >}
 
   end
 
