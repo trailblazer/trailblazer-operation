@@ -1,4 +1,8 @@
 # Trailblazer-operation
+[![TRB Newsletter](https://img.shields.io/badge/TRB-newsletter-lightgrey.svg)](http://trailblazer.to/newsletter/)
+![Build
+Status](https://github.com/trailblazer/trailblazer-operation/actions/workflows/ci.yml/badge.svg?branch=master)
+[![Gem Version](https://badge.fury.io/rb/trailblazer-operation.svg)](http://badge.fury.io/rb/trailblazer-operation)
 
 _Trailblazer's Operation implementation._
 
