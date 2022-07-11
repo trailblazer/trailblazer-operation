@@ -82,7 +82,7 @@ module Trailblazer
     end
 
     def initial_wrap_static(*)
-      Activity::TaskWrap::Pipeline.new([["task_wrap.call_task", method(:call_task)]])
+      Activity::TaskWrap::Pipeline.new([Activity::TaskWrap::Pipeline.Row("task_wrap.call_task", method(:call_task))])
     end
 
     def call_task(wrap_ctx, original_args) # DISCUSS: copied from {TaskWrap.call_task}.

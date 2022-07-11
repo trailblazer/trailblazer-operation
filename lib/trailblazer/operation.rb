@@ -1,12 +1,11 @@
+require "trailblazer/activity/dsl/linear"
 require 'forwardable'
 require 'trailblazer/operation/version'
-require "trailblazer/option"
-require "trailblazer/context"
-
-require "trailblazer/activity/dsl/linear"
 
 module Trailblazer
-  # DISCUSS: I don't know where else to put this. It's not part of the {Activity} concept
+  # As opposed to {Activity::Railway} and {Activity::FastTrack} an operation
+  # maintains different terminus subclasses.
+  # DISCUSS: remove this, at some point in time!
   class Activity
     class Railway
       module End
@@ -31,6 +30,7 @@ module Trailblazer
     end
   end
 
+  # DISCUSS: where do we need this?
   def self.Operation(options)
     Class.new(Activity::FastTrack( Activity::Operation.OptionsForState.merge(options) )) do
       extend Operation::PublicCall
@@ -38,9 +38,9 @@ module Trailblazer
   end
 
   # The Trailblazer-style operation.
-  # Note that you don't have to use our "opinionated" version with result object, skills, etc.
-  class Operation < Activity::FastTrack(Activity::Operation.OptionsForState)
-    # extend Skill::Accessors # ::[] and ::[]= # TODO: fade out this usage.
+  # Note that you don't have to use our "opinionated" version with result object, etc.
+  class Operation < Activity::FastTrack(**Activity::Operation.OptionsForState)
+    # include Activity::DSL::Linear::Helper
 
     class << self
       alias_method :strategy_call, :call

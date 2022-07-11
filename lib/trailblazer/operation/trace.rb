@@ -38,10 +38,12 @@ module Trailblazer
           @stack = stack
         end
 
+        # TODO: deprecate!
         def wtf
           Developer::Trace::Present.(@stack)
         end
 
+        # TODO: deprecate!
         def wtf?
           puts wtf
         end

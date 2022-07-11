@@ -17,7 +17,7 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test)/})
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "trailblazer-activity-dsl-linear", ">= 0.4.1", "< 1.0.0"
+  spec.add_dependency "trailblazer-activity-dsl-linear", ">= 1.0.0", "< 2.0.0"
   spec.add_dependency "trailblazer-activity", ">= 0.12.2", "< 1.0.0"
   spec.add_dependency "trailblazer-developer", ">= 0.0.21", "< 1.0.0"
 

@@ -2,14 +2,17 @@
 class Trailblazer::Operation
   # The use of this module is currently not encouraged and it is only here for backward-compatibility.
   # Instead, please pass dependencies via containers, locals, or macros into the respective steps.
+  #
   module ClassDependencies
     def [](field)
-      @state.to_h[:fields][field]
+      class_fields[field]
     end
 
+    # Store a field on @state, which is provided by {Strategy}.
     def []=(field, value)
-      options = @state.to_h[:fields].merge(field => value)
-      @state.update_options(options)
+      @state.update!(:fields) do |fields|
+        fields.merge(field => value)
+      end
     end
 
     def options_for_public_call(options, flow_options)
@@ -18,7 +21,7 @@ class Trailblazer::Operation
     end
 
     private def class_fields
-      @state.to_h[:fields]
+      @state.get(:fields)
     end
 
     private def context_for_fields(fields, (ctx, flow_options), **)
