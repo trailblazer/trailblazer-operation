@@ -1,3 +1,7 @@
+## 0.8.0
+
+* Use `trailblazer-activity-dsl-linear` 1.0.0.
+
 ## 0.7.5
 
 * Upgrade `trailblazer-activity` & `trailblazer-activity-dsl-linear` patch versions.
