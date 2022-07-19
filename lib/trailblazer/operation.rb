@@ -40,8 +40,6 @@ module Trailblazer
   # The Trailblazer-style operation.
   # Note that you don't have to use our "opinionated" version with result object, etc.
   class Operation < Activity::FastTrack(**Activity::Operation.OptionsForState)
-    # include Activity::DSL::Linear::Helper
-
     class << self
       alias_method :strategy_call, :call
     end
