@@ -1,8 +1,0 @@
-inherit_from:
-  - https://raw.githubusercontent.com/trailblazer/meta/master/rubocop.yml
-  - .rubocop_todo.yml
-
-Naming/MethodName:
-  Exclude:
-    - 'lib/trailblazer/operation/inject.rb'
-    - 'lib/trailblazer/operation.rb'
