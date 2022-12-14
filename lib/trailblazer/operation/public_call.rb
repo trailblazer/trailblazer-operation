@@ -41,7 +41,8 @@ module Trailblazer
         self,
         [ctx, flow_options],
         exec_context: new,
-        wrap_static: initial_wrap_static,
+        # wrap_static: initial_wrap_static,
+        container_activity: Activity::TaskWrap.container_activity_for(self, wrap_static: initial_wrap_static)
       )
 
       # Result is successful if the activity ended with an End event derived from Railway::End::Success.

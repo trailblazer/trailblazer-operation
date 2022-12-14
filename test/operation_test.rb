@@ -20,7 +20,7 @@ class DeclarativeApiTest < Minitest::Spec
     end
 
     MyOp.({})
-    MyOp.global.inspect.must_equal %{[:call, :model]}
+    assert_equal MyOp.global.inspect, %{[:call, :model]}
   end
 
   #---
