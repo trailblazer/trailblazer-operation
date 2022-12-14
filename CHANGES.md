@@ -1,3 +1,8 @@
+## 0.9.0
+
+* Use `trailblazer-activity-dsl-linear` 1.1.0.
+* Pass `:container_activity` to `TaskWrap.invoke` instead of the superseded `:static_wrap` option.
+
 ## 0.8.0
 
 * Use `trailblazer-activity-dsl-linear` 1.0.0.
