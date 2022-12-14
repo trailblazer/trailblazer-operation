@@ -22,32 +22,32 @@ class TraceTest < Minitest::Spec
 
     output = result.wtf
 
-    output.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{`-- TraceTest::Create
-    |-- Start.default
-    |-- Create.task.a
-    |-- MyNested
-    |   |-- Start.default
-    |   |-- B.task.b
-    |   |-- B.task.e
-    |   `-- End.success
-    |-- Create.task.c
-    |-- Create.task.params
-    `-- End.failure}
+    assert_equal output.gsub(/0x\w+/, "").gsub(/@.+_test/, ""), %{TraceTest::Create
+|-- Start.default
+|-- Create.task.a
+|-- MyNested
+|   |-- Start.default
+|   |-- B.task.b
+|   |-- B.task.e
+|   `-- End.success
+|-- Create.task.c
+|-- Create.task.params
+`-- End.failure}
   end
 
   it "Operation::trace" do
     result = Create.trace(params: {x: 1}, a_return: true)
-    result.wtf.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{`-- TraceTest::Create
-    |-- Start.default
-    |-- Create.task.a
-    |-- MyNested
-    |   |-- Start.default
-    |   |-- B.task.b
-    |   |-- B.task.e
-    |   `-- End.success
-    |-- Create.task.c
-    |-- Create.task.params
-    `-- End.success}
+    assert_equal result.wtf.gsub(/0x\w+/, "").gsub(/@.+_test/, ""), %{TraceTest::Create
+|-- Start.default
+|-- Create.task.a
+|-- MyNested
+|   |-- Start.default
+|   |-- B.task.b
+|   |-- B.task.e
+|   `-- End.success
+|-- Create.task.c
+|-- Create.task.params
+`-- End.success}
   end
 
   it "Operation.wtf?" do
@@ -56,17 +56,17 @@ class TraceTest < Minitest::Spec
       result = Create.wtf?(params: {x: 1}, a_return: true)
     end
 
-    output.gsub(/0x\w+/, "").gsub(/@.+_test/, "").must_equal %{`-- TraceTest::Create
-    |-- \e[32mStart.default\e[0m
-    |-- \e[32mCreate.task.a\e[0m
-    |-- MyNested
-    |   |-- \e[32mStart.default\e[0m
-    |   |-- \e[32mB.task.b\e[0m
-    |   |-- \e[32mB.task.e\e[0m
-    |   `-- End.success
-    |-- \e[32mCreate.task.c\e[0m
-    |-- \e[32mCreate.task.params\e[0m
-    `-- End.success
+    assert_equal output.gsub(/0x\w+/, "").gsub(/@.+_test/, ""), %{TraceTest::Create
+|-- \e[32mStart.default\e[0m
+|-- \e[32mCreate.task.a\e[0m
+|-- MyNested
+|   |-- \e[32mStart.default\e[0m
+|   |-- \e[32mB.task.b\e[0m
+|   |-- \e[32mB.task.e\e[0m
+|   `-- End.success
+|-- \e[32mCreate.task.c\e[0m
+|-- \e[32mCreate.task.params\e[0m
+`-- End.success
 }
 
     result.success?.must_equal true
