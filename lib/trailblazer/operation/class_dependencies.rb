@@ -25,7 +25,7 @@ class Trailblazer::Operation
     end
 
     private def context_for_fields(fields, (ctx, flow_options), **)
-      ctx_with_fields = Trailblazer::Context(fields, ctx, flow_options[:context_options]) # TODO: redundant to otions_for_public_call.
+      ctx_with_fields = Trailblazer::Context(fields, ctx, flow_options[:context_options]) # TODO: redundant to options_for_public_call.
     end
 
     def call_with_circuit_interface((ctx, flow_options), **circuit_options)
