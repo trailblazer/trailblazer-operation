@@ -1,5 +1,7 @@
 require "test_helper"
 
+# TODO: throw away this test, most of it is tested in {dsl}.
+
 # Tests
 # ---  step ->(*) { snippet }
 # ---  step Callable
@@ -41,9 +43,9 @@ class StepTest < Minitest::Spec
   it { Create.(a: 1, b: 2, c: 3, d: 4, e: 5).inspect("a", "b", "c", "d", "e").must_equal "<Result:true [1, 2, 3, 4, 5] >" }
 
   if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
-    it { Trailblazer::Developer.railway(Create).gsub(/0x.+?step_test.rb/, "").gsub(/\)\s.+?step_test.rb/, ") test/step_test.rb").must_equal %{[>#<Proc::30 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c(options, c: ..., **) test/step_test.rb:18>,>d,>MyMacro]} }
+    it { Trailblazer::Developer.railway(Create).gsub(/0x.+?step_test.rb/, "").gsub(/\)\s.+?step_test.rb/, ") test/step_test.rb").must_equal %{[>#<Proc::32 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c(options, c: ..., **) test/step_test.rb:20>,>d,>MyMacro]} }
   else
-    it { Trailblazer::Developer.railway(Create).gsub(/0x.+?step_test.rb/, "").must_equal %{[>#<Proc::30 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>MyMacro]} }
+    it { Trailblazer::Developer.railway(Create).gsub(/0x.+?step_test.rb/, "").must_equal %{[>#<Proc::32 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>MyMacro]} }
   end
 
   #---
