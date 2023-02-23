@@ -2,6 +2,9 @@ require "trailblazer/activity/dsl/linear"
 require 'forwardable'
 require 'trailblazer/operation/version'
 
+#
+# Developer's docs: https://trailblazer.to/2.1/docs/internals.html#internals-operation
+#
 module Trailblazer
   # As opposed to {Activity::Railway} and {Activity::FastTrack} an operation
   # maintains different terminus subclasses.
@@ -57,5 +60,3 @@ require "trailblazer/operation/deprecated_macro" # TODO: remove in 2.2.
 
 require "trailblazer/operation/result"
 require "trailblazer/operation/railway"
-
-require "trailblazer/operation/railway/macaroni"

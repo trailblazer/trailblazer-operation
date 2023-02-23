@@ -77,16 +77,14 @@ module Trailblazer
     end
 
     # TODO: remove when we stop supporting < 3.0.
+    #       alternatively, ctx aliasing is only available for Ruby > 2.7.
     def call_with_flow_options(options, flow_options)
       raise "[Trailblazer] `Operation.call_with_flow_options is deprecated in Ruby 3.0. Use `Operation.(options, flow_options)`" if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.0.0")
       call_with_public_interface(options, flow_options, {invoke_class: Activity::TaskWrap})
     end
 
-    def initial_wrap_static(*)
-      Activity::TaskWrap::Pipeline.new([Activity::TaskWrap::Pipeline.Row("task_wrap.call_task", method(:call_task))])
-    end
-
-    def call_task(wrap_ctx, original_args) # DISCUSS: copied from {TaskWrap.call_task}.
+    # @private
+    def self.call_task(wrap_ctx, original_args) # DISCUSS: copied from {TaskWrap.call_task}.
       op = wrap_ctx[:task]
 
       original_arguments, original_circuit_options = original_args
@@ -99,6 +97,12 @@ module Trailblazer
       wrap_ctx = wrap_ctx.merge(return_signal: return_signal, return_args: return_args)
 
       return wrap_ctx, original_args
+    end
+
+    INITIAL_WRAP_STATIC = Activity::TaskWrap::Pipeline.new([Activity::TaskWrap::Pipeline.Row("task_wrap.call_task", method(:call_task))])
+
+    def initial_wrap_static(*)
+      INITIAL_WRAP_STATIC
     end
   end
 end

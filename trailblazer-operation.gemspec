@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["apotonick@gmail.com"]
   spec.description   = %q(Trailblazer's operation object.)
   spec.summary       = %q(Trailblazer's operation object with railway flow and integrated error handling.)
-  spec.homepage      = "http://trailblazer.to"
+  spec.homepage      = "https://trailblazer.to/2.1/docs/operation.html"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
@@ -17,13 +17,13 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test)/})
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "trailblazer-activity-dsl-linear",  ">= 1.2.0", "< 2.0.0"
-  spec.add_dependency "trailblazer-developer",            ">= 0.0.26"
+  spec.add_dependency "trailblazer-activity-dsl-linear",  ">= 1.2.0", "< 1.4.0"
+  spec.add_dependency "trailblazer-developer"
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "minitest"
+  spec.add_development_dependency "minitest-line"
   spec.add_development_dependency "rake"
-  spec.add_development_dependency "rubocop"
 
-  spec.required_ruby_version = ">= 2.1.0"
+  spec.required_ruby_version = ">= 2.5.0"
 end
