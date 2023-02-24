@@ -101,7 +101,7 @@ module Trailblazer
 
     INITIAL_WRAP_STATIC = Activity::TaskWrap::Pipeline.new([Activity::TaskWrap::Pipeline.Row("task_wrap.call_task", method(:call_task))])
 
-    def initial_wrap_static(*)
+    def initial_wrap_static
       INITIAL_WRAP_STATIC
     end
   end
