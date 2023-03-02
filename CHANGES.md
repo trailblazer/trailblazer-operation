@@ -1,6 +1,6 @@
 ## 0.10.0
 
-* Use `trailblazer-activity-dsl-linear-1.2.0`.
+* Require `trailblazer-activity-dsl-linear-1.2.0`.
 * Remove `Railway::Macaroni`.
 * Remove `Operation::Callable`.
 * Introduce `Operation::INITIAL_WRAP_STATIC` that is computed once at compile-time, not
