@@ -1,3 +1,11 @@
+## 0.10.0
+
+* Use `trailblazer-activity-dsl-linear-1.2.0`.
+* Remove `Railway::Macaroni`.
+* Remove `Operation::Callable`.
+* Introduce `Operation::INITIAL_WRAP_STATIC` that is computed once at compile-time, not
+  with every `#call`.
+
 ## 0.9.0
 
 * Use `trailblazer-activity-dsl-linear` 1.1.0.
