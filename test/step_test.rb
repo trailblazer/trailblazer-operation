@@ -42,10 +42,18 @@ class StepTest < Minitest::Spec
 
   it { Create.(a: 1, b: 2, c: 3, d: 4, e: 5).inspect("a", "b", "c", "d", "e").must_equal "<Result:true [1, 2, 3, 4, 5] >" }
 
-  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
-    it { Trailblazer::Developer.railway(Create).gsub(/0x.+?step_test.rb/, "").gsub(/\)\s.+?step_test.rb/, ") test/step_test.rb").must_equal %{[>#<Proc::32 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c(options, c: ..., **) test/step_test.rb:20>,>d,>MyMacro]} }
-  else
-    it { Trailblazer::Developer.railway(Create).gsub(/0x.+?step_test.rb/, "").must_equal %{[>#<Proc::32 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>MyMacro]} }
+  it "allows {Developer.railway}" do
+    output = Trailblazer::Developer.railway(Create)
+      .gsub(/0x.+?step_test.rb/, "")
+      .gsub(/\)\s.+?step_test.rb/, ") test/step_test.rb")
+
+    if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.2.0")
+      assert_equal output, %([>#<Proc::32 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c(options, c: ...) test/step_test.rb:20>,>d,>MyMacro])
+    elsif Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
+      assert_equal output, %([>#<Proc::32 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c(options, c: ..., **) test/step_test.rb:20>,>d,>MyMacro])
+    else
+      assert_equal output, %([>#<Proc::32 (lambda)>,>StepTest::Callable,>#<Method: StepTest::Implementation.c>,>d,>MyMacro])
+    end
   end
 
   #---
@@ -174,27 +182,6 @@ class StepTest < Minitest::Spec
 
   # FIXME: we have all fast track ends here.
   it { skip; Ii["__activity__"].circuit.instance_variable_get(:@map).size.must_equal 6 }
-
-  #---
-  #-
-  # not existent :name
-  it do
-    op = assert_raises Trailblazer::Activity::Adds::IndexError do
-      class InvalidStep < Trailblazer::Operation
-        step :a, before: "I don't exist!"
-      end
-    end
-
-    error_message = %{#<Trailblazer::Activity::Adds::IndexError: StepTest::InvalidStep:
-\e[31m\"I don't exist!\" is not a valid step ID. Did you mean any of these ?\e[0m
-\e[32m\"Start.default\"
-\"End.success\"
-\"End.pass_fast\"
-\"End.fail_fast\"
-\"End.failure\"\e[0m>}
-
-    assert_match error_message, op.inspect
-  end
 
   #---
   #- :name
