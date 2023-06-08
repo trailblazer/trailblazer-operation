@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "trailblazer-activity-dsl-linear",  ">= 1.2.0", "< 1.4.0"
-  spec.add_dependency "trailblazer-developer"
+  spec.add_dependency "trailblazer-developer", ">= 0.1.0", "< 0.2.0"
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "minitest"

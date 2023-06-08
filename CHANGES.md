@@ -1,3 +1,8 @@
+## 0.10.1
+
+* Deprecate `Operation.trace` and `Result#wtf?` in favor of `Operation.wtf?`.
+* Use `trailblazer-developer-0.1.0`.
+
 ## 0.10.0
 
 * Require `trailblazer-activity-dsl-linear-1.2.0`.
