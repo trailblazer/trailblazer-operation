@@ -33,7 +33,7 @@ class DeclarativeApiTest < Minitest::Spec
     pass :wasnt_ok!
     pass :was_ok!
     fail :return_true!
-    fail :return_false!
+    left :return_false!
 
     step :bla, input: ->(ctx, *) { {id: ctx.inspect} }, output: ->(scope, ctx) { ctx["hello"] = scope["1"]; ctx }
 
