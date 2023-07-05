@@ -11,16 +11,20 @@ module Trailblazer
       def self.pass_fast!; Activity::FastTrack::PassFast end
       # @param options Context
       # @param end_event The last emitted signal in a circuit is usually the end event.
-      def self.Result(end_event, options, *)
-        Result.new(end_event.kind_of?(End::Success), options, end_event)
+      def self.Result(activity, end_event, options, *)
+        Result.new(activity, options, end_event)
       end
 
       # The Railway::Result knows about its binary state, the context (data), and the last event in the circuit.
       class Result < Result # Operation::Result
-        def initialize(success, data, event)
-          super(success, data)
-
+        def initialize(activity, data, event)
+          super(event.kind_of?(End::Success), data)
           @event = event
+
+          # generate [:success?, :pass_fast?, :fail_fast?, :failure?, :<custom_output>?] methods
+          activity.to_h[:outputs].each do |output|
+            define_singleton_method("#{output[:semantic]}?") {  event.to_h[:semantic] == output[:semantic] }
+          end
         end
 
         attr_reader :event
