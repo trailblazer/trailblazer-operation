@@ -46,7 +46,7 @@ module Trailblazer
       )
 
       # Result is successful if the activity ended with an End event derived from Railway::End::Success.
-      Operation::Railway::Result(signal, ctx, flow_options)
+      Operation::Railway::Result(self, signal, ctx, flow_options)
     end
 
     # This interface is used for all nested OPs (and the outer-most, too).
