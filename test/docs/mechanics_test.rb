@@ -31,6 +31,57 @@ module Y
   end
 end
 
+class ReadfromCtx_DocsMechanicsTest < Minitest::Spec
+  Memo = Module.new
+  it "what" do
+    #:ctx-read
+    module Memo::Operation
+      class Create < Trailblazer::Operation
+        step :validate
+        #~meths
+        step :save
+
+        def save(*); true; end
+        #~meths end
+        def validate(ctx, **)
+          p ctx[:params] #=> {:memo=>nil}
+        end
+      end
+    end
+    #:ctx-read end
+
+    #:ctx-read-call
+    result = Memo::Operation::Create.call(params: {memo: nil})
+    #:ctx-read-call end
+    assert_equal result.success?, true
+  end
+end
+
+class ReadfromCtxKwargs_DocsMechanicsTest < Minitest::Spec
+  Memo = Module.new
+  it "what" do
+    module Memo::Operation
+      class Create < Trailblazer::Operation
+        step :validate
+        #~meths
+        step :save
+
+        def save(*); true; end
+        #~meths end
+        #:ctx-read-kwargs
+        def validate(ctx, params:, **)
+          p params #=> {:memo=>nil}
+        end
+        #:ctx-read-kwargs end
+      end
+    end
+
+    result = Memo::Operation::Create.call(params: {memo: nil})
+    assert_equal result.success?, true
+  end
+end
+
+
 class Classmethod_DocsMechanicsTest < Minitest::Spec
   Memo = Module.new
   it "what" do
