@@ -138,6 +138,102 @@ class WriteToCtx_DocsMechanicsTest < Minitest::Spec
   end
 end
 
+class ReturnValueSuccess_DocsMechanicsTest < Minitest::Spec
+  Memo = Module.new
+  it "what" do
+    module Memo::Operation
+      class Create < Trailblazer::Operation
+        step :validate
+        #~meths
+        step :save
+
+        def save(*); true; end
+        #~meths end
+        #:return-success
+        def validate(ctx, params:, **)
+          params.key?(:memo) # => true/false
+        end
+        #:return-success end
+      end
+    end
+
+    result = Memo::Operation::Create.call(params: {memo: nil})
+    assert_equal result.success?, true
+  end
+end
+
+class ReturnValueFailure_DocsMechanicsTest < Minitest::Spec
+  Memo = Module.new
+  it "what" do
+    module Memo::Operation
+      class Create < Trailblazer::Operation
+        step :validate
+        #~meths
+        step :save
+
+        def save(*); true; end
+        #~meths end
+        #:return-failure
+        def validate(ctx, params:, **)
+          nil
+        end
+        #:return-failure end
+      end
+    end
+
+    result = Memo::Operation::Create.call(params: {memo: nil})
+    assert_equal result.success?, false
+  end
+end
+
+class ReturnSignal_DocsMechanicsTest < Minitest::Spec
+  Memo = Module.new
+  it "what" do
+    #:signal-operation
+    module Memo::Operation
+      class Create < Trailblazer::Operation
+        class NetworkError < Trailblazer::Activity::Signal
+        end
+        #~meths
+        #:signal-steps
+        step :validate
+        step :save
+        step :notify,
+          Output(NetworkError, :network_error) => End(:network_error)
+        #:signal-steps end
+        def save(ctx, **)
+          ctx[:model] = Object
+        end
+        def validate(ctx, params:, **)
+          true
+        end
+        def send_email(model)
+          true
+        end
+        def check_network(params)
+          ! params[:network_broken]
+        end
+
+        #:return-signal
+        def notify(ctx, model:, params:, **)
+          return NetworkError unless check_network(params)
+
+          send_email(model)
+        end
+        #:return-signal end
+        #~meths end
+      end
+    end
+    #:signal-operation end
+
+    result = Memo::Operation::Create.call(params: {memo: nil, network_broken: false})
+    assert_equal result.success?, true
+
+    result = Memo::Operation::Create.call(params: {memo: nil, network_broken: true})
+    assert_equal result.success?, false
+  end
+end
+
 class Classmethod_DocsMechanicsTest < Minitest::Spec
   Memo = Module.new
   it "what" do
