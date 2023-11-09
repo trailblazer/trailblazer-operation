@@ -231,6 +231,7 @@ class ReturnSignal_DocsMechanicsTest < Minitest::Spec
 
     result = Memo::Operation::Create.call(params: {memo: nil, network_broken: true})
     assert_equal result.success?, false
+    assert_equal result.event.inspect, %(asdf)
   end
 end
 
