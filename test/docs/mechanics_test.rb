@@ -91,7 +91,7 @@ class ReadfromCtxKwargs_DocsMechanicsTest < Minitest::Spec
 end
 
 class WriteToCtx_DocsMechanicsTest < Minitest::Spec
-  Memo = Class.new do
+  class Memo
     def initialize(*); end
   end
   it "what" do
@@ -124,7 +124,17 @@ class WriteToCtx_DocsMechanicsTest < Minitest::Spec
     end
     #:ctx-write-read end
 
-    result = Memo::Operation::Create.call(params: {memo: nil})
+    #:result-read
+    result = Memo::Operation::Create.call(params: {memo: {content: "remember that"}})
+
+    result[:model] #=> #<Memo id: 1, ...>
+    #:result-read end
+
+    #:result-success
+    puts result.success? #=> true
+    #:result-success end
+
+    assert_equal result[:model].class, Memo
     assert_equal result.success?, true
 
     user = Object
@@ -198,6 +208,7 @@ class ReturnSignal_DocsMechanicsTest < Minitest::Spec
         #:signal-steps
         step :validate
         step :save
+        left :handle_errors
         step :notify,
           Output(NetworkError, :network_error) => End(:network_error)
         #:signal-steps end
@@ -231,7 +242,7 @@ class ReturnSignal_DocsMechanicsTest < Minitest::Spec
 
     result = Memo::Operation::Create.call(params: {memo: nil, network_broken: true})
     assert_equal result.success?, false
-    assert_equal result.event.inspect, %(asdf)
+    assert_equal result.event.inspect, %(#<Trailblazer::Activity::End semantic=:network_error>)
   end
 end
 

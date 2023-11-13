@@ -10,6 +10,7 @@ require "trailblazer/developer/render/linear"
 Minitest::Spec.class_eval do
   Activity = Trailblazer::Activity
   T = Activity::Testing
+  include Trailblazer::Activity::Testing::Assertions
 end
 
 # TODO: replace all this with {Activity::Testing.def_steps}
