@@ -43,7 +43,7 @@ end
 
 
 module B
-  class DocsStepTest < Minitest::Spec
+  class Fail_DocsStepTest < Minitest::Spec
     Memo = Module.new
 
     #:fail
@@ -59,6 +59,31 @@ module B
       end
     end
     #:fail end
+
+    it "what" do
+      assert_invoke Memo::Operation::Create, seq: "[:validate, :save, :notify]"
+      assert_invoke Memo::Operation::Create, validate: false, terminus: :failure, seq: "[:validate, :handle_errors]"
+    end
+  end
+end
+
+module A
+  class Pass_DocsStepTest < Minitest::Spec
+    Memo = Module.new
+
+    #:pass
+    module Memo::Operation
+      class Create < Trailblazer::Operation
+        step :validate
+        pass :save # no output goes to the failure track here.
+        left :handle_errors
+        #~meths
+        step :notify
+        include T.def_steps(:validate, :save, :handle_errors, :notify)
+        #~meths end
+      end
+    end
+    #:pass end
 
     it "what" do
       assert_invoke Memo::Operation::Create, seq: "[:validate, :save, :notify]"
