@@ -10,20 +10,26 @@ module Trailblazer
       def self.fail_fast!; Activity::FastTrack::FailFast end
       def self.pass_fast!; Activity::FastTrack::PassFast end
       # @param options Context
-      # @param end_event The last emitted signal in a circuit is usually the end event.
-      def self.Result(end_event, options, *)
-        Result.new(end_event.kind_of?(End::Success), options, end_event)
+      # @param terminus The last emitted signal in a circuit is the end event/terminus.
+      def self.Result(terminus, options, *)
+        Result.new(terminus.kind_of?(End::Success), options, terminus)
       end
 
-      # The Railway::Result knows about its binary state, the context (data), and the last event in the circuit.
+      # The Railway::Result knows about its binary state, the context (data), and
+      # the reached terminus of the circuit.
       class Result < Result # Operation::Result
-        def initialize(success, data, event)
+        def initialize(success, data, terminus)
           super(success, data)
 
-          @event = event
+          @terminus = terminus
         end
 
-        attr_reader :event
+        def event
+          Activity::Deprecate.warn caller_locations[0], %(Using `Result#event` is deprecated, please use `Result#terminus`)
+          terminus
+        end
+
+        attr_reader :terminus
       end
 
       module End
