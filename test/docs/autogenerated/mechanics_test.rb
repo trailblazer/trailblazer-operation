@@ -241,9 +241,23 @@ class ReturnSignal_DocsMechanicsTest < Minitest::Spec
     result = Memo::Operation::Create.(params: {memo: nil, network_broken: false})
     assert_equal result.success?, true
 
+    #:terminus
     result = Memo::Operation::Create.(params: {memo: nil, network_broken: true})
+
+    result.terminus.to_h[:semantic] #=> :network_error
+    #:terminus end
     assert_equal result.success?, false
-    assert_equal result.terminus.inspect, %(#<Trailblazer::Activity::End semantic=:network_error>)
+    assert_equal result.terminus.to_h[:semantic], :network_error
+
+    #:terminus-subprocess
+    module Endpoint
+      class API < Trailblazer::Operation
+        step Subprocess(Memo::Operation::Create),
+          Output(:network_error) => Track(:failure)
+        # ...
+      end
+    end
+    #:terminus-subprocess end
   end
 end
 
