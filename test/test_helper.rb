@@ -6,6 +6,7 @@ require "pp"
 require "minitest/autorun"
 require "trailblazer/activity/testing"
 require "trailblazer/developer/render/linear"
+require "trailblazer/core"
 
 Minitest::Spec.class_eval do
   Activity = Trailblazer::Activity
