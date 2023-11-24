@@ -13,8 +13,8 @@ Minitest::Spec.class_eval do
   T = Activity::Testing
   include Trailblazer::Activity::Testing::Assertions
 
-  def assert_equal(asserted, expected)
-    super(expected, asserted)
+  def assert_equal(asserted, expected, *args)
+    super(expected, asserted, *args)
   end
 end
 
