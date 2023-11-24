@@ -1,9 +1,8 @@
-$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
-require "trailblazer/operation"
+require "minitest/autorun"
 
 require "pp"
+require "trailblazer/operation"
 
-require "minitest/autorun"
 require "trailblazer/activity/testing"
 require "trailblazer/developer/render/linear"
 require "trailblazer/core"
