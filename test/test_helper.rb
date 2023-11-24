@@ -9,9 +9,13 @@ require "trailblazer/developer/render/linear"
 require "trailblazer/core"
 
 Minitest::Spec.class_eval do
-  Activity = Trailblazer::Activity
+  Activity = Trailblazer::Activity # FIXME: remove this!
   T = Activity::Testing
   include Trailblazer::Activity::Testing::Assertions
+
+  def assert_equal(asserted, expected)
+    super(expected, asserted)
+  end
 end
 
 # TODO: replace all this with {Activity::Testing.def_steps}
