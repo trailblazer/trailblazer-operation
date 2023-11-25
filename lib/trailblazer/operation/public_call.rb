@@ -26,6 +26,7 @@ module Trailblazer
     # @return [Operation::Railway::Result]
     #
     # @private
+
     def call_with_public_interface(options, flow_options, invoke_class: Activity::TaskWrap, **circuit_options)
       flow_options  = flow_options_for_public_call(flow_options)
 
@@ -40,9 +41,9 @@ module Trailblazer
       signal, (ctx, flow_options) = invoke_class.invoke(
         self,
         [ctx, flow_options],
-        exec_context: new,
+        exec_context: new, # FIXME: this is overridden anyway in Activity
         # wrap_static: initial_wrap_static,
-        container_activity: Activity::TaskWrap.container_activity_for(self, wrap_static: initial_wrap_static)
+        container_activity: Activity::TaskWrap.container_activity_for(self, wrap_static: initial_wrap_static) # we cannot make this static because of {self} unless we override {#inherited}.
       )
 
       # Result is successful if the activity ended with an End event derived from Railway::End::Success.
@@ -83,15 +84,21 @@ module Trailblazer
       call_with_public_interface(options, flow_options, {invoke_class: Activity::TaskWrap})
     end
 
+    # This TaskWrap step replaces the default {call_task} step for this very operation.
+    # Instead of invoking the operation using {Operation.call}, it does {Operation.call_with_circuit_interface},
+    # so we don't invoke {Operation.call} twice.
+    #
+    # I don't really like this "hack", but it's the only way until we get method overloading.
+    #
     # @private
     def self.call_task(wrap_ctx, original_args) # DISCUSS: copied from {TaskWrap.call_task}.
-      op = wrap_ctx[:task]
+      operation = wrap_ctx[:task]
 
       original_arguments, original_circuit_options = original_args
 
       # Call the actual task we're wrapping here.
       # puts "~~~~wrap.call: #{task}"
-      return_signal, return_args = op.call_with_circuit_interface(original_arguments, **original_circuit_options)
+      return_signal, return_args = operation.call_with_circuit_interface(original_arguments, **original_circuit_options)
 
       # DISCUSS: do we want original_args here to be passed on, or the "effective" return_args which are different to original_args now?
       wrap_ctx = wrap_ctx.merge(return_signal: return_signal, return_args: return_args)
