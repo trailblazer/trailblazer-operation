@@ -41,8 +41,6 @@ module Trailblazer
       signal, (ctx, flow_options) = invoke_class.invoke(
         self,
         [ctx, flow_options],
-        exec_context: new, # FIXME: this is overridden anyway in Activity
-        # wrap_static: initial_wrap_static,
         container_activity: Activity::TaskWrap.container_activity_for(self, wrap_static: initial_wrap_static) # we cannot make this static because of {self} unless we override {#inherited}.
       )
 
