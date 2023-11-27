@@ -28,10 +28,14 @@ class ClassDependenciesTest < Minitest::Spec
     end
 
     # "model.class" gets injected automatically just before {Index}.
-    Home.({params: {}}).inspect.must_equal %{<Result:true #<Trailblazer::Context::Container wrapped_options={\"model.class\"=>Module} mutable_options=#<Trailblazer::Context::Container wrapped_options={:params=>{}} mutable_options={\"a\"=>Module}>> >}
+    result = Home.({params: {}})
+    assert_result result, {:"model.class"=>Module, :params=>{}, :a=>Module}
+    # .inspect.must_equal %{<Result:true #<Trailblazer::Context::Container wrapped_options={\"model.class\"=>Module} mutable_options=#<Trailblazer::Context::Container wrapped_options={:params=>{}} mutable_options={\"a\"=>Module}>> >}
 
     # "model.class" gets injected by user and overrides class dependencies.
-    Home.({params: {}, "model.class" => Symbol}).inspect.must_equal %{<Result:true #<Trailblazer::Context::Container wrapped_options={\"model.class\"=>Module} mutable_options=#<Trailblazer::Context::Container wrapped_options={:params=>{}, \"model.class\"=>Symbol} mutable_options={\"a\"=>Symbol}>> >}
+    result = Home.({params: {}, "model.class" => Symbol})
+    assert_result result, {:"model.class"=>Symbol, :params=>{}, :a=>Symbol  }
+    # .inspect.must_equal %{<Result:true #<Trailblazer::Context::Container wrapped_options={\"model.class\"=>Module} mutable_options=#<Trailblazer::Context::Container wrapped_options={:params=>{}, \"model.class\"=>Symbol} mutable_options={\"a\"=>Symbol}>> >}
 
 
     class Dashboard < Trailblazer::Operation

@@ -12,6 +12,9 @@ class OperationTest < Minitest::Spec
     step task: method(:capture_circuit_options)
   end
 
+  # Mixing keywords and string keys in {Operation.call}.
+  # Test that {.(params: {}, "current_user" => user)} is processed properly
+
   it "doesn't mistake circuit options as ctx variables when using circuit-interface" do
     signal, (ctx, _) = Noop.call([{params: {}}, {}], variable_for_circuit_options: true) # call_with_public_interface
     #@ {:variable_for_circuit_options} is not supposed to be in {ctx}.
@@ -21,14 +24,15 @@ class OperationTest < Minitest::Spec
   it "doesn't mistake circuit options as ctx variables when using the call interface" do
     result = Noop.call(params: {}, model: true, "current_user" => Object) # call with public interface.
     #@ {:variable_for_circuit_options} is not supposed to be in {ctx}.
-    assert_equal result.inspect, %(<Result:true #<Trailblazer::Context::Container wrapped_options={:params=>{}, :model=>true, "current_user"=>Object} mutable_options={:capture_circuit_options=>"[:wrap_runtime, :activity, :exec_context, :runner]"}> >)
+    assert_result result, {params: {}, model: true, current_user: Object, capture_circuit_options: "[:wrap_runtime, :activity, :exec_context, :runner]"}
   end
 
 #@ {#call_with_public_interface}
   it "doesn't mistake circuit options as ctx variables when using circuit-interface" do
     result = Noop.call_with_public_interface({params: {}}, {}, variable_for_circuit_options: true) # call_with_public_interface has two positional args, and kwargs for {circuit_options}.
 
-    assert_equal result.inspect, %(<Result:true #<Trailblazer::Context::Container wrapped_options={:params=>{}} mutable_options={:capture_circuit_options=>\"[:variable_for_circuit_options, :wrap_runtime, :activity, :exec_context, :runner]\"}> >)
+    assert_result result, {params: {}, capture_circuit_options: "[:variable_for_circuit_options, :wrap_runtime, :activity, :exec_context, :runner]"}
+    # assert_equal result.inspect, %(<Result:true #<Trailblazer::Context::Container wrapped_options={:params=>{}} mutable_options={:capture_circuit_options=>\"[:variable_for_circuit_options, :wrap_runtime, :activity, :exec_context, :runner]\"}> >)
   end
 end
 
@@ -149,17 +153,6 @@ class DeclarativeApiTest < Minitest::Spec
   it "allows to inherit" do
     Upsert.("params" => {decide: true}).inspect("a", "b", "c", "d", "e").must_equal %{<Result:true [false, true, nil, 1, nil] >}
     Unset. ("params" => {decide: true}).inspect("a", "b", "c", "d", "e").must_equal %{<Result:true [false, true, nil, 1, 2] >}
-  end
-
-# Mixing keywords and string keys in {Operation.call}.
-# Test that {.(params: {}, "current_user" => user)} is processed properly
-  class Collect < Trailblazer::Operation
-    # step ->(ctx, **) { ctx[:keys] }
-  end
-
-  it "contains all keys from {call}" do
-    result = Collect.(params: {}, "current_user" => Module)
-    _(result.inspect).must_equal %{<Result:true #<Trailblazer::Context::Container wrapped_options={:params=>{}, \"current_user\"=>Module} mutable_options={}> >}
   end
 
   #---

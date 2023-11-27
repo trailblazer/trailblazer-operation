@@ -15,6 +15,13 @@ Minitest::Spec.class_eval do
   def assert_equal(asserted, expected, *args)
     super(expected, asserted, *args)
   end
+
+  def assert_result(result, variables, outcome: true)
+    assert_equal result.success?, outcome
+
+    # assert_equal result.send(:data).sort_by { |key,  _| key.to_s }.to_h.inspect, variables.sort_by { |key, _| key.to_s }.to_h.inspect
+    assert_equal result.send(:data).to_h, variables
+  end
 end
 
 # TODO: replace all this with {Activity::Testing.def_steps}
