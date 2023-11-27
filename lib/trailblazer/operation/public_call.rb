@@ -16,7 +16,16 @@ module Trailblazer
     def call(options = {}, flow_options = {}, **circuit_options)
       return call_with_circuit_interface(options, **circuit_options) if options.is_a?(Array) # This is kind of a hack that could be well hidden if Ruby had method overloading. Goal is to simplify the call thing as we're fading out Operation::public_call anyway.
 
-      call_with_public_interface(options, flow_options, **circuit_options)
+      call_with_public_interface_from_call(options, flow_options, **circuit_options)
+    end
+
+    # @private Please do not override this method as it might get removed.
+    def call_with_public_interface_from_call(options, flow_options, **circuit_options)
+      # normalize options.
+      options = options
+        .merge(circuit_options) # when using Op.call(params:, ...), {circuit_options} will always be ctx variables.
+
+      call_with_public_interface(options, flow_options)
     end
 
     # Default {@activity} call interface which doesn't accept {circuit_options}
@@ -25,23 +34,24 @@ module Trailblazer
     #
     # @return [Operation::Railway::Result]
     #
-    # @private
-
+    # @semi-public It's OK to override this method.
     def call_with_public_interface(options, flow_options, invoke_class: Activity::TaskWrap, **circuit_options)
       flow_options  = flow_options_for_public_call(flow_options)
 
       # In Ruby < 3, calling Op.(params: {}, "current_user" => user) results in both {circuit_options} and {options} containing variables.
       # In Ruby 3.0, **circuit_options is always empty.
-      options       = circuit_options.any? ? circuit_options.merge(options) : options
+      # options       = circuit_options.any? ? circuit_options.merge(options) : options
 
       ctx           = options_for_public_call(options, flow_options)
 
-      # call the activity.
-      # This will result in invoking {::call_with_circuit_interface}.
+      # Call the activity as it if was a step in an endpoint.
+
+      # This will result in invoking {self.call_with_circuit_interface}.
       signal, (ctx, flow_options) = invoke_class.invoke(
         self,
         [ctx, flow_options],
-        container_activity: Activity::TaskWrap.container_activity_for(self, wrap_static: initial_wrap_static) # we cannot make this static because of {self} unless we override {#inherited}.
+        container_activity: Activity::TaskWrap.container_activity_for(self, wrap_static: initial_wrap_static), # we cannot make this static because of {self} unless we override {#inherited}.
+        **circuit_options
       )
 
       # Result is successful if the activity ended with an End event derived from Railway::End::Success.

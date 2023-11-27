@@ -21,7 +21,14 @@ class OperationTest < Minitest::Spec
   it "doesn't mistake circuit options as ctx variables when using the call interface" do
     result = Noop.call(params: {}, model: true, "current_user" => Object) # call with public interface.
     #@ {:variable_for_circuit_options} is not supposed to be in {ctx}.
-    assert_equal result.inspect, %(<Result:true #<Trailblazer::Context::Container wrapped_options={:params=>{}, :model=>true, "current_user"=>Object} mutable_options={:capture_circuit_options=>"[:exec_context, :wrap_runtime, :activity, :runner]"}> >)
+    assert_equal result.inspect, %(<Result:true #<Trailblazer::Context::Container wrapped_options={:params=>{}, :model=>true, "current_user"=>Object} mutable_options={:capture_circuit_options=>"[:wrap_runtime, :activity, :exec_context, :runner]"}> >)
+  end
+
+#@ {#call_with_public_interface}
+  it "doesn't mistake circuit options as ctx variables when using circuit-interface" do
+    result = Noop.call_with_public_interface({params: {}}, {}, variable_for_circuit_options: true) # call_with_public_interface has two positional args, and kwargs for {circuit_options}.
+
+    assert_equal result.inspect, %(<Result:true #<Trailblazer::Context::Container wrapped_options={:params=>{}} mutable_options={:capture_circuit_options=>\"[:variable_for_circuit_options, :wrap_runtime, :activity, :exec_context, :runner]\"}> >)
   end
 end
 
@@ -171,6 +178,7 @@ class DeclarativeApiTest < Minitest::Spec
     ctx.inspect.must_equal %{#<Trailblazer::Context::Container wrapped_options={\"params\"=>{:decide=>true}} mutable_options={\"a\"=>false, \"b\"=>true}>}
 
     # Call by passing aliases as an argument.
+    # This uses {#call}'s second positional argument.
     if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.0.0")
       result = Update.(
         options,
