@@ -71,7 +71,7 @@ class CallTest < Minitest::Spec
     result.wtf?
   end
 
-  it "invokes with the taskWrap defined at operation" do
+  it "invokes with the taskWrap defined at operation using the circuit interface" do
     operation = Class.new(Trailblazer::Operation) do
       include Trailblazer::Activity::Testing.def_steps(:a)
 
@@ -88,21 +88,14 @@ class CallTest < Minitest::Spec
       [operation.method(:add_1), id: "my.add_1", append: "task_wrap.call_task"]
     )
 
-    # normal operation invocation
+    # circuit interface invocation using invoke
     ctx = { seq: [] }
     signal, (ctx, _) = operation.invoke([ctx, {}], wrap_runtime: Hash.new(my_extension))
     signal.to_h[:semantic].must_equal :success
     ctx[:seq].must_equal [1, :a, 1, 1, 1]
-
-    # with tracing
-    result = operation.trace(seq: [])
-
-    result.inspect(:seq).must_equal %{<Result:true [[:a]] >}
-
-    result.wtf?
   end
 
-  it "calls with the taskWrap defined at operation" do
+  it "calls with the taskWrap defined at operation using public interface" do
     operation = Class.new(Trailblazer::Operation) do
       include Trailblazer::Activity::Testing.def_steps(:a)
 
@@ -119,17 +112,32 @@ class CallTest < Minitest::Spec
       [operation.method(:add_1), id: "my.add_1", append: "task_wrap.call_task"]
     )
 
-    # normal operation invocation
+    # public interface invocation using call
+    result = operation.(seq: [], wrap_runtime: Hash.new(my_extension))
+    result.inspect(:seq).must_equal %{<Result:true [[1, :a, 1, 1, 1]] >}
+  end
+
+  it "calls with the taskWrap defined at operation using circuit interface" do
+    operation = Class.new(Trailblazer::Operation) do
+      include Trailblazer::Activity::Testing.def_steps(:a)
+
+      def self.add_1(wrap_ctx, original_args)
+        ctx, = original_args[0]
+        ctx[:seq] << 1
+        return wrap_ctx, original_args # yay to mutable state. not.
+      end
+
+      step :a
+    end
+
+    my_extension = Trailblazer::Activity::TaskWrap::Extension(
+      [operation.method(:add_1), id: "my.add_1", append: "task_wrap.call_task"]
+    )
+
+    # circuit interface invocation using call
     ctx = { seq: [] }
     signal, (ctx, _) = operation.call([ctx, {}], wrap_runtime: Hash.new(my_extension))
     signal.to_h[:semantic].must_equal :success
     ctx[:seq].must_equal [1, :a, 1, 1, 1]
-
-    # with tracing
-    result = operation.trace(seq: [])
-
-    result.inspect(:seq).must_equal %{<Result:true [[:a]] >}
-
-    result.wtf?
   end
 end

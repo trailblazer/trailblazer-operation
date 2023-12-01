@@ -21,11 +21,13 @@ module Trailblazer
 
     # @private Please do not override this method as it might get removed.
     def call_with_public_interface_from_call(options, flow_options, **circuit_options)
+      # extract valid circuit options (what is the definitive source for available circuit options?)
+      real_circuit_options, other_options = circuit_options.partition {|k,_v| reserved_circuit_option_names.include? k }.map(&:to_h)
       # normalize options.
       options = options
-        .merge(circuit_options) # when using Op.call(params:, ...), {circuit_options} will always be ctx variables.
+        .merge(other_options) # when using Op.call(params:, ...), {circuit_options} will always be ctx variables.
 
-      call_with_public_interface(options, flow_options)
+      call_with_public_interface(options, flow_options, real_circuit_options)
     end
 
     # Default {@activity} call interface which doesn't accept {circuit_options}
@@ -118,6 +120,10 @@ module Trailblazer
 
     def initial_wrap_static
       INITIAL_WRAP_STATIC
+    end
+
+    def reserved_circuit_option_names
+      %i(wrap_runtime)
     end
   end
 end
