@@ -52,3 +52,45 @@ class PublicCallMonkeypatchingTest < Minitest::Spec
     assert_equal result[:seq], ["Start.default", :a, :a, "End.success", nil] # {nil} because we don't have an ID for the actual operation.
   end
 end
+
+class FlowOptionsMonekypatching < Minitest::Spec
+  module App
+    FLOW_OPTIONS = {
+      context_options: {
+        aliases: { "contract.default": :contract },
+        container_class: Trailblazer::Context::Container::WithAliases,
+      }
+    }
+
+    module OperationExtensions
+      def call_with_public_interface(ctx, flow_options, **circuit_options)
+        super(
+          ctx,
+          flow_options.merge(App::FLOW_OPTIONS),
+          **circuit_options
+        )
+      end
+    end
+  end
+
+  it do
+    operation = Class.new(Trailblazer::Operation) do
+      step :a
+
+      def a(ctx, contract:, **)
+        ctx[:seq] << contract
+      end
+    end
+    operation.extend App::OperationExtensions # monkey-patch the "global" Operation.
+
+
+    # circuit interface invocation using call
+    result = operation.call(
+      seq: [],
+      :"contract.default" => Object,
+    )
+
+    assert_equal result.success?, true
+    assert_equal result[:seq].inspect, %([Object])
+  end
+end
