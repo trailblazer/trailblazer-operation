@@ -46,7 +46,7 @@ module Trailblazer
         self,
         [ctx, flow_options],
         container_activity: Activity::TaskWrap.container_activity_for(self, wrap_static: initial_wrap_static), # we cannot make this static because of {self} unless we override {#inherited}.
-        **circuit_options
+        **circuit_options # this will always be an empty hash if coming from #{call_with_public_interface_from_call}.
       )
 
       # Result is successful if the activity ended with an End event derived from Railway::End::Success.
