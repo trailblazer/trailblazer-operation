@@ -37,11 +37,6 @@ module Trailblazer
     # @semi-public It's OK to override this method.
     def call_with_public_interface(options, flow_options, invoke_class: Activity::TaskWrap, **circuit_options)
       flow_options  = flow_options_for_public_call(flow_options)
-
-      # In Ruby < 3, calling Op.(params: {}, "current_user" => user) results in both {circuit_options} and {options} containing variables.
-      # In Ruby 3.0, **circuit_options is always empty.
-      # options       = circuit_options.any? ? circuit_options.merge(options) : options
-
       ctx           = options_for_public_call(options, flow_options)
 
       # Call the activity as it if was a step in an endpoint.
