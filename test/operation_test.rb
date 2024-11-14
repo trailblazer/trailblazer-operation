@@ -16,20 +16,32 @@ class OperationTest < Minitest::Spec
   # Test that {.(params: {}, "current_user" => user)} is processed properly
 
   it "doesn't mistake circuit options as ctx variables when using circuit-interface" do
-    signal, (ctx, _) = Noop.call([{params: {}}, {}], variable_for_circuit_options: true) # call_with_public_interface
+    signal, (ctx, _) = Noop.call(
+      [{params: {}}, {}],
+      # real circuit_options
+      variable_for_circuit_options: true
+    ) # call_with_public_interface
     #@ {:variable_for_circuit_options} is not supposed to be in {ctx}.
     assert_equal ctx.inspect, %({:params=>{}, :capture_circuit_options=>"[:variable_for_circuit_options, :exec_context, :activity, :runner]"})
   end
 
   it "doesn't mistake circuit options as ctx variables when using the call interface" do
-    result = Noop.call(params: {}, model: true, "current_user" => Object) # call with public interface.
+    result = Noop.call(
+      params:           {},
+      model:            true,
+      "current_user" => Object
+    ) # call with public interface.
     #@ {:variable_for_circuit_options} is not supposed to be in {ctx}.
     assert_result result, {params: {}, model: true, current_user: Object, capture_circuit_options: "[:wrap_runtime, :activity, :exec_context, :runner]"}
   end
 
 #@ {#call_with_public_interface}
   it "doesn't mistake circuit options as ctx variables when using circuit-interface" do
-    result = Noop.call_with_public_interface({params: {}}, {}, variable_for_circuit_options: true) # call_with_public_interface has two positional args, and kwargs for {circuit_options}.
+    result = Noop.call_with_public_interface(
+      {params: {}},
+      {},
+      variable_for_circuit_options: true
+    ) # call_with_public_interface has two positional args, and kwargs for {circuit_options}.
 
     assert_result result, {params: {}, capture_circuit_options: "[:variable_for_circuit_options, :wrap_runtime, :activity, :exec_context, :runner]"}
     # assert_equal result.inspect, %(<Result:true #<Trailblazer::Context::Container wrapped_options={:params=>{}} mutable_options={:capture_circuit_options=>\"[:variable_for_circuit_options, :wrap_runtime, :activity, :exec_context, :runner]\"}> >)

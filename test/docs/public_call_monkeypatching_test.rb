@@ -53,7 +53,7 @@ class PublicCallMonkeypatchingTest < Minitest::Spec
   end
 end
 
-class FlowOptionsMonekypatching < Minitest::Spec
+class FlowOptionsMonkeypatching < Minitest::Spec
   module App
     FLOW_OPTIONS = {
       context_options: {
@@ -73,7 +73,7 @@ class FlowOptionsMonekypatching < Minitest::Spec
     end
   end
 
-  it do
+  it "inject aliases for the global run via {flow_options}" do
     operation = Class.new(Trailblazer::Operation) do
       step :a
 
