@@ -52,10 +52,11 @@ class CallTest < Minitest::Spec
       include Trailblazer::Activity::Testing.def_steps(:a)
 
       merge = [
-        [Trailblazer::Activity::TaskWrap::Pipeline.method(:insert_before), "task_wrap.call_task", ["user.add_1", CallTest.method(:add_1)]]
       ]
 
-      step :a, extensions: [Trailblazer::Activity::TaskWrap::Extension(merge: merge)]
+      step :a, extensions: [Trailblazer::Activity::TaskWrap::Extension.WrapStatic(
+          [CallTest.method(:add_1), prepend: "task_wrap.call_task", id: "user.add_1"]
+        )]
     end
 
     # normal operation invocation
