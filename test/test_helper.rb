@@ -8,9 +8,9 @@ require "trailblazer/developer/render/linear"
 require "trailblazer/core"
 
 Minitest::Spec.class_eval do
-  Activity = Trailblazer::Activity # FIXME: remove this!
-  T = Activity::Testing
+  T = Trailblazer::Activity::Testing
   include Trailblazer::Activity::Testing::Assertions
+  CU = Trailblazer::Core::Utils
 
   def assert_equal(asserted, expected, *args)
     super(expected, asserted, *args)

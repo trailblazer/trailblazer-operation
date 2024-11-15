@@ -95,6 +95,6 @@ class TraceTest < Minitest::Spec
 
     result.success?.must_equal true
     result[:a_return].must_equal true
-    result[:params].inspect.must_equal %{{:x=>1}}
+    assert_equal CU.inspect(result[:params]), %({:x=>1})
   end
 end

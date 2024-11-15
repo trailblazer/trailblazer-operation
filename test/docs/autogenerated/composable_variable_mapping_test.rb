@@ -874,7 +874,7 @@ class InInjectSortingTest < Minitest::Spec
       end
     end
 
-    assert_invoke activity, expected_ctx_variables: {captured_params: "{:id=>1}"}
-    assert_invoke activity, params: {id: nil}, expected_ctx_variables: {params: {id: nil}, captured_params: "{:id=>1}"}
+    assert_invoke activity, expected_ctx_variables: {captured_params: "#{{:id=>1}}"}
+    assert_invoke activity, params: {id: nil}, expected_ctx_variables: {params: {id: nil}, captured_params: "#{{:id=>1}}"}
   end
 end

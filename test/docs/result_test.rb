@@ -13,13 +13,13 @@ module A
 
     it "exposes {#terminus}" do
       result = Memo::Operation::Create.(seq: [])
-      assert_equal result.terminus.to_h.inspect, %({:semantic=>:success})
+      assert_equal CU.inspect(result.terminus.to_h), %({:semantic=>:success})
 
       result = Memo::Operation::Create.(validate: false, seq: [])
-      assert_equal result.terminus.to_h.inspect, %({:semantic=>:validation_error})
+      assert_equal CU.inspect(result.terminus.to_h), %({:semantic=>:validation_error})
 
       result = Memo::Operation::Create.(save: false, seq: [])
-      assert_equal result.terminus.to_h.inspect, %({:semantic=>:failure})
+      assert_equal CU.inspect(result.terminus.to_h), %({:semantic=>:failure})
     end
 
     it "deprecates Result#event" do
@@ -32,7 +32,7 @@ module A
       line_no = __LINE__ - 2
 
       assert_equal warning, %{[Trailblazer] #{File.realpath(__FILE__)}:#{line_no} Using `Result#event` is deprecated, please use `Result#terminus`\n}
-      assert_equal terminus.to_h.inspect, %({:semantic=>:success})
+      assert_equal CU.inspect(terminus.to_h), %({:semantic=>:success})
     end
   end
 end

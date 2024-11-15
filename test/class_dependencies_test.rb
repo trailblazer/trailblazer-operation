@@ -47,8 +47,8 @@ class ClassDependenciesTest < Minitest::Spec
     end
 
   # TODO: "model.class" gets injected automatically in {Dashboard} and overrides the {Index} input.
-    Dashboard.({params: {}}).inspect.must_equal %{<Result:true #<Trailblazer::Context::Container wrapped_options={\"model.class\"=>Module} mutable_options=#<Trailblazer::Context::Container wrapped_options={\"model.class\"=>Float} mutable_options=#<Trailblazer::Context::Container wrapped_options={\"model.class\"=>Float} mutable_options=#<Trailblazer::Context::Container wrapped_options={:params=>{}} mutable_options={:Dashboard=>Float, \"a\"=>Float}>>>> >}
-
+    assert_equal Dashboard.({params: {}}).inspect,
+          %(<Result:true #<Trailblazer::Context::Container wrapped_options=#{{"model.class" => Module}} mutable_options=#<Trailblazer::Context::Container wrapped_options=#{{"model.class" => Float}} mutable_options=#<Trailblazer::Context::Container wrapped_options=#{{"model.class" => Float}} mutable_options=#<Trailblazer::Context::Container wrapped_options=#{{:params => {}}} mutable_options=#{{:Dashboard => Float, "a" => Float}}>>>> >)
   end
 
   describe "inheritance" do

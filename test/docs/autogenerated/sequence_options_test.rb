@@ -30,9 +30,9 @@ module A
 
 #~ignore end
 
-      assert Activity::Introspect.Nodes(Memo::Operation::Create, id: :save_the_world)
+      assert Trailblazer::Activity::Introspect.Nodes(Memo::Operation::Create, id: :save_the_world)
       #:id-introspect
-      puts Activity::Introspect.Nodes(Memo::Operation::Create, id: :save_the_world)
+      puts Trailblazer::Activity::Introspect.Nodes(Memo::Operation::Create, id: :save_the_world)
       #=> #<struct Trailblazer::Operation::Schema::Nodes::Attributes id=:save_the_world, ...>
       #:id-introspect end
     end
@@ -157,7 +157,7 @@ module E
       #=> [>validate,>update,>notify]
       #:replace-inspect end
 =end
-      assert Activity::Introspect.Nodes(Memo::Operation::Update, id: :update)
+      assert Trailblazer::Activity::Introspect.Nodes(Memo::Operation::Update, id: :update)
 
 #~ignore end
     end
@@ -194,7 +194,7 @@ module E_2
 
       # assert_equal Trailblazer::Developer.railway(Memo::Operation::Update), %([>validate,>update_memo,>notify])
 
-      assert Activity::Introspect.Nodes(Memo::Operation::Update, id: :update_memo)
+      Trailblazer::Activity::Introspect.Nodes(Memo::Operation::Update, id: :update_memo)
 
 #~ignore end
     end

@@ -22,7 +22,7 @@ class OperationTest < Minitest::Spec
       variable_for_circuit_options: true
     ) # call_with_public_interface
     #@ {:variable_for_circuit_options} is not supposed to be in {ctx}.
-    assert_equal ctx.inspect, %({:params=>{}, :capture_circuit_options=>"[:variable_for_circuit_options, :exec_context, :activity, :runner]"})
+    assert_equal CU.inspect(ctx), %({:params=>{}, :capture_circuit_options=>"[:variable_for_circuit_options, :exec_context, :activity, :runner]"})
   end
 
   it "doesn't mistake circuit options as ctx variables when using the call interface" do
@@ -180,7 +180,7 @@ class DeclarativeApiTest < Minitest::Spec
     signal, (ctx, _) = Update.([Update.options_for_public_call(options), {}], **{})
 
     signal.inspect.must_equal %{#<Trailblazer::Activity::Railway::End::Success semantic=:success>}
-    ctx.inspect.must_equal %{#<Trailblazer::Context::Container wrapped_options={\"params\"=>{:decide=>true}} mutable_options={\"a\"=>false, \"b\"=>true}>}
+    assert_equal ctx.inspect, %(#<Trailblazer::Context::Container wrapped_options=#{{"params" => {:decide=>true}}} mutable_options=#{{"a" => false, "b" => true}}>)
 
     # Call by passing aliases as an argument.
     # This uses {#call}'s second positional argument.
