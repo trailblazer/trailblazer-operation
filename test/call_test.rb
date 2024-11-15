@@ -65,11 +65,9 @@ class CallTest < Minitest::Spec
     result.inspect(:seq).must_equal %{<Result:true [[1, :a]] >}
 
     # with tracing
-    result = operation.trace(seq: [])
+    result = operation.wtf?(seq: [])
 
     result.inspect(:seq).must_equal %{<Result:true [[1, :a]] >}
-
-    result.wtf?
   end
 
 

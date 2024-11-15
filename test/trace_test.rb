@@ -13,38 +13,13 @@ class TraceTest < Minitest::Spec
     step ->(_options, params:, **) { params.any? }, id: "Create.task.params"
   end
 
-  it "deprecates {result.wtf?} and {Operation.trace}" do
-    output, warning = capture_io do
-      result = Create.trace({a_return: true, params: {}})
-      result.wtf?
-    end
-    line_no = __LINE__ - 2
-
-    assert_equal warning, %([Trailblazer] #{File.realpath(__FILE__)}:#{line_no - 1} Using `Operation.trace` is deprecated and will be removed in {trailblazer-operation-0.11.0}.
-  Please use `TraceTest::Create.wtf?` as documented here: https://trailblazer.to/2.1/docs/trailblazer#trailblazer-developer-wtf-
-[Trailblazer] #{File.realpath(__FILE__)}:#{line_no} Using `result.wtf?` is deprecated. Please use `TraceTest::Create.wtf?` and have a nice day.
-)
-    assert_equal output, %(TraceTest::Create
-|-- Start.default
-|-- Create.task.a
-|-- MyNested
-|   |-- Start.default
-|   |-- B.task.b
-|   |-- B.task.e
-|   `-- End.success
-|-- Create.task.c
-|-- Create.task.params
-`-- End.failure
-)
-  end
-
   it "allows using low-level Operation::Trace" do
-    result = Trailblazer::Operation::Trace.(
+    stack, result = Trailblazer::Developer::Trace.(
       Create,
       { a_return: true, params: {} },
     )
 
-    output = result.wtf
+    output = Trailblazer::Developer::Trace::Present.(stack)
 
     assert_equal output.gsub(/0x\w+/, "").gsub(/@.+_test/, ""), %{TraceTest::Create
 |-- Start.default
@@ -57,21 +32,6 @@ class TraceTest < Minitest::Spec
 |-- Create.task.c
 |-- Create.task.params
 `-- End.failure}
-  end
-
-  it "Operation::trace" do
-    result = Create.trace(params: {x: 1}, a_return: true)
-    assert_equal result.wtf.gsub(/0x\w+/, "").gsub(/@.+_test/, ""), %{TraceTest::Create
-|-- Start.default
-|-- Create.task.a
-|-- MyNested
-|   |-- Start.default
-|   |-- B.task.b
-|   |-- B.task.e
-|   `-- End.success
-|-- Create.task.c
-|-- Create.task.params
-`-- End.success}
   end
 
   it "Operation.wtf?" do
