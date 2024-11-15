@@ -1,3 +1,13 @@
+## 0.11.0
+
+* Introduce `Operation.call_with_public_interface_from_call` which merges `ctx` and `circuit_options`
+  accordingly, so the overrider of `Operation.call_with_public_interface` gets correct args.
+* Removing `Operation.trace`, you've been warned! Use `Operation.wtf?`. This also removes `Result#wtf`.
+  See [https://github.com/trailblazer/trailblazer-operation/blob/3f821c7d576e7ccccf580fbd8c9305501fdc5d2c/test/trace_test.rb#L22](this sample test case)
+  if you need a more low-level interface to tracing.
+* No need to pass `:exec_context` in `#call_with_public_interface`. This is  done in `Strategy.call`.
+* Rename `Result#event` to `Result#terminus` for consistency. Deprecate `Result#event`.
+
 ## 0.10.1
 
 * Deprecate `Operation.trace` and `Result#wtf?` in favor of `Operation.wtf?`.
