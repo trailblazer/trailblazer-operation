@@ -15,9 +15,9 @@ class ActivityInterfaceTest < Minitest::Spec
   end
 
   it "exposes the step DSL" do
-    assert_call(operation, seq: "[:model, :validate, :save]")
-    assert_call(operation, seq: "[:model]", model: false, terminus: :not_found)
-    assert_call(operation, seq: "[:model, :validate]", validate: false, terminus: :failure)
+    assert_call operation, seq: "[:model, :validate, :save]"
+    assert_call operation, seq: "[:model]", model: false, terminus: :not_found
+    assert_call operation, seq: "[:model, :validate]", validate: false, terminus: :failure
   end
 
   it "we can nested operations" do
@@ -32,5 +32,12 @@ class ActivityInterfaceTest < Minitest::Spec
 
     assert_call operation, seq: "[:model, :validate, :save, :persist]"
     assert_call operation, seq: "[:model]", model: false, terminus: :fail_fast
+  end
+
+  it "exposes the circuit-interface via {Operation.call}" do
+    signal, (ctx, _) = operation.([{model: false, seq: []}, {}])
+
+    assert_equal signal.to_h[:semantic], :not_found
+    assert_equal ctx[:seq].inspect, "[:model]"
   end
 end
