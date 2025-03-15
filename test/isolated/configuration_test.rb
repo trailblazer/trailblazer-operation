@@ -29,7 +29,14 @@ class ConfigurationTest < Minitest::Spec
 
   # and now, we got aliasing on Operation and subclasses.
     result = Trailblazer::Operation.(params: {id: 1})
+    assert_aliasing(result)
 
+  # subclasses also work
+    result = Class.new(Trailblazer::Operation).(params: {id: 1})
+    assert_aliasing(result)
+  end
+
+  def assert_aliasing(result)
     assert_equal result.success?, true
     assert_equal result[:params], {id: 1}
     assert_equal result[:parameters], {id: 1}
