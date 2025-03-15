@@ -1,3 +1,7 @@
+## 1.0.0
+
+* Signature changed to Operation.call(options, &block). We removed the second positional argument `flow_options`.
+
 ## 0.11.0
 
 * Introduce `Operation.call_with_public_interface_from_call` which merges `ctx` and `circuit_options`
