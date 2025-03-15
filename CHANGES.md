@@ -1,3 +1,7 @@
+## 1.0.0
+
+* Signature changed to Operation.call(options, &block). We removed the second positional argument `flow_options`.
+
 ## 0.11.1
 
 * Stricter dependency: `trailblazer-activity-dsl-linear < 1.3.0`.

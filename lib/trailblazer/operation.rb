@@ -1,6 +1,7 @@
+require "trailblazer/operation/version"
 require "trailblazer/activity/dsl/linear"
-require 'forwardable'
-require 'trailblazer/operation/version'
+require "trailblazer/invoke"
+require "forwardable"
 
 #
 # Developer's docs: https://trailblazer.to/2.1/docs/internals.html#internals-operation
@@ -33,10 +34,10 @@ module Trailblazer
     end
   end
 
-  # DISCUSS: where do we need this?
   def self.Operation(options)
     Class.new(Activity::FastTrack( Activity::Operation.OptionsForState.merge(options) )) do
       extend Operation::PublicCall
+      raise
     end
   end
 
@@ -47,11 +48,16 @@ module Trailblazer
       alias_method :strategy_call, :call
     end
 
-    require "trailblazer/operation/public_call"      # TODO: Remove in 3.0.
-    extend PublicCall              # ::call(params: .., current_user: ..)
+    def self.configure!(&block)
+      Trailblazer::Invoke.module!(self.singleton_class, &block) # => Operation.__() as a canonical invoke.
+      self
+    end
+
+    require "trailblazer/operation/public_call"
+    extend PublicCall # Operation.call that exposes a switch for two different interfaces.
 
     require "trailblazer/operation/wtf"
-    extend Wtf                   # ::trace
+    extend Wtf                   # Operation.trace
   end
 end
 
@@ -60,3 +66,5 @@ require "trailblazer/operation/deprecated_macro" # TODO: remove in 2.2.
 
 require "trailblazer/operation/result"
 require "trailblazer/operation/railway"
+
+Trailblazer::Operation.configure! { {} } # create a default Operation.() with no dynamic args set.

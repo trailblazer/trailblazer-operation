@@ -19,12 +19,13 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "trailblazer-activity-dsl-linear",  ">= 1.2.3", "< 1.3.0"
   spec.add_dependency "trailblazer-developer", ">= 0.1.0", "< 0.2.0"
+  spec.add_dependency "trailblazer-invoke"
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "minitest"
   spec.add_development_dependency "minitest-line"
   spec.add_development_dependency "rake"
-  spec.add_development_dependency "trailblazer-core-utils"
+  spec.add_development_dependency "trailblazer-core-utils", ">= 0.0.6"
 
   spec.required_ruby_version = ">= 2.5.0"
 end
