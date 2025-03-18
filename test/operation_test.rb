@@ -23,7 +23,7 @@ class OperationTest < Minitest::Spec
       signal, (result, _) = operation_class.__?(operation_class, {params: {id: 1}})
     end
 
-    assert_equal CU.strip(stdout), %(#<Class:0x>
+    assert_equal CU.strip(stdout), %(Trailblazer::Operation
 |-- \e[32mStart.default\e[0m
 `-- End.success\n)
   end
@@ -43,12 +43,14 @@ class OperationTest < Minitest::Spec
   end
 
   it "we can use the circuit-interface and inject options like {:runner}" do
+    # Internally, TaskWrap::Runner.call_task invokes the circuit-interface.
     signal, (ctx, _) = Trailblazer::Activity::TaskWrap.invoke(Trailblazer::Operation, [{id: 1}, {}])
 
     assert_equal signal.to_h[:semantic], :success
     assert_equal ctx.class, Hash # because canonical invoke is not called.
   end
 
+  # test that circuit-interface doesn't use dynamic args / (e.g. aliasing)
   it "circuit-interface doesn't use dynamic args from {configure!}" do
     operation_class = Class.new(Trailblazer::Operation)
     operation_class.configure! do
@@ -71,7 +73,30 @@ class OperationTest < Minitest::Spec
     assert_equal ctx[:seq], []
     assert_nil ctx[:sequence]
   end
-  # test that circuit-interface doesn't use dynamic args / (e.g. aliasing)
+
+  it "{Operation.wtf?}" do
+    operation_class = Class.new(Trailblazer::Operation)
+    operation_class.configure! do
+      {
+        flow_options: {
+          context_options: {
+            aliases: { "seq" => :sequence },
+            container_class: Trailblazer::Context::Container::WithAliases,
+          }
+        }
+      }
+    end
+    signal, result = nil
+
+    stdout, _ = capture_io do
+      result = operation_class.wtf?({seq: []})
+    end
+
+    assert_equal CU.strip(stdout), %(#<Class:0x>
+|-- \e[32mStart.default\e[0m
+`-- End.success\n)
+    assert_equal result[:sequence], [] # aliasing  works.
+  end
   # test Op.wtf?
   # test matcher block interface
 

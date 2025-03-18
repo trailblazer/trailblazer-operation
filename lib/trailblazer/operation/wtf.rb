@@ -4,7 +4,7 @@ module Trailblazer
   class Operation
     module Wtf
       def wtf?(options)
-        call_with_public_interface(options, {}, invoke_class: Developer::Wtf)
+        invoke_with_public_interface(options, invoke_method: Trailblazer::Developer::Wtf.method(:invoke))
       end
     end
   end
