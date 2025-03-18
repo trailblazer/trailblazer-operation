@@ -2,6 +2,82 @@ require "test_helper"
 
 # Tests around {Operation.call}.
 class OperationTest < Minitest::Spec
+  def assert_aliasing(result)
+    assert_equal result.success?, true
+    assert_equal result[:params], {id: 1}
+    assert_equal result[:parameters], {id: 1}
+  end
+
+  it "canonical invoke using {Operation.__}" do
+    # Trailblazer::Operation.()# calls {  }.
+    operation_class = Trailblazer::Operation
+
+    result = operation_class.(params: {id: 1})
+
+    # {Operation.__} returns circuit-interface return set.
+    signal, (result, _) = operation_class.__(operation_class, {params: {id: 1}})
+
+    assert_equal signal.to_h[:semantic], :success
+
+    stdout, _ = capture_io do
+      signal, (result, _) = operation_class.__?(operation_class, {params: {id: 1}})
+    end
+
+    assert_equal CU.strip(stdout), %(#<Class:0x>
+|-- \e[32mStart.default\e[0m
+`-- End.success\n)
+  end
+
+  it "canonical invoke #__ allows a second argument and accepts the {:invoke_method} option" do
+    operation_class = Trailblazer::Operation
+    signal, result = nil
+
+    stdout, _ = capture_io do
+      signal, (result, _) = operation_class.__(operation_class, {params: {id: 1}}, invoke_method: Trailblazer::Developer::Wtf.method(:invoke))
+    end
+
+    assert_equal signal.to_h[:semantic], :success
+    assert_equal CU.strip(stdout), %(Trailblazer::Operation
+|-- \e[32mStart.default\e[0m
+`-- End.success\n)
+  end
+
+  it "we can use the circuit-interface and inject options like {:runner}" do
+    signal, (ctx, _) = Trailblazer::Activity::TaskWrap.invoke(Trailblazer::Operation, [{id: 1}, {}])
+
+    assert_equal signal.to_h[:semantic], :success
+    assert_equal ctx.class, Hash # because canonical invoke is not called.
+  end
+
+  it "circuit-interface doesn't use dynamic args from {configure!}" do
+    operation_class = Class.new(Trailblazer::Operation)
+    operation_class.configure! do
+      {
+        flow_options: {
+          context_options: {
+            aliases: { "seq" => :sequence },
+            container_class: Trailblazer::Context::Container::WithAliases,
+          }
+        }
+      }
+    end
+
+    result = operation_class.({seq: []})
+    assert_equal result[:sequence], [] # with public_call, we use {configure!} and can see the alias.
+
+    signal, (ctx, _) = Trailblazer::Activity::TaskWrap.invoke(Trailblazer::Operation, [{seq: []}, {}])
+
+    assert_equal ctx.class, Hash
+    assert_equal ctx[:seq], []
+    assert_nil ctx[:sequence]
+  end
+  # test that circuit-interface doesn't use dynamic args / (e.g. aliasing)
+  # test Op.wtf?
+  # test matcher block interface
+
+  # TODO: test overriding configure! options etc in subclasses
+
+
   class Noop < Trailblazer::Operation
     def self.capture_circuit_options((ctx, flow_options), **circuit_options)
       ctx[:capture_circuit_options] = circuit_options.keys.inspect
