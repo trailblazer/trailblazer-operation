@@ -42,6 +42,13 @@ class OperationTest < Minitest::Spec
 `-- End.success\n)
   end
 
+  it "we can use public call" do
+    result = Trailblazer::Operation.({seq: []})
+
+    assert_equal result.success?, true
+    assert_equal result.send(:data).class, Trailblazer::Context::Container#::WithAliases
+  end
+
   it "we can use the circuit-interface and inject options like {:runner}" do
     # Internally, TaskWrap::Runner.call_task invokes the circuit-interface.
     signal, (ctx, _) = Trailblazer::Activity::TaskWrap.invoke(Trailblazer::Operation, [{id: 1}, {}])
@@ -74,6 +81,7 @@ class OperationTest < Minitest::Spec
     assert_nil ctx[:sequence]
   end
 
+  # test Op.wtf?
   it "{Operation.wtf?}" do
     operation_class = Class.new(Trailblazer::Operation)
     operation_class.configure! do
@@ -96,8 +104,8 @@ class OperationTest < Minitest::Spec
 |-- \e[32mStart.default\e[0m
 `-- End.success\n)
     assert_equal result[:sequence], [] # aliasing  works.
+    assert_equal result.send(:data).class, Trailblazer::Context::Container::WithAliases
   end
-  # test Op.wtf?
   # test matcher block interface
 
   # TODO: test overriding configure! options etc in subclasses
