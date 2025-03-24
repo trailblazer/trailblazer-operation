@@ -177,4 +177,26 @@ class OperationTest < Minitest::Spec
     #@ {:variable_for_circuit_options} is not supposed to be in {ctx}.
     assert_result result, {params: {}, model: true, current_user: Object, capture_circuit_options: "[:exec_context, :wrap_runtime, :activity, :runner]"}
   end
+
+  it "doesn't invoke {call} twice when using public interface" do
+    operation = Class.new(Trailblazer::Operation) do
+      @@GLOBAL = []
+      def self.global; @@GLOBAL; end
+
+
+      def self.call(*args)
+        @@GLOBAL << :call
+        super
+      end
+
+      pass :model
+
+      def model(ctx, **)
+        @@GLOBAL << :model
+      end
+    end
+
+    operation.({})
+    assert_equal operation.global.inspect, %{[:call, :model]}
+  end
 end

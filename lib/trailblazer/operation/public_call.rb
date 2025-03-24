@@ -19,13 +19,6 @@ module Trailblazer
       Operation::Railway::Result(signal, ctx, flow_options)
     end
 
-    in_extension = Class.new(Activity::Railway) do
-      step :a, In() => ->(ctx, **) { ctx } # wrap hash into Trailblazer::Context, super awkward
-    end.to_h[:config][:wrap_static].values.first.to_a[0]
-
-
-
-
     # This TaskWrap step replaces the default {call_task} step for this very operation.
     # Instead of invoking the operation using {Operation.call}, it does {Operation.call_with_circuit_interface},
     # so we don't invoke {Operation.call} twice.
@@ -47,6 +40,11 @@ module Trailblazer
       return wrap_ctx, original_args
     end
 
+    initial_wrap_static_for_activity = Invoke.initial_wrap_static
+    # raise initial_wrap_static_for_activity.inspect
+    in_extension = initial_wrap_static_for_activity[0]
+
+    # Replace the TaskWrap's {call_task} step with our step that doesn't do {Create.call} but {Create.strategy_call}.
     INITIAL_WRAP_STATIC = [
       in_extension,
       Activity::TaskWrap::Pipeline.Row("task_wrap.call_task", method(:call_operation_with_circuit_interface))
