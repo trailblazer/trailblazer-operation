@@ -1,6 +1,9 @@
 ## 1.0.0
 
 * Signature changed to Operation.call(options, &block). We removed the second positional argument `flow_options`.
+* Removed `:invoke_class` in public_call
+* Removed `Result#slice` and `Result#inspect`. Renamed `Result#to_hash` to `#to_h`.
+
 
 ## 0.11.1
 
