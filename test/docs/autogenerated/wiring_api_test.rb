@@ -401,7 +401,7 @@ class WiringApiDocsTest < Minitest::Spec
 
   it do
     result = B::Payment::Operation::Create.(find_provider: false, seq: [])
-    assert_equal result.event.to_h[:semantic], :provider_invalid
+    assert_equal result.terminus.to_h[:semantic], :provider_invalid
 =begin
     #:terminus-invalid
     result = Payment::Operation::Create.(provider: "bla-unknown")
