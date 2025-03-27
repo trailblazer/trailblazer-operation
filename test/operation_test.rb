@@ -2,6 +2,9 @@ require "test_helper"
 
 # Tests around {Operation.call}.
 class OperationTest < Minitest::Spec
+  require "trailblazer/operation/testing"
+  include Trailblazer::Operation::Testing::Assertions
+
   def assert_aliasing(result)
     assert_equal result.success?, true
     assert_equal result[:params], {id: 1}
@@ -46,7 +49,7 @@ class OperationTest < Minitest::Spec
     result = Trailblazer::Operation.({seq: []})
 
     assert_equal result.success?, true
-    assert_equal result.send(:data).class, Trailblazer::Context::Container#::WithAliases
+    assert_equal result.instance_variable_get(:@data).class, Trailblazer::Context::Container#::WithAliases
   end
 
   it "we can use the circuit-interface and inject options like {:runner}" do
@@ -108,7 +111,7 @@ class OperationTest < Minitest::Spec
 |-- \e[32mStart.default\e[0m
 `-- End.success\n)
     assert_equal result[:sequence], [] # aliasing  works.
-    assert_equal result.send(:data).class, Trailblazer::Context::Container::WithAliases
+    assert_equal result.instance_variable_get(:@data).class, Trailblazer::Context::Container::WithAliases
   end
   # test matcher block interface
 
@@ -141,7 +144,19 @@ class OperationTest < Minitest::Spec
   end
 
   it "Operation.call accepts block matcher interface" do
+    my_operation = Class.new(Trailblazer::Operation) do
+      step :model
+      include T.def_steps(:model)
+    end
 
+    @render = nil
+
+    result = my_operation.(seq: []) do
+      success { |ctx, seq:, **| @render = "success! #{seq}" }
+      failure { |ctx, seq:, **| @render = "failure! #{seq}" }
+    end
+
+    assert_equal @render, %(success! [:model])
   end
 
 
@@ -175,10 +190,11 @@ class OperationTest < Minitest::Spec
       "current_user" => Object
     ) # call with public interface.
     #@ {:variable_for_circuit_options} is not supposed to be in {ctx}.
-    assert_result result, {params: {}, model: true, current_user: Object, capture_circuit_options: "[:exec_context, :wrap_runtime, :activity, :runner]"}
+
+    assert_equal result.to_h, {params: {}, model: true, current_user: Object, capture_circuit_options: "[:exec_context, :wrap_runtime, :activity, :runner]"}
   end
 
-  it "doesn't invoke {call} twice when using public interface" do
+  it "doesn't invoke {Operation.call} twice when using public interface" do
     operation = Class.new(Trailblazer::Operation) do
       @@GLOBAL = []
       def self.global; @@GLOBAL; end
@@ -198,5 +214,62 @@ class OperationTest < Minitest::Spec
 
     operation.({})
     assert_equal operation.global.inspect, %{[:call, :model]}
+
+  # don't invoke call twice when going through canonical invoke.
+    result = Trailblazer::Operation.__(operation, {})
+
+    assert_equal operation.global.inspect, %{[:call, :model, :call, :model]}
+  end
+
+  it "{Operation.call} invokes with the taskWrap" do
+    def add_1(wrap_ctx, original_args)
+      ctx, = original_args[0]
+      ctx[:seq] << 1
+
+      return wrap_ctx, original_args # yay to mutable state. not.
+    end
+
+    add_1_method = method(:add_1)
+
+    operation = Class.new(Trailblazer::Operation) do
+      include T.def_steps(:model)
+
+      step :model,
+        Extension() => Trailblazer::Activity::TaskWrap::Extension.WrapStatic(
+          [add_1_method, prepend: "task_wrap.call_task", id: "user.add_1"]
+        )
+    end
+
+    # normal operation invocation
+    assert_call operation, seq: "[1, :model]"
+
+    result = nil
+    # with tracing
+    stdout, _ = capture_io do
+      result = operation.wtf?(seq: [])
+    end
+
+    assert_equal CU.strip(stdout), %(#<Class:0x>
+|-- \e[32mStart.default\e[0m
+|-- \e[32mmodel\e[0m
+`-- End.success
+)
+    assert_equal CU.inspect(result.to_h), %({:seq=>[1, :model]})
+    assert_equal result.terminus.to_h[:semantic], :success
+
+  # with circuit-interface and {:wrap_runtime}.
+    my_runtime_extension = Trailblazer::Activity::TaskWrap::Extension(
+      [add_1_method, id: "my.add_1", append: "task_wrap.call_task"]
+    )
+
+    # circuit interface invocation using call
+    signal, (ctx, _) = operation.(
+      [{seq: []}, {}],
+      wrap_runtime: Hash.new(my_runtime_extension),
+      runner: Trailblazer::Activity::TaskWrap::Runner
+    )
+
+    assert_equal signal.to_h[:semantic], :success
+    assert_equal CU.inspect(ctx), %({:seq=>[1, 1, :model, 1, 1]}) # {Start.default} is a step, too :D
   end
 end
