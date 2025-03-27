@@ -7,7 +7,7 @@ module Trailblazer
           result = operation.(seq: [], **ctx_variables)
 
           signal = result.terminus
-          ctx    = result.send(:data).to_h
+          ctx    = result.to_h
 
           assert_call_for(signal, ctx, terminus: terminus, seq: seq, **expected_ctx_variables, **ctx_variables)
         end
