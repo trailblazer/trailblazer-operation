@@ -24,12 +24,9 @@ module Trailblazer
           @terminus = terminus
         end
 
-        def event
-          Activity::Deprecate.warn caller_locations[0], %(Using `Result#event` is deprecated, please use `Result#terminus`)
-          terminus
-        end
-
         attr_reader :terminus
+
+        # TODO: add {#to_h}.
       end
 
       module End
