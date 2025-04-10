@@ -37,7 +37,7 @@ module Trailblazer
   def self.Operation(options)
     Class.new(Activity::FastTrack( Activity::Operation.OptionsForState.merge(options) )) do
       extend Operation::PublicCall
-      raise
+      raise # FIXME: what is the matter with you?
     end
   end
 
@@ -65,3 +65,11 @@ require "trailblazer/operation/result"
 require "trailblazer/operation/railway"
 
 Trailblazer::Operation.configure! { {} } # create a default Operation.() with no dynamic args set.
+
+# FIXME: move this to Activity and add inheritance etc.
+Trailblazer::Operation.instance_variable_get(:@state).update!(:fields) do |fields|
+  # raise fields.inspect
+  fields.merge(
+    task_wrap: Trailblazer::Operation::PublicCall::INITIAL_WRAP_STATIC  # HERE, we can add other tw steps like dependeny injection.
+  )
+end
