@@ -15,7 +15,7 @@ module Trailblazer
       # On the top level, use {#__}.
       options_for_invoke = {matcher_context: block.binding.receiver}.merge(options_for_invoke) if block # DISCUSS: do we always want that?
 
-      signal, (ctx, flow_options) = self.__(self, options, initial_wrap_static: INITIAL_WRAP_STATIC, **options_for_invoke, &block) # Operation.__ is defined via {trailblazer-invoke}. It's the "canonical invoke".
+      signal, (ctx, flow_options) = self.__(self, options, **options_for_invoke, &block) # Operation.__ is defined via {trailblazer-invoke}. It's the "canonical invoke".
 
       Operation::Railway::Result(signal, ctx, flow_options)
     end
@@ -41,14 +41,14 @@ module Trailblazer
       return wrap_ctx, original_args
     end
 
-    initial_wrap_static_for_activity = Invoke.initial_wrap_static
-    # raise initial_wrap_static_for_activity.inspect
-    in_extension = initial_wrap_static_for_activity[0]
+    # initial_wrap_static_for_activity = Invoke.initial_wrap_static
+    # # raise initial_wrap_static_for_activity.inspect
+    # in_extension = initial_wrap_static_for_activity[0]
 
     # Replace the TaskWrap's {call_task} step with our step that doesn't do {Create.call} but {Create.strategy_call}.
     INITIAL_WRAP_STATIC = [
-      in_extension,
-      Activity::TaskWrap::Pipeline.Row("task_wrap.call_task", method(:call_operation_with_circuit_interface))
-    ]
+      # in_extension,
+      Activity::TaskWrap::Pipeline.Row("task_wrap.call_task", method(:call_operation_with_circuit_interface)).freeze
+    ].freeze
   end
 end
