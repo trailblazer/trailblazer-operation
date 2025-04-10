@@ -197,19 +197,21 @@ class OperationTest < Minitest::Spec
   describe "{Operation.call} is not called twice" do
     let(:operation) do
       Class.new(Trailblazer::Operation) do
-        @@GLOBAL = []
-        def self.global; @@GLOBAL; end
-
+        class << self
+          def global; @GLOBAL; end
+          def global=(v); @GLOBAL = v; end
+        end
+        self.global= []
 
         def self.call(*args)
-          @@GLOBAL << :call
+          global << :call
           super
         end
 
         pass :model
 
         def model(ctx, **)
-          @@GLOBAL << :model
+          self.class.global << :model
         end
       end
     end
@@ -226,6 +228,20 @@ class OperationTest < Minitest::Spec
       result = Trailblazer::Operation.__(operation, {})
 
       assert_equal operation.global.inspect, %{[:model]}
+    end
+
+    it "isn't invoked twice on nested Operation, either" do
+      operation = self.operation
+
+      parent = Class.new(operation) do
+        step Subprocess(operation)
+      end
+      parent.global= []
+
+      parent.({})
+
+      assert_equal operation.global.inspect, %{[:call, :model]}
+      assert_equal parent.global.inspect, %{[:call, :model]}
     end
   end
 
