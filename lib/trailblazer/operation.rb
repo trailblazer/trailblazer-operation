@@ -68,8 +68,8 @@ Trailblazer::Operation.configure! { {} } # create a default Operation.() with no
 
 # FIXME: move this to Activity and add inheritance etc.
 Trailblazer::Operation.instance_variable_get(:@state).update!(:fields) do |fields|
-  # raise fields.inspect
+  # Override Activity's initial taskWrap.
   fields.merge(
-    task_wrap: Trailblazer::Operation::PublicCall::INITIAL_WRAP_STATIC  # HERE, we can add other tw steps like dependeny injection.
+    task_wrap: Trailblazer::Operation::PublicCall::INITIAL_TASK_WRAP  # HERE, we can add other tw steps like dependeny injection.
   )
 end

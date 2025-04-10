@@ -46,7 +46,7 @@ module Trailblazer
     # in_extension = initial_wrap_static_for_activity[0]
 
     # Replace the TaskWrap's {call_task} step with our step that doesn't do {Create.call} but {Create.strategy_call}.
-    INITIAL_WRAP_STATIC = [
+    INITIAL_TASK_WRAP = [
       # in_extension,
       Activity::TaskWrap::Pipeline.Row("task_wrap.call_task", method(:call_operation_with_circuit_interface)).freeze
     ].freeze
