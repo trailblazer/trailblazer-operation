@@ -15,6 +15,10 @@ module Trailblazer
       # On the top level, use {#__}.
       options_for_invoke = {matcher_context: block.binding.receiver}.merge(options_for_invoke) if block # DISCUSS: do we always want that?
 
+      options_for_invoke = options_for_invoke.merge(
+        task_wrap_for_activity: PUBLIC_TASK_WRAP
+      )
+
       signal, (ctx, flow_options) = self.__(self, options, **options_for_invoke, &block) # Operation.__ is defined via {trailblazer-invoke}. It's the "canonical invoke".
 
       Operation::Railway::Result(signal, ctx, flow_options)
@@ -41,12 +45,8 @@ module Trailblazer
       return wrap_ctx, original_args
     end
 
-    # initial_wrap_static_for_activity = Invoke.initial_wrap_static
-    # # raise initial_wrap_static_for_activity.inspect
-    # in_extension = initial_wrap_static_for_activity[0]
-
     # Replace the TaskWrap's {call_task} step with our step that doesn't do {Create.call} but {Create.strategy_call}.
-    INITIAL_TASK_WRAP = [
+    PUBLIC_TASK_WRAP = [
       # in_extension,
       Activity::TaskWrap::Pipeline.Row("task_wrap.call_task", method(:call_operation_with_circuit_interface)).freeze
     ].freeze
