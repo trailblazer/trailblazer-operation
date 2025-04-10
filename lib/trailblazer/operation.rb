@@ -66,10 +66,16 @@ require "trailblazer/operation/railway"
 
 Trailblazer::Operation.configure! { {} } # create a default Operation.() with no dynamic args set.
 
-# FIXME: move this to Activity and add inheritance etc.
+=begin
 Trailblazer::Operation.instance_variable_get(:@state).update!(:fields) do |fields|
   # Override Activity's initial taskWrap.
+  # This way, an OP is never called using `call`, always via `#strategy_call` (even the top in Invoke).
+
+  # Even though this is much cleaner, "problem" with this approach is that
+  # nested OPs won't have {Operation.call} invoked anymore, which breaks some users' tests
+  # especially those with expectations on nested OPs being {call}ed.
   fields.merge(
     task_wrap: Trailblazer::Operation::PublicCall::INITIAL_TASK_WRAP  # HERE, we can add other tw steps like dependeny injection.
   )
 end
+=end

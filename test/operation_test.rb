@@ -221,20 +221,23 @@ class OperationTest < Minitest::Spec
       assert_equal operation.global.inspect, %{[:call, :model]}
     end
 
-    it "{Operation.call} isn't invoked at all when using canonical invoke #__()" do
+    it "{Operation.call} is obviously invoked when using canonical invoke #__()" do
       kernel = Class.new { Trailblazer::Invoke.module!(self) }.new
 
     # don't invoke call twice when going through canonical invoke.
       result = Trailblazer::Operation.__(operation, {})
 
-      assert_equal operation.global.inspect, %{[:model]}
+      assert_equal operation.global.inspect, %{[:call, :model]}
     end
 
     it "isn't invoked twice on nested Operation, either" do
       operation = self.operation
 
       parent = Class.new(operation) do
-        step Subprocess(operation)
+        step Subprocess(operation)#,
+          # without this option {:initial_task_wrap} set, we use TaskWrap::INITIAL_TASK_WRAP with call_task.*call*
+          # change it to *call_with_circuit_interface*
+          # initial_task_wrap: Trailblazer::Activity::TaskWrap::Pipeline.new(operation.to_h[:fields][:task_wrap])
       end
       parent.global= []
 
