@@ -194,31 +194,39 @@ class OperationTest < Minitest::Spec
     assert_equal result.to_h, {params: {}, model: true, current_user: Object, capture_circuit_options: "[:exec_context, :wrap_runtime, :activity, :runner]"}
   end
 
-  it "doesn't invoke {Operation.call} twice when using public interface" do
-    operation = Class.new(Trailblazer::Operation) do
-      @@GLOBAL = []
-      def self.global; @@GLOBAL; end
+  describe "{Operation.call} is not called twice" do
+    let(:operation) do
+      Class.new(Trailblazer::Operation) do
+        @@GLOBAL = []
+        def self.global; @@GLOBAL; end
 
 
-      def self.call(*args)
-        @@GLOBAL << :call
-        super
-      end
+        def self.call(*args)
+          @@GLOBAL << :call
+          super
+        end
 
-      pass :model
+        pass :model
 
-      def model(ctx, **)
-        @@GLOBAL << :model
+        def model(ctx, **)
+          @@GLOBAL << :model
+        end
       end
     end
 
-    operation.({})
-    assert_equal operation.global.inspect, %{[:call, :model]}
+    it "doesn't invoke {Operation.call} twice when using public interface" do
+      operation.({})
+      assert_equal operation.global.inspect, %{[:call, :model]}
+    end
 
-  # don't invoke call twice when going through canonical invoke.
-    result = Trailblazer::Operation.__(operation, {})
+    it "{Operation.call} isn't invoked at all when using canonical invoke #__()" do
+      kernel = Class.new { Trailblazer::Invoke.module!(self) }.new
 
-    assert_equal operation.global.inspect, %{[:call, :model, :call, :model]}
+    # don't invoke call twice when going through canonical invoke.
+      result = Trailblazer::Operation.__(operation, {})
+
+      assert_equal operation.global.inspect, %{[:model]}
+    end
   end
 
   it "{Operation.call} invokes with the taskWrap" do
