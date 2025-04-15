@@ -16,7 +16,9 @@ module Trailblazer
       options_for_invoke = {matcher_context: block.binding.receiver}.merge(options_for_invoke) if block # DISCUSS: do we always want that?
 
       options_for_invoke = options_for_invoke.merge(
-        task_wrap_for_activity: PUBLIC_TASK_WRAP
+        extensions: [
+          PUBLIC_CALL_TASK_ADDS
+        ]
       )
 
       signal, (ctx, flow_options) = self.__(self, options, **options_for_invoke, &block) # Operation.__ is defined via {trailblazer-invoke}. It's the "canonical invoke".
@@ -46,9 +48,10 @@ module Trailblazer
     end
 
     # Replace the TaskWrap's {call_task} step with our step that doesn't do {Create.call} but {Create.strategy_call}.
-    PUBLIC_TASK_WRAP = [
-      # in_extension,
-      Activity::TaskWrap::Pipeline.Row("task_wrap.call_task", method(:call_operation_with_circuit_interface)).freeze
-    ].freeze
+    PUBLIC_CALL_TASK_ADDS = [
+      method(:call_operation_with_circuit_interface),
+      id: "task_wrap.call_task",
+      replace: "task_wrap.call_task"
+    ]
   end
 end
