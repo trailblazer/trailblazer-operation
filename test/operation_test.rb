@@ -300,31 +300,34 @@ class OperationTest < Minitest::Spec
     assert_equal CU.inspect(ctx), %({:seq=>[1, 1, :model, 1, 1]}) # {Start.default} is a step, too :D
   end
 
-  it "{Operation.call} works with operations that expose public {:task_wrap_extensions}" do
+  it "{Operation.call} works with operations that expose public {:normalizer_task_wrap_extensions}" do
     operation = Class.new(Trailblazer::Operation) do
       # This usually happens in extensions such as {trailblazer-dependency}.
-      def self.adds_instruction(ctx, id: nil, **)
+      def self.adds_instruction(task_wrap, id: nil, **)
+        Trailblazer::Activity::TaskWrap::Extension(
         # Return an ADDS instruction.
-        [
-          ->(wrap_ctx, original_args) { original_args[0][0][:tw] = "hello from taskWrap #{id.inspect}"; return wrap_ctx, original_args },
-          id: "xxx",
-          prepend: nil
-        ]
+          [
+            ->(wrap_ctx, original_args) { original_args[0][0][:tw] = "hello from taskWrap #{id.inspect}"; return wrap_ctx, original_args },
+            id: "xxx",
+            prepend: nil
+          ]
+        ).(task_wrap)
       end
 
       ext = method(:adds_instruction)
 
       @state.update!(:fields) do |fields|
-        task_wrap_extensions = fields[:task_wrap_extensions] # [call_task]
-        task_wrap_extensions = task_wrap_extensions + [ext]
-
-        fields.merge(task_wrap_extensions: task_wrap_extensions)
+        exts = fields[:task_wrap_extensions] # [call_task]
+        exts = exts + [ext]
+        fields.merge(task_wrap_extensions: exts)
       end
     end
 
+    # We can inject options when using canonical invoke.
     signal, (ctx, flow_options) = Trailblazer::Operation.__(operation, {}, id: "tw ID xxx")
     assert_equal CU.inspect(ctx.to_h), %({:tw=>\"hello from taskWrap \\\"tw ID xxx\\\"\"})
 
+    # ...with public interface, that's not possible.
     result = operation.()
     assert_equal CU.inspect(result.to_h), %({:tw=>\"hello from taskWrap nil\"})
   end
