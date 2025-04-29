@@ -17,7 +17,7 @@ module Trailblazer
 
       options_for_invoke = options_for_invoke.merge(
         extensions: [
-          PUBLIC_CALL_TASK_ADDS
+          NORMALIZER_TASK_WRAP_EXTENSIONS_FOR_PUBLIC_CALL_TASK
         ]
       )
 
@@ -48,10 +48,12 @@ module Trailblazer
     end
 
     # Replace the TaskWrap's {call_task} step with our step that doesn't do {Create.call} but {Create.strategy_call}.
-    PUBLIC_CALL_TASK_ADDS = [
-      method(:call_operation_with_circuit_interface),
-      id: "task_wrap.call_task",
-      replace: "task_wrap.call_task"
-    ]
+    NORMALIZER_TASK_WRAP_EXTENSIONS_FOR_PUBLIC_CALL_TASK = Activity::TaskWrap::Extension(
+      [
+        method(:call_operation_with_circuit_interface),
+        id: "task_wrap.call_task",
+        replace: "task_wrap.call_task"
+      ]
+    )
   end
 end
