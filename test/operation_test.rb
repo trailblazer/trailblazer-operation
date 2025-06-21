@@ -31,12 +31,12 @@ class OperationTest < Minitest::Spec
 `-- End.success\n)
   end
 
-  it "canonical invoke #__ allows a second argument and accepts the {:invoke_method} option" do
+  it "canonical invoke #__ allows a second argument and accepts invoke options" do
     operation_class = Trailblazer::Operation
     signal, result = nil
 
     stdout, _ = capture_io do
-      signal, (result, _) = operation_class.__(operation_class, {params: {id: 1}}, invoke_method: Trailblazer::Developer::Wtf.method(:invoke))
+      signal, (result, _) = operation_class.__(operation_class, {params: {id: 1}}, **Trailblazer::Developer::Wtf.options_for_canonical_invoke)
     end
 
     assert_equal signal.to_h[:semantic], :success
