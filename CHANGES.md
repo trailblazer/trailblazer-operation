@@ -1,3 +1,7 @@
+## 0.11.1
+
+* Stricter dependency: `trailblazer-activity-dsl-linear < 1.3.0`.
+
 ## 0.11.0
 
 * Introduce `Operation.call_with_public_interface_from_call` which merges `ctx` and `circuit_options`
