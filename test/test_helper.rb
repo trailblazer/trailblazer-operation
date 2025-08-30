@@ -3,13 +3,12 @@ require "minitest/autorun"
 require "pp"
 require "trailblazer/operation"
 
-require "trailblazer/activity/testing"
 require "trailblazer/developer/render/linear"
 require "trailblazer/core"
 
 Minitest::Spec.class_eval do
-  T = Trailblazer::Activity::Testing
-  include Trailblazer::Activity::Testing::Assertions
+  include Trailblazer::Core::Utils::Assertions
+  T = Trailblazer::Core
   CU = Trailblazer::Core::Utils
 
   def assert_equal(asserted, expected, *args)
