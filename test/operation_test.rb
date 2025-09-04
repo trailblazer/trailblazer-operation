@@ -300,26 +300,30 @@ class OperationTest < Minitest::Spec
     assert_equal CU.inspect(ctx), %({:seq=>[1, 1, :model, 1, 1]}) # {Start.default} is a step, too :D
   end
 
-  it "{Operation.call} works with operations that expose public {:normalizer_task_wrap_extensions}" do
+  it "{Operation.call} works with operations that expose public {:normalizer_extensions}" do
     operation = Class.new(Trailblazer::Operation) do
       # This usually happens in extensions such as {trailblazer-dependency}.
-      def self.adds_instruction(task_wrap, id: nil, **)
-        Trailblazer::Activity::TaskWrap::Extension(
-        # Return an ADDS instruction.
+      def self.my_normalizer_ext(ctx, id:, non_symbol_options:, **)
+        my_task_wrap_ext = Trailblazer::Activity::TaskWrap::Extension(
           [
-            ->(wrap_ctx, original_args) { original_args[0][0][:tw] = "hello from taskWrap #{id.inspect}"; return wrap_ctx, original_args },
+            ->(wrap_ctx, original_args) {
+              original_args[0][0][:tw] = "hello from taskWrap #{id.inspect}"
+              return wrap_ctx, original_args
+            },
             id: "xxx",
             prepend: nil
           ]
-        ).(task_wrap)
+        )
+
+        ctx.merge!(non_symbol_options: non_symbol_options.merge(Trailblazer::Activity::Railway.Extension() => my_task_wrap_ext))
       end
 
-      ext = method(:adds_instruction)
+      my_normalizer_ext = Trailblazer::Activity::DSL::Linear::Normalizer.Extension(method(:my_normalizer_ext))
 
       @state.update!(:fields) do |fields|
-        exts = fields[:task_wrap_extensions] # [call_task]
-        exts = exts + [ext]
-        fields.merge(task_wrap_extensions: exts)
+        exts = fields[:normalizer_extensions] # [call_task]
+        exts = exts + [my_normalizer_ext]
+        fields.merge(normalizer_extensions: exts)
       end
     end
 
@@ -328,7 +332,9 @@ class OperationTest < Minitest::Spec
     assert_equal CU.inspect(ctx.to_h), %({:tw=>\"hello from taskWrap \\\"tw ID xxx\\\"\"})
 
     # ...with public interface, that's not possible.
-    result = operation.()
-    assert_equal CU.inspect(result.to_h), %({:tw=>\"hello from taskWrap nil\"})
+    assert_raises ArgumentError do
+      result = operation.({}) # ArgumentError: missing keyword: :id
+      # assert_equal CU.inspect(result.to_h), %({:tw=>\"hello from taskWrap nil\"})
+    end
   end
 end
