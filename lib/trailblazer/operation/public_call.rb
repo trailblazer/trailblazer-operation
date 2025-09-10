@@ -16,9 +16,7 @@ module Trailblazer
       options_for_invoke = {matcher_context: block.binding.receiver}.merge(options_for_invoke) if block # DISCUSS: do we always want that?
 
       options_for_invoke = options_for_invoke.merge(
-        non_symbol_options: {
-          Operation.Extension() => NORMALIZER_TASK_WRAP_EXTENSIONS_FOR_PUBLIC_CALL_TASK
-        }
+        Operation.Extension() => NORMALIZER_TASK_WRAP_EXTENSIONS_FOR_PUBLIC_CALL_TASK
       )
 
       signal, (ctx, flow_options) = self.__(self, options, **options_for_invoke, &block) # Operation.__ is defined via {trailblazer-invoke}. It's the "canonical invoke".

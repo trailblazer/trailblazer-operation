@@ -303,7 +303,7 @@ class OperationTest < Minitest::Spec
   it "{Operation.call} works with operations that expose public {:normalizer_extensions}" do
     operation = Class.new(Trailblazer::Operation) do
       # This usually happens in extensions such as {trailblazer-dependency}.
-      def self.my_normalizer_ext(ctx, id:, non_symbol_options:, **)
+      def self.my_normalizer_ext(ctx, id:, **)
         my_task_wrap_ext = Trailblazer::Activity::TaskWrap::Extension(
           [
             ->(wrap_ctx, original_args) {
@@ -315,7 +315,7 @@ class OperationTest < Minitest::Spec
           ]
         )
 
-        ctx.merge!(non_symbol_options: non_symbol_options.merge(Trailblazer::Activity::Railway.Extension() => my_task_wrap_ext))
+        ctx.merge(Trailblazer::Activity::Railway.Extension() => my_task_wrap_ext)
       end
 
       my_normalizer_ext = Trailblazer::Activity::DSL::Linear::Normalizer.Extension(method(:my_normalizer_ext))
