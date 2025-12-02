@@ -14,7 +14,7 @@ class TraceTest < Minitest::Spec
   end
 
   it "allows using low-level Operation::Trace" do
-    signal, (ctx, flow_options) = Trailblazer::Operation.__(
+    ctx, flow_options, signal = Trailblazer::Operation.__(
       Create,
       {a_return: true, params: {}},
       **Trailblazer::Developer::Trace.options_for_canonical_invoke()
