@@ -43,11 +43,12 @@ module Trailblazer
 
   # The Trailblazer-style operation.
   # Note that you don't have to use our "opinionated" version with result object, etc.
-  class Operation < Activity::FastTrack(**Activity::Operation.OptionsForState)
+  class Operation < Activity.FastTrack(**Activity::Operation.OptionsForState)
     class << self
       alias_method :strategy_call, :call
     end
 
+    # TODO: set the same block for Activity.
     def self.configure!(&block)
       Trailblazer::Invoke.module!(self.singleton_class, &block) # => Operation.__() as a canonical invoke.
       self

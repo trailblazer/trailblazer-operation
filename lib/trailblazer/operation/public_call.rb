@@ -1,17 +1,17 @@
 module Trailblazer
   module Operation::PublicCall
     # TODO: add docs from original {Operation.call}.
-    def call(options = {}, flow_options = {}, **circuit_options, &block)
-      return strategy_call(options, **circuit_options) if options.is_a?(Array) # This is kind of a hack that could be well hidden if Ruby had method overloading. Goal is to simplify the call thing as we're fading out Operation::public_call anyway.
+    def call(options = {}, flow_options = nil, circuit_options = {}, **kwargs, &block)
+      return strategy_call(options, flow_options, circuit_options) if ! flow_options.nil? # This is kind of a hack that could be well hidden if Ruby had method overloading. Goal is to simplify the call thing as we're fading out Operation::public_call anyway.
 
       # DISCUSS: move to separate method?
       # normalize options:
-      options = options.merge(circuit_options) # when using Op.call(params:, ...), {circuit_options} will always be ctx variables.
+      options = options.merge(kwargs) # when using Op.call(params:, ...), we need to merge {kwargs} (?).
 
       invoke_with_public_interface(options, &block)
     end
 
-    def invoke_with_public_interface(options, **options_for_invoke, &block)
+    def invoke_with_public_interface(options, **options_for_invoke, &block) # FIXME: where can we pass {options_for_invoke}?
       # On the top level, use {#__}.
       options_for_invoke = {matcher_context: block.binding.receiver}.merge(options_for_invoke) if block # DISCUSS: do we always want that?
 
@@ -19,7 +19,7 @@ module Trailblazer
         Operation.Extension() => NORMALIZER_TASK_WRAP_EXTENSIONS_FOR_PUBLIC_CALL_TASK
       )
 
-      signal, (ctx, flow_options) = self.__(self, options, **options_for_invoke, &block) # Operation.__ is defined via {trailblazer-invoke}. It's the "canonical invoke".
+      ctx, flow_options, signal = self.__(self, options, **options_for_invoke, &block) # Operation.__ is defined via {trailblazer-invoke}. It's the "canonical invoke".
 
       Operation::Railway::Result(signal, ctx, flow_options)
     end
@@ -31,18 +31,16 @@ module Trailblazer
     # so we don't invoke {Operation.call} twice.
     #
     # @private
-    def self.call_operation_with_circuit_interface(wrap_ctx, original_args)
+    def self.call_operation_with_circuit_interface(wrap_ctx, flow_options, _)
       operation = wrap_ctx[:task]
 
-      original_arguments, original_circuit_options = original_args
-
       # Call the actual operation, but directly using {#strategy_call} using the circuit-interface.
-      return_signal, return_args = operation.strategy_call(original_arguments, **original_circuit_options)
+      return_ctx, flow_options, return_signal = operation.strategy_call(wrap_ctx[:application_ctx], flow_options, wrap_ctx[:application_circuit_options])
 
       # DISCUSS: do we want original_args here to be passed on, or the "effective" return_args which are different to original_args now?
-      wrap_ctx = wrap_ctx.merge(return_signal: return_signal, return_args: return_args)
+      wrap_ctx = wrap_ctx.merge(return_signal: return_signal, return_ctx: return_ctx)
 
-      return wrap_ctx, original_args
+      return wrap_ctx, flow_options
     end
 
     # Replace the TaskWrap's {call_task} step with our step that doesn't do {Create.call} but {Create.strategy_call}.

@@ -18,12 +18,12 @@ class OperationTest < Minitest::Spec
     result = operation_class.(params: {id: 1})
 
     # {Operation.__} returns circuit-interface return set.
-    signal, (result, _) = operation_class.__(operation_class, {params: {id: 1}})
+    ctx, _, signal = operation_class.__(operation_class, {params: {id: 1}})
 
     assert_equal signal.to_h[:semantic], :success
 
     stdout, _ = capture_io do
-      signal, (result, _) = operation_class.__?(operation_class, {params: {id: 1}})
+      ctx, _, signal = operation_class.__?(operation_class, {params: {id: 1}})
     end
 
     assert_equal CU.strip(stdout), %(Trailblazer::Operation
@@ -36,7 +36,7 @@ class OperationTest < Minitest::Spec
     signal, result = nil
 
     stdout, _ = capture_io do
-      signal, (result, _) = operation_class.__(operation_class, {params: {id: 1}}, **Trailblazer::Developer::Wtf.options_for_canonical_invoke)
+      ctx, _, signal = operation_class.__(operation_class, {params: {id: 1}}, **Trailblazer::Developer::Wtf.options_for_canonical_invoke)
     end
 
     assert_equal signal.to_h[:semantic], :success
@@ -54,7 +54,7 @@ class OperationTest < Minitest::Spec
 
   it "we can use the circuit-interface and inject options like {:runner}" do
     # Internally, TaskWrap::Runner.call_task invokes the circuit-interface.
-    signal, (ctx, _) = Trailblazer::Activity::TaskWrap.invoke(Trailblazer::Operation, [{id: 1}, {}])
+    ctx, _, signal = Trailblazer::Activity::TaskWrap.invoke(Trailblazer::Operation, {id: 1})
 
     assert_equal signal.to_h[:semantic], :success
     assert_equal ctx.class, Hash # because canonical invoke is not called.
@@ -77,7 +77,7 @@ class OperationTest < Minitest::Spec
     result = operation_class.({seq: []})
     assert_equal result[:sequence], [] # with public_call, we use {configure!} and can see the alias.
 
-    signal, (ctx, _) = Trailblazer::Activity::TaskWrap.invoke(Trailblazer::Operation, [{seq: []}, {}])
+    ctx, _, signal = Trailblazer::Activity::TaskWrap.invoke(Trailblazer::Operation, {seq: []} )
 
     assert_equal ctx.class, Hash
     assert_equal ctx[:seq], []
@@ -161,10 +161,10 @@ class OperationTest < Minitest::Spec
 
 
   class Noop < Trailblazer::Operation
-    def self.capture_circuit_options((ctx, flow_options), **circuit_options)
+    def self.capture_circuit_options(ctx, flow_options, circuit_options)
       ctx[:capture_circuit_options] = circuit_options.keys.inspect
 
-      return Trailblazer::Activity::Right, [ctx, flow_options]
+      return ctx, flow_options, Trailblazer::Activity::Right
     end
 
     step task: method(:capture_circuit_options)
@@ -174,10 +174,11 @@ class OperationTest < Minitest::Spec
   # Test that {.(params: {}, "current_user" => user)} is processed properly
 
   it "doesn't mistake circuit options as ctx variables when using circuit-interface" do
-    signal, (ctx, _) = Noop.call(
-      [{params: {}}, {}],
-      # real circuit_options
-      variable_for_circuit_options: true
+    ctx, _, signal = Noop.call(
+      {params: {}},
+      {},
+      # real circuit_options, they are a positional hash since TRB 2.2.
+      {variable_for_circuit_options: true}
     ) # call_with_public_interface
     #@ {:variable_for_circuit_options} is not supposed to be in {ctx}.
     assert_equal CU.inspect(ctx), %({:params=>{}, :capture_circuit_options=>"[:variable_for_circuit_options, :exec_context, :activity, :runner]"})
@@ -249,11 +250,11 @@ class OperationTest < Minitest::Spec
   end
 
   it "{Operation.call} invokes with the taskWrap" do
-    def add_1(wrap_ctx, original_args)
-      ctx, = original_args[0]
+    def add_1(wrap_ctx, flow_options, _)
+      ctx = wrap_ctx[:application_ctx]
       ctx[:seq] << 1
 
-      return wrap_ctx, original_args # yay to mutable state. not.
+      return wrap_ctx, flow_options
     end
 
     add_1_method = method(:add_1)
@@ -290,10 +291,13 @@ class OperationTest < Minitest::Spec
     )
 
     # circuit interface invocation using call
-    signal, (ctx, _) = operation.(
-      [{seq: []}, {}],
-      wrap_runtime: Hash.new(my_runtime_extension),
-      runner: Trailblazer::Activity::TaskWrap::Runner
+    ctx, _, signal = operation.(
+      {seq: []},
+      {},
+      {
+        wrap_runtime: Hash.new(my_runtime_extension),
+        runner: Trailblazer::Activity::TaskWrap::Runner
+      }
     )
 
     assert_equal signal.to_h[:semantic], :success
@@ -303,19 +307,22 @@ class OperationTest < Minitest::Spec
   it "{Operation.call} works with operations that expose public {:normalizer_extensions}" do
     operation = Class.new(Trailblazer::Operation) do
       # This usually happens in extensions such as {trailblazer-dependency}.
-      def self.my_normalizer_ext(ctx, id:, **)
+      def self.my_normalizer_ext(ctx, flow_options, _, id:, **)
         my_task_wrap_ext = Trailblazer::Activity::TaskWrap::Extension(
           [
-            ->(wrap_ctx, original_args) {
-              original_args[0][0][:tw] = "hello from taskWrap #{id.inspect}"
-              return wrap_ctx, original_args
+            ->(wrap_ctx, flow_options, _) {
+              wrap_ctx[:application_ctx][:tw] = "hello from taskWrap #{id.inspect}"
+
+              return wrap_ctx, flow_options
             },
             id: "xxx",
             prepend: nil
           ]
         )
 
-        ctx.merge(Trailblazer::Activity::Railway.Extension() => my_task_wrap_ext)
+        ctx = ctx.merge(Trailblazer::Activity::Railway.Extension() => my_task_wrap_ext)
+
+        return ctx, flow_options
       end
 
       my_normalizer_ext = Trailblazer::Activity::DSL::Linear::Normalizer.Extension(method(:my_normalizer_ext))
@@ -328,7 +335,7 @@ class OperationTest < Minitest::Spec
     end
 
     # We can inject options when using canonical invoke.
-    signal, (ctx, flow_options) = Trailblazer::Operation.__(operation, {}, id: "tw ID xxx")
+    ctx, flow_options, signal = Trailblazer::Operation.__(operation, {}, id: "tw ID xxx")
     assert_equal CU.inspect(ctx.to_h), %({:tw=>\"hello from taskWrap \\\"tw ID xxx\\\"\"})
 
     # ...with public interface, that's not possible.
