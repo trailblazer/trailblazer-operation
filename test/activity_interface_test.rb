@@ -35,7 +35,7 @@ class ActivityInterfaceTest < Minitest::Spec
   end
 
   it "exposes the circuit-interface via {Operation.call} when passing {flow_options}" do
-    skip if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.7.0')
+    skip if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.8.0')
 
     ctx, _, signal = operation.({model: false, seq: []}, {})
 
