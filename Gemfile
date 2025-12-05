@@ -15,3 +15,4 @@ gem "trailblazer-developer",            github: "trailblazer/trailblazer-develop
 gem "trailblazer-invoke", github: "trailblazer/trailblazer-invoke"
 gem "trailblazer-activity-dsl-linear", github: "trailblazer/trailblazer-activity-dsl-linear", branch: "2-2-positional-circuit-interface"
 gem "trailblazer-core-utils", github: "trailblazer/trailblazer-core-utils"
+gem "logger"
