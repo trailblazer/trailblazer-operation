@@ -34,8 +34,17 @@ class ActivityInterfaceTest < Minitest::Spec
     assert_call operation, seq: "[:model]", model: false, terminus: :fail_fast
   end
 
-  it "exposes the circuit-interface via {Operation.call}" do
+  it "exposes the circuit-interface via {Operation.call} when passing {flow_options}" do
+    skip if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.7.0')
+
     ctx, _, signal = operation.({model: false, seq: []}, {})
+
+    assert_equal signal.to_h[:semantic], :not_found
+    assert_equal ctx[:seq].inspect, "[:model]"
+  end
+
+  it "exposes the circuit-interface via {Operation.call} when passing {flow_options} and {circuit options}" do
+    ctx, _, signal = operation.({model: false, seq: []}, {}, {})
 
     assert_equal signal.to_h[:semantic], :not_found
     assert_equal ctx[:seq].inspect, "[:model]"

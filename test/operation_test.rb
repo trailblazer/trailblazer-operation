@@ -263,7 +263,7 @@ class OperationTest < Minitest::Spec
       include T.def_steps(:model)
 
       step :model,
-        Extension() => Trailblazer::Activity::TaskWrap::Extension.WrapStatic(
+        Extension() => Trailblazer::Activity::TaskWrap.Extension(
           [add_1_method, prepend: "task_wrap.call_task", id: "user.add_1"]
         )
     end

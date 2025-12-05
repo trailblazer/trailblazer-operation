@@ -3,7 +3,6 @@ module Trailblazer
     # TODO: add docs from original {Operation.call}.
     def call(options = {}, flow_options = nil, circuit_options = {}, **kwargs, &block)
       return strategy_call(options, flow_options, circuit_options) if ! flow_options.nil? # This is kind of a hack that could be well hidden if Ruby had method overloading. Goal is to simplify the call thing as we're fading out Operation::public_call anyway.
-
       # DISCUSS: move to separate method?
       # normalize options:
       options = options.merge(kwargs) # when using Op.call(params:, ...), we need to merge {kwargs} (?).

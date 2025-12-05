@@ -64,6 +64,7 @@ end
 
 require "trailblazer/operation/result"
 require "trailblazer/operation/railway"
+require "trailblazer/operation/ruby_2_5_and_2_6" if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.7.0')
 
 Trailblazer::Operation.configure! { {} } # create a default Operation.() with no dynamic args set.
 
