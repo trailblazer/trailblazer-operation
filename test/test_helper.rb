@@ -37,3 +37,6 @@ module Test
     end
   end
 end
+
+class DocsTest < Minitest::Spec
+end

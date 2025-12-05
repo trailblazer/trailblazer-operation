@@ -16,7 +16,9 @@ module Trailblazer
       options_for_invoke = {matcher_context: block.binding.receiver}.merge(options_for_invoke) if block # DISCUSS: do we always want that?
 
       options_for_invoke = options_for_invoke.merge(
-        Operation.Extension() => NORMALIZER_TASK_WRAP_EXTENSIONS_FOR_PUBLIC_CALL_TASK
+        normalizer_options: {
+          Operation.Extension() => NORMALIZER_TASK_WRAP_EXTENSIONS_FOR_PUBLIC_CALL_TASK
+        }
       )
 
       ctx, flow_options, signal = self.__(self, options, **options_for_invoke, &block) # Operation.__ is defined via {trailblazer-invoke}. It's the "canonical invoke".
@@ -33,7 +35,7 @@ module Trailblazer
     # @private
     def self.call_operation_with_circuit_interface(wrap_ctx, flow_options, _)
       operation = wrap_ctx[:task]
-
+# FIXME: use as much logic from call_task as possible.
       # Call the actual operation, but directly using {#strategy_call} using the circuit-interface.
       return_ctx, flow_options, return_signal = operation.strategy_call(wrap_ctx[:application_ctx], flow_options, wrap_ctx[:application_circuit_options])
 

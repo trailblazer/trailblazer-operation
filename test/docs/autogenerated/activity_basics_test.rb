@@ -2,7 +2,7 @@
 require "test_helper"
 
 module X
-  class DocsActivityTest < Minitest::Spec
+  class DocsActivityTest < DocsTest
     it "basic activity" do
       Memo = Struct.new(:options) do
         def save

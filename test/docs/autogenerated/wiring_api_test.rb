@@ -2,7 +2,7 @@
 require "test_helper"
 
 #@ original Memo::Operation::Create
-class Vanilla_WiringApiDocsTest < Minitest::Spec
+class Vanilla_WiringApiDocsTest < DocsTest
   Memo = Class.new
   module Memo::Operation
     class Create < Trailblazer::Operation
@@ -43,7 +43,7 @@ puts Trailblazer::Developer.render(Memo::Operation::Create)
 end
 
 #@ Output => End
-class Output_WiringApiDocsTest < Minitest::Spec
+class Output_WiringApiDocsTest < DocsTest
   Memo = Class.new
   module Memo::Operation
     class Create < Trailblazer::Operation
@@ -64,7 +64,7 @@ class Output_WiringApiDocsTest < Minitest::Spec
 end
 
 #@ failure/Output => End
-class OutputOnLeft_WiringApiDocsTest < Minitest::Spec
+class OutputOnLeft_WiringApiDocsTest < DocsTest
   Memo = Class.new
   #:left
   module Memo::Operation
@@ -89,7 +89,7 @@ class OutputOnLeft_WiringApiDocsTest < Minitest::Spec
 end
 
 #@ Output => Track
-class OutputToSuccess_WiringApiDocsTest < Minitest::Spec
+class OutputToSuccess_WiringApiDocsTest < DocsTest
   Memo = Class.new
   #:output-track
   module Memo::Operation
@@ -113,7 +113,7 @@ class OutputToSuccess_WiringApiDocsTest < Minitest::Spec
 end
 
 #@ Output => Id
-class OutputToId_WiringApiDocsTest < Minitest::Spec
+class OutputToId_WiringApiDocsTest < DocsTest
   Memo = Class.new
   #:output-id
   module Memo::Operation
@@ -137,7 +137,7 @@ class OutputToId_WiringApiDocsTest < Minitest::Spec
 end
 
 #@ Output(semantic, Signal) => Track
-class ExplicitOutput_WiringApiDocsTest < Minitest::Spec
+class ExplicitOutput_WiringApiDocsTest < DocsTest
   Memo = Struct.new(:save_result) do
     def save; self.save_result;  end
   end
@@ -176,7 +176,7 @@ class ExplicitOutput_WiringApiDocsTest < Minitest::Spec
 end
 
 #@ Output => End
-class OutputToEnd_WiringApiDocsTest < Minitest::Spec
+class OutputToEnd_WiringApiDocsTest < DocsTest
   Memo = Class.new
   #:output-end
   module Memo::Operation
@@ -200,7 +200,7 @@ class OutputToEnd_WiringApiDocsTest < Minitest::Spec
 end
 
 #@ #terminus
-class Terminus_WiringApiDocsTest < Minitest::Spec
+class Terminus_WiringApiDocsTest < DocsTest
   Memo = Class.new
   #:terminus
   module Memo::Operation
@@ -235,7 +235,7 @@ class Terminus_WiringApiDocsTest < Minitest::Spec
 end
 
 #@ Track()
-class Track_WiringApiDocsTest < Minitest::Spec
+class Track_WiringApiDocsTest < DocsTest
   Memo = Class.new
   #:custom-track
   module Memo::Operation
@@ -262,7 +262,7 @@ class Track_WiringApiDocsTest < Minitest::Spec
 end
 
 #@ Path()
-class Path_WiringApiDocsTest < Minitest::Spec
+class Path_WiringApiDocsTest < DocsTest
   Memo = Class.new
   #:path-helper
   module Memo::Operation
@@ -290,7 +290,7 @@ class Path_WiringApiDocsTest < Minitest::Spec
 end
 
 #@ Path() with error handling: Output()
-# class Path_WiringApiDocsTest < Minitest::Spec
+# class Path_WiringApiDocsTest < DocsTest
 #   Memo = Class.new
 #   #:path-helper-failure
 #   module Memo::Operation
@@ -317,7 +317,7 @@ end
 # end
 
 #@ Path(:connect_to)
-class PathConnectTo_WiringApiDocsTest < Minitest::Spec
+class PathConnectTo_WiringApiDocsTest < DocsTest
   Memo = Class.new
   #:path-helper-connect-to
   module Memo::Operation
@@ -345,7 +345,7 @@ class PathConnectTo_WiringApiDocsTest < Minitest::Spec
   end
 end
 
-class WiringApiDocsTest < Minitest::Spec
+class WiringApiDocsTest < DocsTest
 # {#terminus} 1.0
   module A
     class Payment
@@ -400,11 +400,10 @@ class WiringApiDocsTest < Minitest::Spec
   it { assert_invoke B::Payment::Operation::Create, find_provider: false, seq: "[:find_provider]", terminus: :provider_invalid }
 
   it do
-    result = B::Payment::Operation::Create.(find_provider: false, seq: [])
-    assert_equal result.terminus.to_h[:semantic], :provider_invalid
+    assert_invoke B::Payment::Operation::Create, find_provider: false, terminus: :provider_invalid, seq: "[:find_provider]"
 =begin
     #:terminus-invalid
-    result = Payment::Operation::Create.(provider: "bla-unknown")
+    signal, (ctx, _) = Payment::Operation::Create.(provider: "bla-unknown")
     puts signal.to_h[:semantic] #=> :provider_invalid
     #:terminus-invalid end
 =end
@@ -414,7 +413,7 @@ end
 
 #@ :magnetic_to
 module A
-  class MagneticTo_DocsTest < Minitest::Spec
+  class MagneticTo_DocsTest < DocsTest
     Memo = Class.new
     #:magnetic_to
     module Memo::Operation

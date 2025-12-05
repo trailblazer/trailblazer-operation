@@ -35,7 +35,7 @@ class ActivityInterfaceTest < Minitest::Spec
   end
 
   it "exposes the circuit-interface via {Operation.call}" do
-    signal, (ctx, _) = operation.([{model: false, seq: []}, {}])
+    ctx, _, signal = operation.({model: false, seq: []}, {})
 
     assert_equal signal.to_h[:semantic], :not_found
     assert_equal ctx[:seq].inspect, "[:model]"

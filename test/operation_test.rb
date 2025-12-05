@@ -335,7 +335,7 @@ class OperationTest < Minitest::Spec
     end
 
     # We can inject options when using canonical invoke.
-    ctx, flow_options, signal = Trailblazer::Operation.__(operation, {}, id: "tw ID xxx")
+    ctx, flow_options, signal = Trailblazer::Operation.__(operation, {}, normalizer_options: {id: "tw ID xxx"})
     assert_equal CU.inspect(ctx.to_h), %({:tw=>\"hello from taskWrap \\\"tw ID xxx\\\"\"})
 
     # ...with public interface, that's not possible.
