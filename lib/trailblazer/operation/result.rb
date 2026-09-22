@@ -5,8 +5,6 @@ module Trailblazer
         new(signal.kind_of?(Activity::Terminus::Success), ctx, signal)
       end
 
-      # @param success Boolean validity of the result object
-      # @param data Context
       def initialize(success, data, signal)
         @success, @data, @signal = success, data, signal
       end

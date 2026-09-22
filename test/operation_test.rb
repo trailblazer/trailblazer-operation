@@ -17,20 +17,36 @@ class OperationTest < Minitest::Spec
     assert_result my_result, true
   end
 
-  it "Operation.call" do
+  let(:my_operation) do
     my_operation = Class.new(Trailblazer::Operation) do
       step :a
       step :b
 
       include T.def_steps(:a, :b)
     end
+  end
 
+  it "Operation.call" do
     assert_run my_operation, seq: [:a, :b], terminus: :success # circuit-interface
     assert_result my_operation.(seq: [1]), true, seq: [1, :a, :b]
   end
 
-  it "Operation provides Wiring API" do
+  it "Operation.call with positional hash" do
 
+  end
+
+  it "Operation provides Wiring API" do
+    raise "show me"
+  end
+
+  it "Operation.wtf?" do
+    result = nil
+    # stdout, _ = capture_io do
+      result = my_operation.wtf?(seq: [1])
+    # end
+
+    assert_result result, true, seq: [1, :a, :b]
+    assert_equal output, %(asdf)
   end
 
 #   it "canonical invoke #__ allows a second argument and accepts invoke options" do
