@@ -1,72 +1,59 @@
 require "trailblazer/operation/version"
-require "trailblazer/activity/dsl/linear"
-require "trailblazer/invoke"
-require "forwardable"
+require "trailblazer/activity/dsl"
+require "trailblazer/developer"
+# require "trailblazer/invoke"
+# require "forwardable"
 
 #
 # Developer's docs: https://trailblazer.to/2.1/docs/internals.html#internals-operation
 #
 module Trailblazer
-  # As opposed to {Activity::Railway} and {Activity::FastTrack} an operation
-  # maintains different terminus subclasses.
-  # DISCUSS: remove this, at some point in time!
-  class Activity
-    class Railway
-      module End
-        # @private
-        class Success < Activity::End; end
-        class Failure < Activity::End; end
-
-        class FailFast < Failure; end
-        class PassFast < Success; end
-      end
-    end
-
-    module Operation
-      def self.OptionsForState()
-        {
-          end_task:      Activity::Railway::End::Success.new(semantic: :success),
-          failure_end:   Activity::Railway::End::Failure.new(semantic: :failure),
-          fail_fast_end: Activity::Railway::End::FailFast.new(semantic: :fail_fast),
-          pass_fast_end: Activity::Railway::End::PassFast.new(semantic: :pass_fast),
-        }
-      end
-    end
-  end
-
-  def self.Operation(options)
-    Class.new(Activity::FastTrack( Activity::Operation.OptionsForState.merge(options) )) do
-      extend Operation::PublicCall
-      raise # FIXME: what is the matter with you?
-    end
-  end
+  # def self.Operation(options)
+  #   Class.new(Activity::FastTrack( Activity::Operation.OptionsForState.merge(options) )) do
+  #     extend Operation::PublicCall
+  #     raise # FIXME: what is the matter with you?
+  #   end
+  # end
 
   # The Trailblazer-style operation.
   # Note that you don't have to use our "opinionated" version with result object, etc.
-  class Operation < Activity.FastTrack(**Activity::Operation.OptionsForState)
-    class << self
-      alias_method :strategy_call, :call
+  #
+  # The Trailblazer::Activity::FastTrack topology sits in the trailblazer-activity-dsl gem.
+  # Again, the Operation is just a preconfigured frontend plus the Operation.() public interface plus the Result object.
+  class Operation < Activity::FastTrack
+    # DISCUSS: instead of a #__ method that "acts as a global", let's try it with this directive.
+    setting :args_compiler_for_invoke
+    setting :args_compiler_for_debugging # DISCUSS: not sure we need that?
+
+    config.args_compiler_for_invoke = Activity::Invoke::Args::Compiler # so far, the most basic.
+    config.args_compiler_for_debugging = Circuit::Adds.(
+      Activity::Invoke::Args::Compiler,
+      # FIXME: i took this from wtf_test, this should be shipped with developer.
+      [:my_trace, Circuit::Node[Developer::Trace::Invoke.method(:add_options_for_trace), Circuit::Task::Adapter::LibInterface], :before, :produce_wrap_runtime],
+      [:my_wtf, Circuit::Node[Developer::Wtf::Invoke.method(:produce_wtf_node), Circuit::Task::Adapter::LibInterface], :before, :produce_wrap_runtime],
+    )
+
+    # NOTE: this is only invoked once, by you, on the very top level.
+    #       Nested operations don't have their .call method invoked.
+    def self.call(**options, &block)
+      lib_ctx = {target_ctx: options}
+
+      lib_ctx, flow_options, signal = Activity::Invoke.(self, lib_ctx, compiler: config.args_compiler_for_invoke,
+        extensions: [], # FIXME: who defauls this?
+        id: self.inspect, # FIXME: who defauls this?
+        )
+
+      return Result.build(signal, lib_ctx.fetch(:target_ctx))
     end
 
-    # TODO: set the same block for Activity.
-    def self.configure!(&block)
-      Trailblazer::Invoke.module!(self.singleton_class, &block) # => Operation.__() as a canonical invoke.
-      self
-    end
-
-    require "trailblazer/operation/public_call"
-    extend PublicCall # Operation.call that exposes a switch for two different interfaces.
-
-    require "trailblazer/operation/wtf"
-    extend Wtf                   # Operation.trace
+    # require "trailblazer/operation/wtf"
+    # extend Wtf                   # Operation.trace
   end
 end
 
 require "trailblazer/operation/result"
-require "trailblazer/operation/railway"
-require "trailblazer/operation/ruby_2_5_and_2_6" if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.8.0')
 
-Trailblazer::Operation.configure! { {} } # create a default Operation.() with no dynamic args set.
+# Trailblazer::Operation.configure! { {} } # create a default Operation.() with no dynamic args set.
 
 =begin
 Trailblazer::Operation.instance_variable_get(:@state).update!(:fields) do |fields|

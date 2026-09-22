@@ -1,20 +1,26 @@
-class Trailblazer::Operation
-  class Result
-    # @param success Boolean validity of the result object
-    # @param data Context
-    def initialize(success, data)
-      @success, @data = success, data
-    end
+module Trailblazer
+  class Operation
+    class Result
+      def self.build(signal, ctx)
+        new(signal.kind_of?(Activity::Terminus::Success), ctx, signal)
+      end
 
-    def success?
-      @success
-    end
+      # @param success Boolean validity of the result object
+      # @param data Context
+      def initialize(success, data, signal)
+        @success, @data, @signal = success, data, signal
+      end
 
-    def failure?
-      !success?
-    end
+      def success?
+        @success
+      end
 
-    extend Forwardable
-    def_delegators :@data, :[], :to_h, :keys # DISCUSS: make it a real delegator? see Nested.
+      def failure?
+        !success?
+      end
+
+      extend Forwardable
+      def_delegators :@data, :[], :to_h, :keys # DISCUSS: make it a real delegator? see Nested.
+    end
   end
 end
