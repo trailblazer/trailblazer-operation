@@ -8,13 +8,6 @@ require "trailblazer/developer"
 # Developer's docs: https://trailblazer.to/2.1/docs/internals.html#internals-operation
 #
 module Trailblazer
-  # def self.Operation(options)
-  #   Class.new(Activity::FastTrack( Activity::Operation.OptionsForState.merge(options) )) do
-  #     extend Operation::PublicCall
-  #     raise # FIXME: what is the matter with you?
-  #   end
-  # end
-
   # The Trailblazer-style operation.
   # Note that you don't have to use our "opinionated" version with result object, etc.
   #
@@ -35,19 +28,23 @@ module Trailblazer
 
     # NOTE: this is only invoked once, by you, on the very top level.
     #       Nested operations don't have their .call method invoked.
-    def self.call(**options, &block)
+    def self.call(**options, &block) # TODO: deal with matcher/block
+      invoke_with_args_compiler(options)
+    end
+
+    def self.invoke_with_args_compiler(options, args_compiler: config.args_compiler_for_invoke)
       lib_ctx = {target_ctx: options}
 
-      lib_ctx, flow_options, signal = Activity::Invoke.(self, lib_ctx, compiler: config.args_compiler_for_invoke,
+      lib_ctx, flow_options, signal = Activity::Invoke.(self, lib_ctx, compiler: args_compiler,
         extensions: [], # FIXME: who defauls this?
         id: self.inspect, # FIXME: who defauls this?
-        )
+      )
 
       return Result.build(signal, lib_ctx.fetch(:target_ctx))
     end
 
-    # require "trailblazer/operation/wtf"
-    # extend Wtf                   # Operation.trace
+    require "trailblazer/operation/wtf"
+    extend Wtf                   # Operation.wtf?
   end
 end
 

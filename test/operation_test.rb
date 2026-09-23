@@ -17,18 +17,17 @@ class OperationTest < Minitest::Spec
     assert_result my_result, true
   end
 
-  let(:my_operation) do
-    my_operation = Class.new(Trailblazer::Operation) do
-      step :a
-      step :b
 
-      include T.def_steps(:a, :b)
-    end
+  class MyOperation <Trailblazer::Operation
+    step :a
+    step :b
+
+    include T.def_steps(:a, :b)
   end
 
   it "Operation.call" do
-    assert_run my_operation, seq: [:a, :b], terminus: :success # circuit-interface
-    assert_result my_operation.(seq: [1]), true, seq: [1, :a, :b]
+    assert_run MyOperation, seq: [:a, :b], terminus: :success # circuit-interface
+    assert_result MyOperation.(seq: [1]), true, seq: [1, :a, :b]
   end
 
   it "Operation.call with positional hash" do
@@ -41,12 +40,47 @@ class OperationTest < Minitest::Spec
 
   it "Operation.wtf?" do
     result = nil
-    # stdout, _ = capture_io do
-      result = my_operation.wtf?(seq: [1])
-    # end
+    output, _ = capture_io do
+      result = MyOperation.wtf?(seq: [1])
+    end
 
     assert_result result, true, seq: [1, :a, :b]
-    assert_equal output, %(asdf)
+    assert_equal output, %(\e[37m...OperationTest::MyOperation\e[0m
+`-- \e[30m...wtf_top_canonical\e[0m
+    `-- \e[30m...task_wrap.call_task\e[0m
+        |-- \e[32m...a\e[0m
+        |   `-- \e[32m...task_wrap.call_task\e[0m
+        |       |-- \e[30m...invoke_provider\e[0m
+        |       |-- \e[30m...is_signal?\e[0m
+        |       `-- \e[32m...compute_binary_signal\e[0m
+        |-- \e[32m...b\e[0m
+        |   `-- \e[32m...task_wrap.call_task\e[0m
+        |       |-- \e[30m...invoke_provider\e[0m
+        |       |-- \e[30m...is_signal?\e[0m
+        |       `-- \e[32m...compute_binary_signal\e[0m
+        `-- \e[30m...End.success\e[0m
+            `-- \e[30m...task_wrap.call_task\e[0m
+)
+  end
+
+  it "Operation.wtf?" do
+    result, output = nil
+
+    output, _ = capture_io do
+      assert_raises KeyError do
+        result = MyOperation.wtf?(seq: [1], a: Class.new(Trailblazer::Activity::Signal))
+      end
+    end
+
+    assert_equal result, nil
+    assert_equal output, %(\e[37m...OperationTest::MyOperation\e[0m
+`-- \e[37m...wtf_top_canonical\e[0m
+    `-- \e[37m...task_wrap.call_task\e[0m
+        `-- \e[30m...a\e[0m
+            `-- \e[30m...task_wrap.call_task\e[0m
+                |-- \e[30m...invoke_provider\e[0m
+                `-- \e[30m...is_signal?\e[0m
+)
   end
 
 #   it "canonical invoke #__ allows a second argument and accepts invoke options" do
