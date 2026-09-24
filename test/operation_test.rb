@@ -45,25 +45,25 @@ class OperationTest < Minitest::Spec
     end
 
     assert_result result, true, seq: [1, :a, :b]
-    assert_equal output, %(\e[37m...OperationTest::MyOperation\e[0m
-`-- \e[30m...wtf_top_canonical\e[0m
-    `-- \e[30m...task_wrap.call_task\e[0m
-        |-- \e[32m...a\e[0m
-        |   `-- \e[32m...task_wrap.call_task\e[0m
-        |       |-- \e[30m...invoke_provider\e[0m
-        |       |-- \e[30m...is_signal?\e[0m
-        |       `-- \e[32m...compute_binary_signal\e[0m
-        |-- \e[32m...b\e[0m
-        |   `-- \e[32m...task_wrap.call_task\e[0m
-        |       |-- \e[30m...invoke_provider\e[0m
-        |       |-- \e[30m...is_signal?\e[0m
-        |       `-- \e[32m...compute_binary_signal\e[0m
-        `-- \e[30m...End.success\e[0m
-            `-- \e[30m...task_wrap.call_task\e[0m
+    puts output
+    assert_equal output, %(\e[30mOperationTest::MyOperation\e[0m
+`-- \e[30mtask_wrap.call_task\e[0m
+    |-- \e[32ma\e[0m
+    |   `-- \e[32mtask_wrap.call_task\e[0m
+    |       |-- \e[30minvoke_provider\e[0m
+    |       |-- \e[30mis_signal?\e[0m
+    |       `-- \e[32mcompute_binary_signal\e[0m
+    |-- \e[32mb\e[0m
+    |   `-- \e[32mtask_wrap.call_task\e[0m
+    |       |-- \e[30minvoke_provider\e[0m
+    |       |-- \e[30mis_signal?\e[0m
+    |       `-- \e[32mcompute_binary_signal\e[0m
+    `-- \e[30mEnd.success\e[0m
+        `-- \e[30mtask_wrap.call_task\e[0m
 )
   end
 
-  it "Operation.wtf?" do
+  it "Operation.wtf? with raise" do
     result, output = nil
 
     output, _ = capture_io do
@@ -81,6 +81,10 @@ class OperationTest < Minitest::Spec
                 |-- \e[30m...invoke_provider\e[0m
                 `-- \e[30m...is_signal?\e[0m
 )
+  end
+
+  it "Operation.wtf? can show all steps " do
+    raise "implement me"
   end
 
 #   it "canonical invoke #__ allows a second argument and accepts invoke options" do
