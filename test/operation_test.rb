@@ -73,13 +73,12 @@ class OperationTest < Minitest::Spec
     end
 
     assert_equal result, nil
-    assert_equal output, %(\e[37m...OperationTest::MyOperation\e[0m
-`-- \e[37m...wtf_top_canonical\e[0m
-    `-- \e[37m...task_wrap.call_task\e[0m
-        `-- \e[30m...a\e[0m
-            `-- \e[30m...task_wrap.call_task\e[0m
-                |-- \e[30m...invoke_provider\e[0m
-                `-- \e[30m...is_signal?\e[0m
+    assert_equal output, %(\e[30mOperationTest::MyOperation\e[0m
+`-- \e[37mtask_wrap.call_task\e[0m
+    `-- \e[30ma\e[0m
+        `-- \e[30mtask_wrap.call_task\e[0m
+            |-- \e[30minvoke_provider\e[0m
+            `-- \e[30mis_signal?\e[0m
 )
   end
 
