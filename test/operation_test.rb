@@ -38,6 +38,19 @@ class OperationTest < Minitest::Spec
     raise "show me"
   end
 
+  it "provides variable mapping API" do
+    my_operation = Class.new(Trailblazer::Operation) do
+      step :a, In() => [:seq, :params]
+
+      def a(ctx, seq:, params:, **kws)
+        seq << params
+        seq << kws
+      end
+    end
+
+    assert_run my_operation, seq: [{id: 1}, {}], target_ctx: {seq: [], params: {id: 1}}, terminus: :success
+  end
+
   it "Operation.wtf?" do
     result = nil
     output, _ = capture_io do

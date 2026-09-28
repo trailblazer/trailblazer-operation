@@ -18,6 +18,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "trailblazer-activity-dsl"#, ">= 2.0.0", "< 2.1.0"
+  spec.add_dependency "trailblazer-activity-variable-mapping"#, ">= 2.0.0", "< 2.1.0"
   # spec.add_dependency "trailblazer-developer", ">= 0.2.0", "< 0.3.0"
   # spec.add_dependency "trailblazer-invoke"
 

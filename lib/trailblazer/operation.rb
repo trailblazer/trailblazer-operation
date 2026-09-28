@@ -1,5 +1,6 @@
 require "trailblazer/operation/version"
 require "trailblazer/activity/dsl"
+require "trailblazer/activity/variable_mapping" # we want that feature: In(), Out(), Inject().
 require "trailblazer/developer"
 # require "trailblazer/invoke"
 # require "forwardable"
@@ -8,6 +9,23 @@ require "trailblazer/developer"
 # Developer's docs: https://trailblazer.to/2.1/docs/internals.html#internals-operation
 #
 module Trailblazer
+  # Add the variable mapping feature.
+  # by adding it to FastTrack before we inherit, we get it for free.
+  [
+    Activity::Path,
+    Activity::Railway,
+    Activity::FastTrack
+  ].each do |topology|
+    activity, builder, helper_forwarder = Activity::DSL::Topology.build(
+      builder: topology.config.builder,
+      default_options: {},
+      **Activity::VariableMapping::TOPOLOGY_BUILD_OPTIONS # :helpers and :adds
+    )
+
+    topology.config.builder = builder
+    topology.extend helper_forwarder
+  end
+
   # The Trailblazer-style operation.
   # Note that you don't have to use our "opinionated" version with result object, etc.
   #
@@ -24,6 +42,7 @@ module Trailblazer
       # FIXME: i took this from wtf_test, this should be shipped with developer.
       [:my_trace, Circuit::Node[Developer::Trace::Invoke.method(:add_options_for_trace), Circuit::Task::Adapter::LibInterface], :before, :produce_wrap_runtime],
       [:my_wtf, Circuit::Node[Developer::Wtf::Invoke.method(:produce_wtf_node), Circuit::Task::Adapter::LibInterface], :before, :produce_wrap_runtime],
+      [:my_wtf_2, Circuit::Node[Trailblazer::Developer::Wtf::Invoke.method(:produce_condition), Trailblazer::Circuit::Task::Adapter::LibInterface], :before, :produce_wrap_runtime],
     )
 
     # NOTE: this is only invoked once, by you, on the very top level.
@@ -37,6 +56,7 @@ module Trailblazer
 
       lib_ctx, flow_options, signal = Activity::Invoke.(self, lib_ctx, compiler: args_compiler,
         extensions: [], # FIXME: who defauls this?
+        conditions: [], # FIXME: who defauls this?
         id: self.inspect, # FIXME: who defauls this?
       )
 
@@ -49,8 +69,6 @@ module Trailblazer
 end
 
 require "trailblazer/operation/result"
-
-# Trailblazer::Operation.configure! { {} } # create a default Operation.() with no dynamic args set.
 
 =begin
 Trailblazer::Operation.instance_variable_get(:@state).update!(:fields) do |fields|
