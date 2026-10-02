@@ -35,7 +35,13 @@ class OperationTest < Minitest::Spec
   end
 
   it "Operation provides Wiring API" do
-    raise "show me"
+    my_operation = Class.new(Trailblazer::Operation) do
+      step :a, Output(:success) => Track(:fail_fast)
+
+      include T.def_steps(:a)
+    end
+
+    assert_run my_operation, seq: [:a], terminus: :fail_fast
   end
 
   it "provides variable mapping API" do
@@ -51,10 +57,10 @@ class OperationTest < Minitest::Spec
     assert_run my_operation, seq: [{id: 1}, {}], target_ctx: {seq: [], params: {id: 1}}, terminus: :success
   end
 
-  it "Operation.wtf?" do
+  it "Operation.wtf?(all: true) traces even library steps" do
     result = nil
     output, _ = capture_io do
-      result = MyOperation.wtf?(seq: [1])
+      result = MyOperation.wtf?(seq: [1], all: true)
     end
 
     assert_result result, true, seq: [1, :a, :b]
@@ -87,6 +93,21 @@ class OperationTest < Minitest::Spec
 
     assert_equal result, nil
     assert_equal output, %(\e[30mOperationTest::MyOperation\e[0m
+`-- \e[31m\e[1ma\e[0m
+)
+  end
+
+  it "Operation.wtf?(all: true) with raise" do
+    result, output = nil
+
+    output, _ = capture_io do
+      assert_raises KeyError do
+        result = MyOperation.wtf?(seq: [1], a: Class.new(Trailblazer::Activity::Signal))
+      end
+    end
+
+    assert_equal result, nil
+    assert_equal output, %(\e[30mOperationTest::MyOperation\e[0m
 `-- \e[37mtask_wrap.call_task\e[0m
     `-- \e[30ma\e[0m
         `-- \e[30mtask_wrap.call_task\e[0m
@@ -95,8 +116,19 @@ class OperationTest < Minitest::Spec
 )
   end
 
-  it "Operation.wtf? can show all steps " do
-    raise "implement me"
+  it "Operation.wtf?" do
+    result = nil
+    output, _ = capture_io do
+      result = MyOperation.wtf?(seq: [1])
+    end
+
+    assert_result result, true, seq: [1, :a, :b]
+    puts output
+    assert_equal output, %(\e[30mOperationTest::MyOperation\e[0m
+|-- \e[32ma\e[0m
+|-- \e[32mb\e[0m
+`-- \e[30mEnd.success\e[0m
+)
   end
 
 #   it "canonical invoke #__ allows a second argument and accepts invoke options" do
