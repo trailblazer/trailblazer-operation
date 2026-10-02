@@ -16,7 +16,7 @@ module Trailblazer
     Activity::Railway,
     Activity::FastTrack
   ].each do |topology|
-    activity, builder, helper_forwarder = Activity::DSL::Topology.build(
+    _circuit, _outputs, builder, helper_forwarder = Activity::DSL::Topology.build(
       builder: topology.config.builder,
       default_options: {},
       **Activity::VariableMapping::TOPOLOGY_BUILD_OPTIONS # :helpers and :adds
@@ -51,13 +51,14 @@ module Trailblazer
       invoke_with_args_compiler(options)
     end
 
-    def self.invoke_with_args_compiler(options, args_compiler: config.args_compiler_for_invoke)
-      lib_ctx = {target_ctx: options}
+    def self.invoke_with_args_compiler(target_ctx, args_compiler: config.args_compiler_for_invoke, **options_for_invoke)
+      lib_ctx = {target_ctx: target_ctx}
 
       lib_ctx, flow_options, signal = Activity::Invoke.(self, lib_ctx, compiler: args_compiler,
         extensions: [], # FIXME: who defauls this?
         conditions: [], # FIXME: who defauls this?
         id: self.inspect, # FIXME: who defauls this?
+        **options_for_invoke
       )
 
       return Result.build(signal, lib_ctx.fetch(:target_ctx))
