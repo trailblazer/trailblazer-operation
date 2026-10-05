@@ -35,6 +35,10 @@ class OperationTest < Minitest::Spec
     assert_result MyOperation.(ctx), true, seq: [1, :a, :b]
   end
 
+  it "Operation.call with positional target_ctx and **options_for_invoke" do
+
+  end
+
   it "Operation provides Wiring API" do
     my_operation = Class.new(Trailblazer::Operation) do
       step :a, Output(:success) => Track(:fail_fast)
@@ -58,10 +62,10 @@ class OperationTest < Minitest::Spec
     assert_run my_operation, seq: [{id: 1}, {}], target_ctx: {seq: [], params: {id: 1}}, terminus: :success
   end
 
-  it "Operation.wtf?(all: true) traces even library steps" do
+  it "Operation.rly? traces even library steps" do
     result = nil
     output, _ = capture_io do
-      result = MyOperation.wtf?(seq: [1], all: true)
+      result = MyOperation.rly?(seq: [1])
     end
 
     assert_result result, true, seq: [1, :a, :b]
@@ -98,12 +102,12 @@ class OperationTest < Minitest::Spec
 )
   end
 
-  it "Operation.wtf?(all: true) with raise" do
+  it "Operation.rly? with raise" do
     result, output = nil
 
     output, _ = capture_io do
       assert_raises KeyError do
-        result = MyOperation.wtf?(seq: [1], a: Class.new(Trailblazer::Activity::Signal))
+        result = MyOperation.rly?(seq: [1], a: Class.new(Trailblazer::Activity::Signal))
       end
     end
 
@@ -113,7 +117,7 @@ class OperationTest < Minitest::Spec
     `-- \e[30ma\e[0m
         `-- \e[30mtask_wrap.call_task\e[0m
             |-- \e[30minvoke_provider\e[0m
-            `-- \e[30mis_signal?\e[0m
+            `-- \e[31m\e[1mis_signal?\e[0m
 )
   end
 
