@@ -31,7 +31,8 @@ class OperationTest < Minitest::Spec
   end
 
   it "Operation.call with positional hash" do
-
+    ctx = {seq: [1]}
+    assert_result MyOperation.(ctx), true, seq: [1, :a, :b]
   end
 
   it "Operation provides Wiring API" do

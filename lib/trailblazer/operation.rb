@@ -47,7 +47,9 @@ module Trailblazer
 
     # NOTE: this is only invoked once, by you, on the very top level.
     #       Nested operations don't have their .call method invoked.
-    def self.call(**options, &block) # TODO: deal with matcher/block
+    def self.call(ctx = nil, **options, &block) # TODO: deal with matcher/block
+      options = ctx if ctx
+
       invoke_with_args_compiler(options)
     end
 
