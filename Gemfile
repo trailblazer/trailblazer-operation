@@ -12,8 +12,9 @@ gemspec
 # gem "trailblazer-invoke",               path: "../trailblazer-invoke"
 
 # for CI dev.
+gem "trailblazer-circuit",     github: "trailblazer/trailblazer-circuit"
 gem "trailblazer-activity",     github: "trailblazer/trailblazer-activity"
-gem "trailblazer-developer",    github: "trailblazer/trailblazer-developer"
+gem "trailblazer-developer",    github: "trailblazer/trailblazer-developer", branch: "3-0-dev"
 gem "trailblazer-activity-dsl", github: "trailblazer/trailblazer-activity-dsl"
 gem "trailblazer-core-utils",   github: "trailblazer/trailblazer-core-utils"
 gem "trailblazer-activity-variable-mapping",     github: "trailblazer/trailblazer-activity-variable-mapping"
