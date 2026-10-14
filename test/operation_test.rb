@@ -97,7 +97,7 @@ class OperationTest < Minitest::Spec
     end
 
     assert_equal result, nil
-    assert_equal output, %(\e[30mOperationTest::MyOperation\e[0m
+    assert_equal output, %(\e[37mOperationTest::MyOperation\e[0m
 `-- \e[31m\e[1ma\e[0m
 )
   end
@@ -122,17 +122,40 @@ class OperationTest < Minitest::Spec
   end
 
   it "Operation.wtf?" do
-    result = nil
-    output, _ = capture_io do
-      result = MyOperation.wtf?(seq: [1])
+    my_operation = Class.new(Trailblazer::Operation) do
+      step :a
+      step :b,
+        In() => [:seq],
+        Out() => [:seq]
+
+      include T.def_steps(:a)
+
+      def b(ctx, seq:, **)
+        ctx[:pollute] = true
+        ctx[:seq] += [:b]
+      end
     end
 
-    assert_result result, true, seq: [1, :a, :b]
-    puts output
-    assert_equal output, %(\e[30mOperationTest::MyOperation\e[0m
-|-- \e[32ma\e[0m
-|-- \e[32mb\e[0m
-`-- \e[30mEnd.success\e[0m
+raise "test renderer in developer, along with :variable_versions"
+    my_renderer = ->(trace_node:, trace:, variable_versions:, **) {
+      ctx_before = Trailblazer::Developer::Trace::Snapshot.ctx_from_snapshot(trace_node.snapshot_before, variable_versions)
+      ctx_after  = Trailblazer::Developer::Trace::Snapshot.ctx_from_snapshot(trace_node.snapshot_after, variable_versions)
+
+      [trace_node.level, "#{trace_node.id} #{ctx_before} #{ctx_after}"]
+    }
+
+    result = nil
+    output, _ = capture_io do
+      result = my_operation.wtf?({seq: [1], rubbish: 1}, {flow_options: {renderer: my_renderer}}) # DISCUSS: do we like this signature?
+    end
+
+    # We can see the ctx *after* In() and *after* Out() in {b}.
+    assert_result result, true, seq: [1, :a, :b], rubbish: 1
+    # puts output
+    assert_equal output.sub(/0x\w+/, ""), %(#<Class:> {:seq=>"[1]", :rubbish=>"1"} {:seq=>"[1, :a, :b]", :rubbish=>"1"}
+|-- a {:seq=>"[1]", :rubbish=>"1"} {:seq=>"[1, :a]", :rubbish=>"1"}
+|-- b {:seq=>"[1, :a]"} {:seq=>"[1, :a, :b]", :rubbish=>"1"}
+`-- End.success {:seq=>"[1, :a, :b]", :rubbish=>"1"} {:seq=>"[1, :a, :b]", :rubbish=>"1"}
 )
   end
 

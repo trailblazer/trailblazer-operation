@@ -34,16 +34,9 @@ module Trailblazer
   class Operation < Activity::FastTrack
     # DISCUSS: instead of a #__ method that "acts as a global", let's try it with this directive.
     setting :args_compiler_for_invoke
-    setting :args_compiler_for_debugging # DISCUSS: not sure we need that?
+    # setting :args_compiler_for_debugging # DISCUSS: not sure we need that? should we copy from Developer::Trace:::?
 
     config.args_compiler_for_invoke = Activity::Invoke::Args::Compiler # so far, the most basic.
-    config.args_compiler_for_debugging = Circuit::Adds.(
-      Activity::Invoke::Args::Compiler,
-      # FIXME: i took this from wtf_test, this should be shipped with developer.
-      [:my_trace, Circuit::Node[Developer::Trace::Invoke.method(:add_options_for_trace), Circuit::Task::Adapter::LibInterface], :before, :produce_wrap_runtime],
-      [:my_wtf, Circuit::Node[Developer::Wtf::Invoke.method(:produce_wtf_node), Circuit::Task::Adapter::LibInterface], :before, :produce_wrap_runtime],
-      [:my_wtf_2, Circuit::Node[Trailblazer::Developer::Wtf::Invoke.method(:produce_condition), Trailblazer::Circuit::Task::Adapter::LibInterface], :before, :produce_wrap_runtime],
-    )
 
     # NOTE: this is only invoked once, by you, on the very top level.
     #       Nested operations don't have their .call method invoked.
@@ -58,7 +51,6 @@ module Trailblazer
 
       lib_ctx, flow_options, signal = Activity::Invoke.(self, lib_ctx, compiler: args_compiler,
         extensions: [], # FIXME: who defauls this?
-        conditions: [], # FIXME: who defauls this?
         id: self.inspect, # FIXME: who defauls this?
         **options_for_invoke
       )
