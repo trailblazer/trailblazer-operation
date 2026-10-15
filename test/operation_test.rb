@@ -136,8 +136,9 @@ class OperationTest < Minitest::Spec
       end
     end
 
-raise "test renderer in developer, along with :variable_versions"
-    my_renderer = ->(trace_node:, trace:, variable_versions:, **) {
+    my_renderer = ->(trace_node:, trace:, stack:, **) {
+      variable_versions = stack.variable_versions # TODO: discuss API.
+
       ctx_before = Trailblazer::Developer::Trace::Snapshot.ctx_from_snapshot(trace_node.snapshot_before, variable_versions)
       ctx_after  = Trailblazer::Developer::Trace::Snapshot.ctx_from_snapshot(trace_node.snapshot_after, variable_versions)
 
