@@ -2,8 +2,6 @@ require "trailblazer/operation/version"
 require "trailblazer/activity/dsl"
 require "trailblazer/activity/variable_mapping" # we want that feature: In(), Out(), Inject().
 require "trailblazer/developer"
-# require "trailblazer/invoke"
-# require "forwardable"
 
 #
 # Developer's docs: https://trailblazer.to/2.1/docs/internals.html#internals-operation
@@ -16,14 +14,14 @@ module Trailblazer
     Activity::Railway,
     Activity::FastTrack
   ].each do |topology|
-    _circuit, _outputs, builder, helper_forwarder = Activity::DSL::Topology.build(
+    _circuit, _outputs, builder, helpers_module = Activity::DSL::Topology.build(
       builder: topology.config.builder,
       default_options: {},
       **Activity::VariableMapping::TOPOLOGY_BUILD_OPTIONS # :helpers and :adds
     )
 
     topology.config.builder = builder
-    topology.extend helper_forwarder
+    topology.include helpers_module
   end
 
   # The Trailblazer-style operation.
