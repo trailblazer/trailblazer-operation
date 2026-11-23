@@ -153,10 +153,11 @@ class OperationTest < Minitest::Spec
     # We can see the ctx *after* In() and *after* Out() in {b}.
     assert_result result, true, seq: [1, :a, :b], rubbish: 1
     # puts output
-    assert_equal output.sub(/0x\w+/, ""), %(#<Class:> {:seq=>"[1]", :rubbish=>"1"} {:seq=>"[1, :a, :b]", :rubbish=>"1"}
-|-- a {:seq=>"[1]", :rubbish=>"1"} {:seq=>"[1, :a]", :rubbish=>"1"}
-|-- b {:seq=>"[1, :a]"} {:seq=>"[1, :a, :b]", :rubbish=>"1"}
-`-- End.success {:seq=>"[1, :a, :b]", :rubbish=>"1"} {:seq=>"[1, :a, :b]", :rubbish=>"1"}
+    h = ->(**ctx) { ctx.inspect } # Hash#inspect differs between Ruby 3.3 and 3.4+.
+    assert_equal output.sub(/0x\w+/, ""), %(#<Class:> #{h.(seq: "[1]", rubbish: "1")} #{h.(seq: "[1, :a, :b]", rubbish: "1")}
+|-- a #{h.(seq: "[1]", rubbish: "1")} #{h.(seq: "[1, :a]", rubbish: "1")}
+|-- b #{h.(seq: "[1, :a]")} #{h.(seq: "[1, :a, :b]", rubbish: "1")}
+`-- End.success #{h.(seq: "[1, :a, :b]", rubbish: "1")} #{h.(seq: "[1, :a, :b]", rubbish: "1")}
 )
   end
 
